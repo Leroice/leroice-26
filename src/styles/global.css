@@ -7,17 +7,17 @@
 @font-face {
   font-family: 'Geist';
   src: url('/fonts/Geist-Regular.woff2') format('woff2');
-  font-weight: 400; font-style: normal; font-display: swap;
+  font-weight: 400; font-style: normal; font-display: optional;
 }
 @font-face {
   font-family: 'Geist';
   src: url('/fonts/Geist-Medium.woff2') format('woff2');
-  font-weight: 450; font-style: normal; font-display: swap;
+  font-weight: 450; font-style: normal; font-display: optional;
 }
 @font-face {
   font-family: 'Geist';
   src: url('/fonts/Geist-SemiBold.woff2') format('woff2');
-  font-weight: 600; font-style: normal; font-display: swap;
+  font-weight: 600; font-style: normal; font-display: optional;
 }
 /* ── Tokens (Figma) ─────────────────────────────────────── */
 
@@ -120,7 +120,12 @@
 /* ── Reset ──────────────────────────────────────────────── */
 
 *, *::before, *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; }
+html {
+  -webkit-text-size-adjust: 100%;
+  /* Always reserve the scrollbar gutter so centered layouts don't shift
+     sideways when a vertical scrollbar appears after content loads. */
+  scrollbar-gutter: stable;
+}
 
 body {
   margin: 0;
@@ -506,6 +511,9 @@ img, video { max-width: 100%; height: auto; display: block; }
    readable measure beneath it. */
 .list__detail {
   margin-top: 2rem;
+  /* Match the row's internal padding so the hero + body align with the
+     heading text (which is inset by the row's 16px padding). */
+  padding: 0 var(--sp-base);
 }
 .list__detail .detail__back { display: inline-block; margin-bottom: 2rem; }
 
