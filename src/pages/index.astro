@@ -387,6 +387,35 @@ const inlineEntries = await Promise.all(
       if (target) setActive(target);
     });
 
+    // ── Preview panel visibility ──
+    // The rollover preview only shows while the pointer is within the list
+    // column. It fades in from blur (like everything else on the site). On
+    // leave it waits 1800ms before fading back out.
+    const previewPanel = document.querySelector('.preview') as HTMLElement | null;
+    if (previewPanel) {
+      const FADE = 'opacity 520ms var(--image-ease), filter 520ms var(--image-ease)';
+      let hideTimer = 0;
+      // Start hidden, without animating the initial state.
+      previewPanel.style.transition = 'none';
+      previewPanel.style.opacity = '0';
+      previewPanel.style.filter = 'blur(8px)';
+      requestAnimationFrame(() => { previewPanel.style.transition = FADE; });
+
+      list.addEventListener('pointerenter', () => {
+        clearTimeout(hideTimer);
+        previewPanel.style.transition = FADE;
+        previewPanel.style.opacity = '1';
+        previewPanel.style.filter = 'blur(0px)';
+      });
+      list.addEventListener('pointerleave', () => {
+        clearTimeout(hideTimer);
+        hideTimer = window.setTimeout(() => {
+          previewPanel.style.opacity = '0';
+          previewPanel.style.filter = 'blur(8px)';
+        }, 1800);
+      });
+    }
+
     let resizeRaf = 0;
     window.addEventListener('resize', () => {
       cancelAnimationFrame(resizeRaf);
@@ -631,7 +660,9 @@ const inlineEntries = await Promise.all(
             if (r !== row) r.style.cssText = '';
           }
           if (pw) { pw.style.transition = ''; pw.style.opacity = ''; }
-          if (preview) { preview.style.transition = ''; preview.style.opacity = ''; }
+          // Leave the preview hidden after closing — it only re-shows when the
+          // pointer next enters the list (keeping its transition for the fade).
+          if (preview) { preview.style.opacity = '0'; preview.style.filter = 'blur(8px)'; }
 
           // Reset the pill's velocity-driven CSS vars to rest so it doesn't
           // snap from a stale value when the list returns.
