@@ -28,6 +28,35 @@ const bounceOut: EasingFn = (t) => {
   return n1 * (t -= 2.625 / d1) * t + 0.984375;
 };
 
+/** CSS-style cubic-bezier(x1,y1,x2,y2) as an EasingFn (Newton + bisection). */
+export function cubicBezier(x1: number, y1: number, x2: number, y2: number): EasingFn {
+  const cx = 3 * x1, bx = 3 * (x2 - x1) - cx, ax = 1 - cx - bx;
+  const cy = 3 * y1, by = 3 * (y2 - y1) - cy, ay = 1 - cy - by;
+  const sampleX = (t: number) => ((ax * t + bx) * t + cx) * t;
+  const sampleY = (t: number) => ((ay * t + by) * t + cy) * t;
+  const sampleDX = (t: number) => (3 * ax * t + 2 * bx) * t + cx;
+  const solveX = (x: number) => {
+    let t = x;
+    for (let i = 0; i < 8; i++) {
+      const d = sampleDX(t);
+      if (Math.abs(d) < 1e-6) break;
+      const e = sampleX(t) - x;
+      if (Math.abs(e) < 1e-6) return t;
+      t -= e / d;
+    }
+    let lo = 0, hi = 1;
+    t = x;
+    while (lo < hi) {
+      const e = sampleX(t);
+      if (Math.abs(e - x) < 1e-6) break;
+      if (x > e) lo = t; else hi = t;
+      t = (lo + hi) / 2;
+    }
+    return t;
+  };
+  return (t) => (t <= 0 ? 0 : t >= 1 ? 1 : sampleY(solveX(t)));
+}
+
 /** Easing curves, expressed as position-along-path functions of time t∈[0,1].
     The full Penner set — pick any of these by name in the tuner. */
 export const easings: Record<string, EasingFn> = {
@@ -89,6 +118,13 @@ export const easings: Record<string, EasingFn> = {
 
   // Legacy alias kept for back-compat.
   softOut: (t) => 1 - Math.pow(1 - t, 3),
+
+  // Soft-landing curves — smooth in, very gentle settle at the very end
+  // (the control point lands at y=1 with a low x, so the tail creeps in).
+  glide: cubicBezier(0.4, 0.0, 0.0, 1.0),
+  softLand: cubicBezier(0.25, 0.0, 0.0, 1.0),
+  decelerate: cubicBezier(0.0, 0.0, 0.0, 1.0),
+  gentle: cubicBezier(0.37, 0.0, 0.18, 1.0),
 };
 
 export interface SpringOptions {
@@ -190,7 +226,10 @@ export function arcFlip(el: HTMLElement, from: DOMRect, opts: ArcFlipOptions = {
     const p = i / o.samples;          // linear time 0→1
     const e = o.easing(p);            // eased progress along the path
     const x = dx * (1 - e);
-    const y = dy * (1 - e) + yieldPx * Math.sin(Math.PI * p); // +Y = downward dip
+    // The downward yield rides the EASED progress (not linear time), so the
+    // dip recovers with the easing's own soft, near-zero end velocity — it
+    // settles in gently instead of still moving when it stops.
+    const y = dy * (1 - e) + yieldPx * Math.sin(Math.PI * e);
     const scaleX = sx + (1 - sx) * e;
     const scaleY = sy + (1 - sy) * e;
     frames.push({
