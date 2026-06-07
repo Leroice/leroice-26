@@ -137,6 +137,7 @@ const inlineEntries = await Promise.all(
       <label><span class="tuner__lab">Min yield <output id="out-iyield"></output></span><input type="range" id="tune-iyield" /></label>
       <label><span class="tuner__lab">Cascade step <output id="out-sgstep"></output></span><input type="range" id="tune-sgstep" /></label>
       <label><span class="tuner__lab">Cascade blur <output id="out-sgblur"></output></span><input type="range" id="tune-sgblur" /></label>
+      <label><span class="tuner__lab">Image follow <output id="out-pfollow"></output></span><input type="range" id="tune-pfollow" /></label>
       <label><span class="tuner__lab">Easing</span>
         <select id="tune-easing"></select>
       </label>
@@ -440,6 +441,8 @@ const inlineEntries = await Promise.all(
     image: { duration: 980,  delay: 0, arc: 0.1, minYield: 58, scale: true },
     // Proximity cascade when a row opens: nearest rows fade+blur out first.
     stagger: { step: 15, blur: 6, outDuration: 340 },
+    // ms the preview image trails the rollover pill (both directions).
+    previewFollow: 300,
   };
   // Mutable runtime config — the TUNING panel writes here + to localStorage.
   const CHOREO = (() => {
@@ -453,6 +456,7 @@ const inlineEntries = await Promise.all(
           title: { ...DEFAULT_CHOREO.title, ...(saved.title || {}) },
           image: { ...DEFAULT_CHOREO.image, ...(saved.image || {}) },
           stagger: { ...DEFAULT_CHOREO.stagger, ...(saved.stagger || {}) },
+          previewFollow: saved.previewFollow ?? DEFAULT_CHOREO.previewFollow,
         };
       }
     } catch { /* ignore bad storage */ }
@@ -462,6 +466,9 @@ const inlineEntries = await Promise.all(
     CHOREO.easing === 'spring'
       ? makeSpring(CHOREO.spring)
       : (easings[CHOREO.easing] || easings.expoOut);
+
+  // Apply the persisted image-follow delay (pill leads, image trails).
+  document.documentElement.style.setProperty('--preview-follow', CHOREO.previewFollow + 'ms');
 
   {
     const split = document.querySelector('.split') as HTMLElement;
@@ -731,6 +738,7 @@ const inlineEntries = await Promise.all(
           { path: ['image', 'minYield'], id: 'iyield', min: 0,   max: 120,  step: 2,    unit: 'px' },
           { path: ['stagger', 'step'],   id: 'sgstep', min: 0,   max: 120,  step: 5,    unit: 'ms' },
           { path: ['stagger', 'blur'],   id: 'sgblur', min: 0,   max: 20,   step: 1,    unit: 'px' },
+          { path: ['previewFollow'],     id: 'pfollow', min: 0,  max: 800,  step: 20,   unit: 'ms', cssVar: '--preview-follow' },
           { path: ['spring', 'stiffness'], id: 'sstiff', min: 40,  max: 900, step: 10,  unit: '' },
           { path: ['spring', 'damping'],   id: 'sdamp',  min: 4,   max: 160, step: 2,   unit: '' },
           { path: ['spring', 'mass'],      id: 'smass',  min: 0.5, max: 8,   step: 0.5, unit: '' },
@@ -760,6 +768,9 @@ const inlineEntries = await Promise.all(
             const out = tuner.querySelector(`#out-${f.id}`) as HTMLElement | null;
             if (input) input.value = String(getVal(f.path));
             if (out) out.textContent = getVal(f.path) + f.unit;
+            if ((f as any).cssVar) {
+              document.documentElement.style.setProperty((f as any).cssVar, getVal(f.path) + f.unit);
+            }
           }
           const sel = tuner.querySelector('#tune-easing') as HTMLSelectElement | null;
           if (sel) sel.value = CHOREO.easing;
@@ -776,6 +787,9 @@ const inlineEntries = await Promise.all(
             const v = parseFloat(input.value);
             setVal(f.path, v);
             if (out) out.textContent = v + f.unit;
+            if ((f as any).cssVar) {
+              document.documentElement.style.setProperty((f as any).cssVar, v + f.unit);
+            }
             save();
           });
         }
@@ -819,6 +833,7 @@ const inlineEntries = await Promise.all(
             `  title: { duration: ${c.title.duration}, delay: ${c.title.delay}, arc: ${c.title.arc}, scale: ${c.title.scale} },\n` +
             `  image: { duration: ${c.image.duration}, delay: ${c.image.delay}, arc: ${c.image.arc}, minYield: ${c.image.minYield}, scale: ${c.image.scale} },\n` +
             `  stagger: { step: ${c.stagger.step}, blur: ${c.stagger.blur}, outDuration: ${c.stagger.outDuration} },\n` +
+            `  previewFollow: ${c.previewFollow},\n` +
             `};`;
           try { await navigator.clipboard.writeText(cfg); flash('copied ✓'); }
           catch { flash('copy failed'); }
