@@ -388,19 +388,28 @@ const inlineEntries = await Promise.all(
       if (target) setActive(target);
     });
 
-    // ── Pill (rollover bar) visibility ──
-    // The pill only shows while the pointer is within the list column. It
-    // fades in from blur (like everything else); on leave it waits 1800ms
-    // before fading back out. Driven by the --pill-visible custom property
-    // (see global.css): the list gets .is-hovered while the pointer is inside.
+    // ── Pill + preview visibility ──
+    // Only valid while the pointer is actively over a ROW (the text item) —
+    // not just anywhere in the left column. Rolling off the rows (into empty
+    // space or out of the window) starts the 1800ms wait before fading out.
+    // Driven by .is-hovered on the list (gates --pill-visible + the preview).
     let pillHideTimer = 0;
-    list.addEventListener('pointerenter', () => {
+    const showHover = () => {
       clearTimeout(pillHideTimer);
       list.classList.add('is-hovered');
-    });
-    list.addEventListener('pointerleave', () => {
+    };
+    const scheduleHide = () => {
       clearTimeout(pillHideTimer);
       pillHideTimer = window.setTimeout(() => list.classList.remove('is-hovered'), 1800);
+    };
+    list.addEventListener('pointerover', (e) => {
+      if ((e.target as HTMLElement).closest('[data-row]')) showHover();
+    });
+    list.addEventListener('pointerout', (e) => {
+      // Ignore moves that stay within the rows (row-to-row, or between a row's
+      // own children); only schedule the hide when leaving the rows entirely.
+      const to = (e.relatedTarget as HTMLElement | null);
+      if (!to || !to.closest('[data-row]')) scheduleHide();
     });
 
     let resizeRaf = 0;
