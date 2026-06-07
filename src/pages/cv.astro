@@ -1,0 +1,468 @@
+---
+import Base from '../layouts/Base.astro';
+
+/* CV content — Figma node 32:124 (light) / 32:125 (dark).
+   Data-driven so entries stay easy to edit. */
+
+const profile = [
+  "Design Director and Lead UX Designer with over two decades delivering high-impact digital products at enterprise scale. Deep expertise in fintech and financial services — from zero-to-one platform launches to multi-market design system convergence across global teams. Known for translating complex product strategy into intuitive, high-performing experiences, and for building and leading design organisations that ship fast without sacrificing craft.",
+  "Currently driving the design program for a next-generation multicurrency digital wallet across AU and MX markets. Career spans fintech, enterprise SaaS, brand, retail, and physical product design — with a consistent thread of commercial impact, creative leadership, and work at scale.",
+];
+
+const impact = [
+  { stat: "1M customers",  desc: "acquired in 24 months — fastest digital banking app growth in Australia" },
+  { stat: "$2.4B+ FUM",    desc: "delivered within 18 months of ANZ Plus launch" },
+  { stat: "3.2 → 4.6★",    desc: "App Store rating uplift across 4M+ customer migration in 3 months" },
+  { stat: "$100M+",        desc: "fraud cost reduction in year one via VoiceID biometric authentication design" },
+  { stat: "+54 NPS",       desc: "onboarding improvement through a fully-digital join experience" },
+  { stat: "5× adoption",   desc: "cross-platform design system (iOS/Android/Web/AEM) vs legacy, ~4 weeks saved per feature" },
+  { stat: "15+ designers", desc: "mentored into senior and leadership roles; 3× the bank average promotion rate" },
+  { stat: "$4M+",          desc: "potential profit secured via brand licensing pitches to UFC and Under Armour" },
+];
+
+const current = [
+  {
+    role: "Lead UX Designer / Design Director",
+    org: "TELUS Digital · Western Union E1 Wallet · Melbourne, AU",
+    date: "Oct 2025 — Present",
+    bullets: [
+      "Leading UX design for the E1 Wallet — a next-generation multicurrency digital wallet transitioning Western Union from a legacy remittance platform to a full-service global financial product.",
+      "Driving a cross-market design audit across AU and MX, classifying ~360 screens across 34 flows using a Core / Configurable / Local framework to identify systemic drift and establish a shared baseline for global scale.",
+      "Operating as embedded design leadership within a cross-functional product, engineering and PMO team; influencing roadmap priorities, sprint planning and QA standards at director level.",
+      "Leading design system strategy across market variants, resolving navigation, scroll behaviour and component inconsistencies ahead of Friends & Family release.",
+      "Mentoring and directing a distributed design team across AU and India spanning research, UX and interaction design.",
+      "Leveraging Claude and AI-powered workflows across audit analysis, design documentation, stakeholder communications and sprint planning — compressing days into hours.",
+      "Led contract negotiations and co-created an 18-month design system rollout roadmap as part of business development between TELUS Digital and Western Union.",
+      "Managed the engagement end-to-end — SOWs, client management, status reporting — while staying hands-on with the day-to-day design work.",
+    ],
+  },
+  {
+    role: "Founding Designer",
+    org: "Meddle · Melbourne, AU · Healthtech startup",
+    date: "Sep 2025 — Present",
+    bullets: [
+      "Founding designer for Meddle — a healthtech platform built around a radical proposition: patients own their health record. Meddle connects patients and practitioners through AI-powered matching, shared appointments and a personalised longitudinal health record patients carry across every provider they see.",
+      "Responsible for product design, brand identity, and end-to-end UX direction from zero — shaping the core interaction model for the patient-facing and practitioner-facing sides of the platform.",
+      "Currently in active pilot with 400 allied health professionals, validating clinical workflows and iterating in a live environment.",
+    ],
+  },
+];
+
+const prior = [
+  {
+    role: "Principal Designer / Design Director",
+    org: "ANZ Plus · Melbourne, AU",
+    date: "Jun 2019 — 2025",
+    bullets: [
+      "Joined as one of the founding designers for ANZ Plus and scaled the design function from 2 to 40+ in 24 months, reaching 1M customers and $2.4B+ FUM within 18 months of launch.",
+      "Championed and led creation of a cross-platform design system (iOS, Android, Web, AEM, Email) achieving 5× asset adoption vs legacy and reducing per-feature build time by ~4 weeks.",
+      "Secured C-suite alignment on Financial Wellbeing as a core product differentiator — a 23% uplift in engagement vs the classic ANZ app.",
+      "Led end-to-end payment card design: digital ordering, in-app application (35% reduction in application time), packaging and fulfilment (3 weeks → under 4 days), and Apple Pay used by 60%+ of active cardholders within 3 months.",
+      "Directed AEM marketing-site framework rollout, converting $480M in home-loan customers via web channels in 6 months.",
+      "Mentored 15+ designers into senior and leadership roles — 3× the bank average promotion rate.",
+    ],
+  },
+  {
+    role: "Principal Designer — Digital Customer Experience",
+    org: "ANZ · Melbourne, AU",
+    date: "Mar 2018 — Jun 2019",
+    bullets: [
+      "Unified the GoMoney and Grow app ecosystems into one experience, migrating 4M+ customers and lifting App Store ratings from 3.2 → 4.6 in 3 months post-release.",
+      "Introduced digital sales to the ANZ app for the first time, driving a 30% increase in in-app sales within 6 months.",
+      "Improved accessibility across native iOS and Android via HIG-aligned patterns, reducing support ticket volume by 18%.",
+    ],
+  },
+  {
+    role: "Creative Director — Group Innovation",
+    org: "ANZ · Melbourne, AU",
+    date: "Sep 2014 — Mar 2018",
+    bullets: [
+      "Designed ANZ's first biometric authentication product (VoiceID), reducing high-limit payment fraud costs by $100M+ in year one.",
+      "Delivered Australia's first unified banking and wealth app across iPad, iPhone and Apple Watch — 250K+ multi-device users in year one.",
+      "Created and pitched the “9 Financial Wellbeing Principles” framework that later embedded across the ANZ Plus platform.",
+    ],
+  },
+  {
+    role: "Senior Product Designer — Contract",
+    org: "Australia Post · ME Bank · Telstra · Factor5 / CourseLoop · Melbourne, AU",
+    date: "2013 — 2015",
+    bullets: [
+      "Australia Post — Senior PD on MyPost Digital Mailbox, a $2B national initiative to digitise postal correspondence, launched with ANZ, Westpac, NAB and AMP as founding partners.",
+      "ME Bank — Lead designer on their first mobile banking app for iPhone and Android.",
+      "Telstra — Product designer on the Telstra Health Gateway.",
+      "Factor5 / CourseLoop — Founding product designer and brand lead for what became CourseLoop, acquired by TechnologyOne (ASX: TNE) in 2024.",
+    ],
+  },
+  {
+    role: "Senior Visual Designer — Customer Experience",
+    org: "ANZ · Melbourne, AU",
+    date: "Oct 2011 — 2013",
+    bullets: [
+      "First design role at ANZ — established the first mobile visual style guide, the foundation for all subsequent design-system work across the bank.",
+      "Delivered consistent, on-brand digital experiences with UX, product and offshore development teams.",
+    ],
+  },
+  {
+    role: "Early Career — Brand, Retail & Product Design",
+    org: "PlayCorp · House Corporate · SL Investments · Caramel Creative · Melbourne, AU",
+    date: "2000 — 2011",
+    bullets: [
+      "Eight years at PlayCorp — Australia's largest integrated homewares, lifestyle and apparel manufacturer. Managed 6 designers, reported to CEO, designed full product ranges for Everlast, The North Face, AFL and NFL distributed through Kmart and major big-box retailers.",
+      "Led the rebrand and relaunch of House — one of Australia's longest-running homeware chains.",
+      "At SL Investments, conceived and pitched brand-licensing concepts to UFC and Under Armour generating $4M+ in potential contract value.",
+      "Brand portfolio: Everlast, The North Face, AFL, NFL, Ben Sherman, FCUK, Guinness, Jack Daniels, Lucasfilm (Star Wars), Fosters Group, Penfolds.",
+    ],
+  },
+  {
+    role: "Specialist",
+    org: "Apple Retail · Regent Street, London",
+    date: "2008 — 2009",
+    bullets: [
+      "Represented Apple's retail brand at its flagship global store during a career sabbatical. Consistently exceeded targets and was invited back for a second stint — formative grounding in product culture, customer experience and brand standards at the highest level.",
+    ],
+  },
+];
+
+const skills = [
+  "Product Design (iOS / Android / Web)",
+  "Design Systems Strategy",
+  "Fintech / Financial Services",
+  "CX Strategy",
+  "Design Leadership & Team Scaling",
+  "Rapid Prototyping",
+  "Stakeholder Management",
+  "Accessibility (WCAG 2.1)",
+  "Figma & Figma Systems Admin",
+  "Play / Swift Prototyping",
+  "AI-augmented Product Design",
+  "Claude / AI Workflows",
+  "Brand & Identity",
+  "Motion Design",
+];
+
+const education = {
+  degree: "Bachelor of Design (Hons)",
+  detail: "Graphic Design / Multimedia — Graduated with Distinction\nFederation University · 1999 – 2002",
+};
+
+const awards = [
+  { title: "Most Frictionless Consumer App",            source: "RFI Global Australian Banking & Finance Awards · 2026", role: "ANZ Plus — Principal Designer / Design Director" },
+  { title: "Digital Lender of the Year · Best for Refinance", source: "We Money Awards · 2025",                          role: "ANZ Plus — Principal Designer / Design Director" },
+  { title: "Gold Cube · 81st ADCNY",                    source: "Art Directors Club New York · 2001",                  role: "Promotional Use Only — CD-ROM" },
+];
+
+const lastUpdated = "June 2026";
+---
+
+<Base
+  title="CV — Leigh Scholten"
+  description="Design Director and Lead UX Designer — two decades of high-impact digital product work across fintech and financial services."
+>
+  <main class="cv">
+    <a href="/" class="cv__back">← back</a>
+
+    <section class="cv-section">
+      <p class="cv-label">profile</p>
+      <div class="cv-content cv-profile">
+        {profile.map((para) => <p>{para}</p>)}
+      </div>
+    </section>
+
+    <section class="cv-section">
+      <p class="cv-label">selected impact</p>
+      <div class="cv-content">
+        <ul class="cv-stats">
+          {impact.map((item) => (
+            <li class="cv-stat">
+              <span class="cv-stat__num">{item.stat}</span>
+              <span class="cv-stat__desc">{item.desc}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+
+    <section class="cv-section">
+      <p class="cv-label">current</p>
+      <div class="cv-content cv-roles">
+        {current.map((job) => (
+          <article class="cv-role">
+            <header class="cv-role__head">
+              <div>
+                <h2 class="cv-role__title">{job.role}</h2>
+                <p class="cv-role__org">{job.org}</p>
+              </div>
+              <span class="cv-role__date">{job.date}</span>
+            </header>
+            <ul class="cv-role__bullets">
+              {job.bullets.map((b) => <li>{b}</li>)}
+            </ul>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="cv-section">
+      <p class="cv-label">prior</p>
+      <div class="cv-content cv-roles">
+        {prior.map((job) => (
+          <article class="cv-role">
+            <header class="cv-role__head">
+              <div>
+                <h2 class="cv-role__title">{job.role}</h2>
+                <p class="cv-role__org">{job.org}</p>
+              </div>
+              <span class="cv-role__date">{job.date}</span>
+            </header>
+            <ul class="cv-role__bullets">
+              {job.bullets.map((b) => <li>{b}</li>)}
+            </ul>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="cv-section">
+      <p class="cv-label">core skills</p>
+      <div class="cv-content">
+        <ul class="cv-skills">
+          {skills.map((skill) => <li class="cv-skill">{skill}</li>)}
+        </ul>
+      </div>
+    </section>
+
+    <section class="cv-section">
+      <p class="cv-label">education &amp; awards</p>
+      <div class="cv-content cv-edu-grid">
+        <div>
+          <p class="cv-subhead">education</p>
+          <h3 class="cv-edu__degree">{education.degree}</h3>
+          <p class="cv-edu__detail">{education.detail}</p>
+        </div>
+        <div>
+          <p class="cv-subhead">awards</p>
+          <ul class="cv-awards">
+            {awards.map((a) => (
+              <li class="cv-award">
+                <h3 class="cv-award__title">{a.title}</h3>
+                <p class="cv-award__source">{a.source}</p>
+                <p class="cv-award__role">{a.role}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <p class="cv-updated">cv · last updated {lastUpdated}</p>
+  </main>
+</Base>
+
+<style>
+  .cv {
+    max-width: var(--page-max);
+    margin: 0 auto;
+    padding: 1rem var(--side-pad) 4rem;
+  }
+
+  .cv__back {
+    display: inline-block;
+    margin-bottom: 3rem;
+    font-family: var(--font-mono);
+    font-size: var(--fs-meta);
+    color: var(--text-primary);
+    opacity: var(--op-strong);
+    text-decoration: none;
+    transition: opacity 160ms ease;
+  }
+  .cv__back:hover { opacity: 1; }
+
+  /* Two-column section: lowercase label rail + content */
+  .cv-section {
+    display: grid;
+    grid-template-columns: 11rem 1fr;
+    column-gap: 3rem;
+    padding: 3rem 0;
+    border-top: 1px solid var(--rule);
+  }
+  .cv-section:first-of-type { border-top: none; padding-top: 0; }
+
+  .cv-label {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--fs-meta);
+    letter-spacing: 0.02em;
+    color: var(--text-primary);
+    opacity: var(--op-soft);
+  }
+
+  .cv-content { min-width: 0; max-width: 46rem; }
+
+  /* Profile */
+  .cv-profile p {
+    margin: 0 0 1.25rem;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .cv-profile p:last-child { margin-bottom: 0; opacity: var(--op-strong); }
+
+  /* Selected impact — stat grid */
+  .cv-stats {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .cv-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 20px;
+    border-radius: var(--radius-md);
+    background: var(--hover-bg);
+  }
+  .cv-stat__num {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: var(--tracking-tight);
+    line-height: 1.1;
+  }
+  .cv-stat__desc {
+    font-size: var(--fs-meta);
+    line-height: 1.45;
+    opacity: var(--op-soft);
+  }
+
+  /* Roles */
+  .cv-roles { display: flex; flex-direction: column; gap: 2.5rem; }
+  .cv-role__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .cv-role__title {
+    margin: 0 0 4px;
+    font-size: var(--fs-name);
+    font-weight: 450;
+    letter-spacing: var(--tracking-tight);
+    line-height: 1.2;
+  }
+  .cv-role__org {
+    margin: 0;
+    font-size: var(--fs-meta);
+    opacity: var(--op-soft);
+  }
+  .cv-role__date {
+    flex-shrink: 0;
+    font-family: var(--font-mono);
+    font-size: var(--fs-meta);
+    opacity: var(--op-soft);
+    white-space: nowrap;
+  }
+  .cv-role__bullets {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+  .cv-role__bullets li {
+    position: relative;
+    padding-left: 1.3rem;
+    font-size: 14px;
+    line-height: 1.5;
+    opacity: var(--op-strong);
+  }
+  .cv-role__bullets li::before {
+    content: "";
+    position: absolute;
+    left: 2px;
+    top: 0.55em;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--text-primary);
+    opacity: var(--op-soft);
+  }
+
+  /* Skills — chips */
+  .cv-skills {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .cv-skill {
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: var(--hover-bg);
+    font-size: var(--fs-meta);
+    letter-spacing: var(--tracking-tight);
+    opacity: var(--op-strong);
+  }
+
+  /* Education + awards */
+  .cv-edu-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+  }
+  .cv-subhead {
+    margin: 0 0 1rem;
+    font-family: var(--font-mono);
+    font-size: var(--fs-meta);
+    opacity: var(--op-soft);
+  }
+  .cv-edu__degree, .cv-award__title {
+    margin: 0 0 6px;
+    font-size: var(--fs-name);
+    font-weight: 450;
+    letter-spacing: var(--tracking-tight);
+    line-height: 1.2;
+  }
+  .cv-edu__detail {
+    margin: 0;
+    font-size: var(--fs-meta);
+    line-height: 1.5;
+    opacity: var(--op-soft);
+    white-space: pre-line;
+  }
+  .cv-awards { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1.5rem; }
+  .cv-award__source {
+    margin: 0 0 4px;
+    font-size: var(--fs-meta);
+    opacity: var(--op-soft);
+  }
+  .cv-award__role {
+    margin: 0;
+    font-size: var(--fs-meta);
+    opacity: var(--op-soft);
+  }
+
+  .cv-updated {
+    margin: 3rem 0 0;
+    padding-top: 2rem;
+    border-top: 1px solid var(--rule);
+    font-family: var(--font-mono);
+    font-size: var(--fs-meta);
+    opacity: var(--op-soft);
+  }
+
+  /* Mobile — collapse rail, label becomes a heading above content */
+  @media (max-width: 880px) {
+    .cv-section { grid-template-columns: 1fr; row-gap: 1.25rem; }
+    .cv-stats { grid-template-columns: repeat(2, 1fr); }
+    .cv-edu-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+    .cv-role__head { flex-direction: column; gap: 4px; }
+  }
+  @media (max-width: 480px) {
+    .cv-stats { grid-template-columns: 1fr; }
+  }
+</style>
