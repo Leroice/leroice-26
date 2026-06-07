@@ -114,6 +114,36 @@ const inlineEntries = await Promise.all(
       </div>
     </aside>
   </main>
+
+  {/* TUNING — live design tool for the list→detail choreography.
+      Sandbox-only: gate or remove before promoting to the real domain. */}
+  <button class="tuner-toggle" type="button" data-tuner-toggle aria-expanded="false">TUNING</button>
+  <aside class="tuner" data-tuner hidden aria-label="Transition tuning">
+    <header class="tuner__head">
+      <span>transition tuning</span>
+      <span class="tuner__status" data-tune-status></span>
+    </header>
+    <div class="tuner__grid">
+      <label><span class="tuner__lab">Lead-in <output id="out-leadIn"></output></span><input type="range" id="tune-leadIn" /></label>
+      <label><span class="tuner__lab">Title duration <output id="out-tdur"></output></span><input type="range" id="tune-tdur" /></label>
+      <label><span class="tuner__lab">Image duration <output id="out-idur"></output></span><input type="range" id="tune-idur" /></label>
+      <label><span class="tuner__lab">Image delay (trail) <output id="out-idelay"></output></span><input type="range" id="tune-idelay" /></label>
+      <label><span class="tuner__lab">Image arc (yield) <output id="out-iarc"></output></span><input type="range" id="tune-iarc" /></label>
+      <label><span class="tuner__lab">Min yield <output id="out-iyield"></output></span><input type="range" id="tune-iyield" /></label>
+      <label><span class="tuner__lab">Easing</span>
+        <select id="tune-easing">
+          <option value="expoOut">expoOut</option>
+          <option value="expoInOut">expoInOut</option>
+          <option value="softOut">softOut</option>
+        </select>
+      </label>
+    </div>
+    <div class="tuner__actions">
+      <button type="button" data-tune-replay>Replay</button>
+      <button type="button" data-tune-copy>Copy</button>
+      <button type="button" data-tune-reset>Reset</button>
+    </div>
+  </aside>
 </Base>
 
 <script>
@@ -371,14 +401,32 @@ const inlineEntries = await Promise.all(
   // ─────────────────────────────────────────────────────────
   import { arcFlip, concert, easings } from '../lib/arc-flip';
 
-  // Choreography props for the list → detail move. Reusable everywhere; tune
-  // here. The title leads (straight expo rise); the image yields — trailing
-  // slightly and arcing downward so it never crosses the title's path.
-  const CHOREO = {
+  // Choreography props for the list → detail move. The title leads (straight
+  // expo rise); the image yields — trailing slightly and arcing downward so it
+  // never crosses the title's path. Live-editable via the TUNING panel below.
+  const CHOREO_KEY = 'leroice-choreo';
+  const DEFAULT_CHOREO = {
     leadIn: 170,        // ms: dissolve the other rows before the move begins
-    title: { duration: 700, delay: 0,  easing: easings.expoOut, arc: 0,    scale: false },
-    image: { duration: 780, delay: 90, easing: easings.expoOut, arc: 0.5,  minYield: 28, scale: true },
+    easing: 'expoOut',  // shared easing name (resolved against `easings`)
+    title: { duration: 700, delay: 0,  arc: 0,   scale: false },
+    image: { duration: 780, delay: 90, arc: 0.5, minYield: 28, scale: true },
   };
+  // Mutable runtime config — the TUNING panel writes here + to localStorage.
+  const CHOREO = (() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(CHOREO_KEY) || 'null');
+      if (saved) {
+        return {
+          leadIn: saved.leadIn ?? DEFAULT_CHOREO.leadIn,
+          easing: saved.easing ?? DEFAULT_CHOREO.easing,
+          title: { ...DEFAULT_CHOREO.title, ...(saved.title || {}) },
+          image: { ...DEFAULT_CHOREO.image, ...(saved.image || {}) },
+        };
+      }
+    } catch { /* ignore bad storage */ }
+    return JSON.parse(JSON.stringify(DEFAULT_CHOREO));
+  })();
+  const easingFor = () => easings[CHOREO.easing] || easings.expoOut;
 
   {
     const split = document.querySelector('.split') as HTMLElement;
@@ -503,8 +551,8 @@ const inlineEntries = await Promise.all(
           // FLIPs in from the preview pane, trailing slightly and arcing
           // DOWNWARD — yielding so the title can pass above without crossing.
           activeAnims = [
-            arcFlip(row, titleFirst, CHOREO.title),
-            arcFlip(hero!, imageFirst!, CHOREO.image),
+            arcFlip(row, titleFirst, { ...CHOREO.title, easing: easingFor() }),
+            arcFlip(hero!, imageFirst!, { ...CHOREO.image, easing: easingFor() }),
           ];
 
           concert(activeAnims).then(() => {
@@ -607,6 +655,191 @@ const inlineEntries = await Promise.all(
       window.addEventListener('popstate', () => {
         if (openDetail) close();
       });
+
+      // ── TUNING panel ──────────────────────────────────────
+      const tuner = document.querySelector('[data-tuner]') as HTMLElement | null;
+      const tunerToggle = document.querySelector('[data-tuner-toggle]') as HTMLElement | null;
+      if (tuner && tunerToggle) {
+        const cacna = rows.find((r) => r.dataset.slug === 'cacna-1a') || null;
+
+        const fields = [
+          { path: ['leadIn'],           id: 'leadIn', min: 0,   max: 400,  step: 10,   unit: 'ms' },
+          { path: ['title', 'duration'], id: 'tdur',   min: 200, max: 1400, step: 20,   unit: 'ms' },
+          { path: ['image', 'duration'], id: 'idur',   min: 200, max: 1400, step: 20,   unit: 'ms' },
+          { path: ['image', 'delay'],    id: 'idelay', min: 0,   max: 400,  step: 10,   unit: 'ms' },
+          { path: ['image', 'arc'],      id: 'iarc',   min: 0,   max: 1,    step: 0.05, unit: '' },
+          { path: ['image', 'minYield'], id: 'iyield', min: 0,   max: 120,  step: 2,    unit: 'px' },
+        ];
+        const getVal = (path: string[]) => path.reduce((o: any, k) => o[k], CHOREO);
+        const setVal = (path: string[], v: number) => {
+          let o: any = CHOREO;
+          for (let i = 0; i < path.length - 1; i++) o = o[path[i]];
+          o[path[path.length - 1]] = v;
+        };
+        const save = () => {
+          try { localStorage.setItem(CHOREO_KEY, JSON.stringify(CHOREO)); } catch { /* ignore */ }
+        };
+
+        const statusEl = tuner.querySelector('[data-tune-status]') as HTMLElement | null;
+        let flashTimer = 0;
+        const flash = (msg: string) => {
+          if (!statusEl) return;
+          statusEl.textContent = msg;
+          clearTimeout(flashTimer);
+          flashTimer = window.setTimeout(() => { statusEl.textContent = ''; }, 1400);
+        };
+
+        const syncInputs = () => {
+          for (const f of fields) {
+            const input = tuner.querySelector(`#tune-${f.id}`) as HTMLInputElement | null;
+            const out = tuner.querySelector(`#out-${f.id}`) as HTMLElement | null;
+            if (input) input.value = String(getVal(f.path));
+            if (out) out.textContent = getVal(f.path) + f.unit;
+          }
+          const easeSel = tuner.querySelector('#tune-easing') as HTMLSelectElement | null;
+          if (easeSel) easeSel.value = CHOREO.easing;
+        };
+
+        for (const f of fields) {
+          const input = tuner.querySelector(`#tune-${f.id}`) as HTMLInputElement | null;
+          const out = tuner.querySelector(`#out-${f.id}`) as HTMLElement | null;
+          if (!input) continue;
+          input.min = String(f.min); input.max = String(f.max); input.step = String(f.step);
+          input.addEventListener('input', () => {
+            const v = parseFloat(input.value);
+            setVal(f.path, v);
+            if (out) out.textContent = v + f.unit;
+            save();
+          });
+        }
+
+        const easeSel = tuner.querySelector('#tune-easing') as HTMLSelectElement | null;
+        easeSel?.addEventListener('change', () => { CHOREO.easing = easeSel.value; save(); });
+
+        tunerToggle.addEventListener('click', () => {
+          tuner.hidden = !tuner.hidden;
+          tunerToggle.setAttribute('aria-expanded', String(!tuner.hidden));
+        });
+
+        tuner.querySelector('[data-tune-replay]')?.addEventListener('click', () => {
+          if (!cacna) return;
+          if (openDetail) { close(); window.setTimeout(() => open(cacna), 520); }
+          else open(cacna);
+        });
+
+        tuner.querySelector('[data-tune-copy]')?.addEventListener('click', async () => {
+          const c = CHOREO;
+          const cfg =
+            `const CHOREO = {\n` +
+            `  leadIn: ${c.leadIn},\n` +
+            `  easing: '${c.easing}',\n` +
+            `  title: { duration: ${c.title.duration}, delay: ${c.title.delay}, arc: ${c.title.arc}, scale: ${c.title.scale} },\n` +
+            `  image: { duration: ${c.image.duration}, delay: ${c.image.delay}, arc: ${c.image.arc}, minYield: ${c.image.minYield}, scale: ${c.image.scale} },\n` +
+            `};`;
+          try { await navigator.clipboard.writeText(cfg); flash('copied ✓'); }
+          catch { flash('copy failed'); }
+        });
+
+        tuner.querySelector('[data-tune-reset]')?.addEventListener('click', () => {
+          Object.assign(CHOREO, JSON.parse(JSON.stringify(DEFAULT_CHOREO)));
+          try { localStorage.removeItem(CHOREO_KEY); } catch { /* ignore */ }
+          syncInputs();
+          flash('reset');
+        });
+
+        syncInputs();
+      }
     }
   }
 </script>
+
+<style>
+  /* TUNING panel — design tool for the list→detail choreography. */
+  .tuner-toggle {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 50;
+    font-family: var(--font-sans);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    padding: 8px 13px;
+    border-radius: 999px;
+    background: var(--text-primary);
+    color: var(--bg);
+    border: none;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity 160ms ease;
+  }
+  .tuner-toggle:hover { opacity: 1; }
+
+  .tuner {
+    position: fixed;
+    right: 16px;
+    bottom: 56px;
+    z-index: 50;
+    width: 280px;
+    max-width: calc(100vw - 32px);
+    padding: 16px;
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--bg) 85%, transparent);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    border: 1px solid var(--rule);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 11px;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+  }
+  .tuner[hidden] { display: none; }
+
+  .tuner__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    opacity: 0.7;
+    letter-spacing: 0.02em;
+  }
+  .tuner__status { opacity: 0.6; }
+
+  .tuner__grid { display: flex; flex-direction: column; gap: 11px; }
+  .tuner label { display: flex; flex-direction: column; gap: 5px; opacity: 0.9; }
+  .tuner__lab {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .tuner__lab output { opacity: 0.5; }
+  .tuner input[type="range"] { width: 100%; accent-color: var(--text-primary); margin: 0; }
+  .tuner select {
+    font-family: inherit;
+    font-size: 11px;
+    padding: 5px 6px;
+    background: transparent;
+    color: var(--text-primary);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+  }
+
+  .tuner__actions { display: flex; gap: 8px; margin-top: 16px; }
+  .tuner__actions button {
+    flex: 1;
+    font-family: inherit;
+    font-size: 11px;
+    padding: 7px 6px;
+    border-radius: 8px;
+    border: 1px solid var(--rule);
+    background: transparent;
+    color: var(--text-primary);
+    cursor: pointer;
+    opacity: 0.85;
+    transition: opacity 160ms ease, background 160ms ease;
+  }
+  .tuner__actions button:hover { opacity: 1; background: var(--hover-bg); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tuner-toggle { transition: none; }
+  }
+</style>
