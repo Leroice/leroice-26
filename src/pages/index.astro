@@ -8,8 +8,12 @@ const entries = (await getCollection('work')).sort(
 
 const slug = (id: string) => id.replace(/\.md$/, '');
 
-// Only CACNA-1A gets an inline detail transition (no page navigation)
-const inlineSlugs = new Set(['cacna-1a']);
+// Every project with a detail page opens inline with the choreographed
+// transition (cover image flies into the header, title rises, proximity
+// cascade). They each have a real /work/[slug] page as a deep-link fallback.
+const inlineSlugs = new Set(
+  entries.filter((e) => e.data.detail).map((e) => slug(e.id))
+);
 
 const inlineEntries = await Promise.all(
   entries

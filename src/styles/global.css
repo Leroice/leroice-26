@@ -56,6 +56,9 @@
   --col-gap:        6rem;
   --side-pad:       2rem;
   --top-pad:        2.5rem;
+  /* Horizontal content inset — aligns every page's content (left AND right)
+     with the nav brand "Leigh Scholten. Designer". Site-wide alignment rule. */
+  --content-pad:    calc(var(--side-pad) + var(--sp-base));
 
   /* ── Motion ──
      One signal drives everything: spring velocity from the rAF loop.
@@ -151,7 +154,7 @@ img, video { max-width: 100%; height: auto; display: block; }
   /* Top padding: 64px off the page edge.
      Horizontal padding: side-pad + sp-base so the brand text aligns with
      the row text (which has 16px of internal padding). */
-  padding: 64px calc(var(--side-pad) + var(--sp-base)) var(--sp-3);
+  padding: 64px var(--content-pad) var(--sp-3);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -200,7 +203,10 @@ img, video { max-width: 100%; height: auto; display: block; }
 .split {
   max-width: var(--page-max);
   margin: 0 auto;
-  padding: 2rem var(--side-pad) 8rem;
+  /* Left stays side-pad: rows have 16px internal padding, so their text lands
+     at content-pad (48px), matching the brand. Right uses content-pad so the
+     preview pane's right edge aligns too. */
+  padding: 2rem var(--content-pad) 8rem var(--side-pad);
   display: grid;
   grid-template-columns: var(--list-width) 1fr;
   column-gap: var(--col-gap);
@@ -388,7 +394,7 @@ img, video { max-width: 100%; height: auto; display: block; }
 .foot {
   max-width: var(--page-max);
   margin: 4rem auto 0;
-  padding: 2rem var(--side-pad);
+  padding: 2rem var(--content-pad);
   border-top: 1px solid var(--rule);
   display: flex;
   justify-content: space-between;
@@ -421,7 +427,7 @@ img, video { max-width: 100%; height: auto; display: block; }
 .detail {
   max-width: 44rem;
   margin: 0 auto;
-  padding: 4rem var(--side-pad) 8rem;
+  padding: 4rem var(--content-pad) 8rem;
 }
 .detail__back {
   display: inline-block;

@@ -123,7 +123,21 @@ const {
       import { revealOnLoad, revealItems, pageExit } from '../lib/reveal';
 
       // Load-in: content fades + blurs in, top-down.
-      revealOnLoad();
+      // On a cross-document NAVIGATION the browser holds the first paint until
+      // the new page is ready — which skips a JS entrance animation (the page
+      // appears already-revealed). A RELOAD paints progressively, so it
+      // animates. To make navigation animate too, start the reveal once the
+      // page is actually presented (pageshow); keep reloads immediate.
+      let revealed = false;
+      const startReveal = () => { if (revealed) return; revealed = true; revealOnLoad(); };
+      const navEntry = (performance.getEntriesByType?.('navigation')?.[0]) as
+        PerformanceNavigationTiming | undefined;
+      if (navEntry && navEntry.type === 'navigate') {
+        window.addEventListener('pageshow', (e) => { if (!e.persisted) startReveal(); }, { once: true });
+        setTimeout(startReveal, 1500); // fallback if pageshow is delayed
+      } else {
+        startReveal(); // reload / direct / back-forward: progressive paint
+      }
 
       // Exit: clicking an internal link (nav menu items, project links, back
       // links) fades + blurs the page out — rippling from where you clicked —
