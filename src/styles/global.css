@@ -229,15 +229,27 @@ img, video { max-width: 100%; height: auto; display: block; }
    --pill-velocity-opacity every frame based on the spring's current
    velocity. Moving fast = blurred, dimmer. Settled = sharp, full opacity.
    No CSS transition — the spring physics IS the easing. */
+/* Visibility gate: the pill only shows while the pointer is in the list
+   column. --pill-visible animates 0→1 (registered so it can transition),
+   gating opacity and adding blur while hidden — it fades in from blur, like
+   everything else. The velocity-driven breath multiplies on top when shown. */
+@property --pill-visible {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
 .list__pill-wrap {
   position: absolute;
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  filter: url(#leroice-goo) blur(var(--pill-velocity-blur));
-  opacity: var(--pill-velocity-opacity);
+  --pill-visible: 0;
+  filter: url(#leroice-goo) blur(calc(var(--pill-velocity-blur) + (1 - var(--pill-visible)) * 8px));
+  opacity: calc(var(--pill-velocity-opacity) * var(--pill-visible));
+  transition: --pill-visible 520ms var(--image-ease);
   will-change: filter, opacity;
 }
+.list.is-hovered .list__pill-wrap { --pill-visible: 1; }
 
 .list__pill {
   position: absolute;
