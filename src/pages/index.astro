@@ -369,6 +369,17 @@ const inlineEntries = await Promise.all(
   // ─────────────────────────────────────────────────────────
   // Inline transition: list → detail (same page, no navigation)
   // ─────────────────────────────────────────────────────────
+  import { arcFlip, concert, easings } from '../lib/arc-flip';
+
+  // Choreography props for the list → detail move. Reusable everywhere; tune
+  // here. The title leads (straight expo rise); the image yields — trailing
+  // slightly and arcing downward so it never crosses the title's path.
+  const CHOREO = {
+    leadIn: 170,        // ms: dissolve the other rows before the move begins
+    title: { duration: 700, delay: 0,  easing: easings.expoOut, arc: 0,    scale: false },
+    image: { duration: 780, delay: 90, easing: easings.expoOut, arc: 0.5,  minYield: 28, scale: true },
+  };
+
   {
     const split = document.querySelector('.split') as HTMLElement;
     const list = document.querySelector('[data-list]') as HTMLElement;
@@ -376,9 +387,23 @@ const inlineEntries = await Promise.all(
 
     if (split && list && rows.length) {
 
-      let busy = false;
+      const BP_DESKTOP = 881;       // matches the CSS breakpoint where .preview shows
+
+      let busy = false;             // a transition is animating
+      let closing = false;          // a close is in progress (guards re-entrancy)
       let openRow: HTMLElement | null = null;
       let openDetail: HTMLElement | null = null;
+      let activeAnims: Animation[] = [];
+      // Token invalidates stale async callbacks (a close/new-open supersedes a
+      // pending open finalize), so a late .then() can't clobber fresh state.
+      let token = 0;
+
+      const cancelActive = () => {
+        for (const a of activeAnims) { try { a.cancel(); } catch { /* noop */ } }
+        activeAnims = [];
+      };
+      const reducedMotion = () =>
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
       // ── OPEN ──
       function open(row: HTMLElement) {
@@ -386,130 +411,73 @@ const inlineEntries = await Promise.all(
         const detail = document.querySelector(
           `.list__detail[data-detail-slug="${slug}"]`
         ) as HTMLElement;
-        if (!detail || busy || openRow) return;
+        if (!detail || busy || closing || openRow) return;
         busy = true;
+        const myToken = ++token;
 
         const pw = document.querySelector('.list__pill-wrap') as HTMLElement | null;
+        const previewFrame =
+          document.querySelector('.preview__frame') as HTMLElement | null;
+        const hero = detail.querySelector('.detail__hero') as HTMLElement | null;
+        const back = detail.querySelector('.detail__back') as HTMLElement | null;
+        const bodyText = detail.querySelector('.detail__body') as HTMLElement | null;
+        const fadeIns = [back, bodyText].filter(Boolean) as HTMLElement[];
+        const prefersReduced = reducedMotion();
 
-        // 1 — hide pill immediately
+        // Hide pill, freeze hover, and settle scroll so every rect we read —
+        // now and after the collapse — shares one coordinate space.
         if (pw) { pw.style.transition = 'opacity 150ms'; pw.style.opacity = '0'; }
-
-        // 2 — freeze hover so it doesn't fight the slide
         list.style.pointerEvents = 'none';
+        window.scrollTo({ top: 0, behavior: 'instant' });
 
-        // 3 — measure how far this row must travel to reach the top
-        const first = rows[0].getBoundingClientRect();
-        const sel   = row.getBoundingClientRect();
-        const dy    = first.top - sel.top;
+        // FIRST rects, captured while everything is still in its list state.
+        // (FLIP is meant to span the layout change: `from` is the pre-collapse
+        // box, the post-collapse box is measured inside arcFlip.)
+        const titleFirst = row.getBoundingClientRect();
+        const imageFirst = previewFrame ? previewFrame.getBoundingClientRect() : null;
 
-        // 4 — fade + shrink the other rows
+        // Lead-in: dissolve the other rows. The preview stays put — it hands
+        // straight off to the hero so the image never blinks out. Instant under
+        // reduced motion.
         for (const r of rows) {
           if (r === row) continue;
-          r.style.transition = 'opacity 350ms ease, transform 500ms ease';
-          r.style.opacity = '0';
-          r.style.transform = 'scale(0.96)';
+          if (prefersReduced) {
+            r.style.opacity = '0';
+          } else {
+            r.style.transition = 'opacity 160ms ease, transform 300ms ease';
+            r.style.opacity = '0';
+            r.style.transform = 'scale(0.985)';
+          }
         }
 
-        // 5 — slide the selected row to the top
-        row.style.transition = 'transform 500ms cubic-bezier(.4,.0,.2,1)';
-        row.style.transform = `translateY(${dy}px)`;
-        row.style.position = 'relative';
-        row.style.zIndex = '10';
+        const runCommit = () => {
+          if (myToken !== token) return; // superseded before the lead-in fired
 
-        // 6 — leave the preview visible: it's the source frame for the FLIP.
-
-        // 7 — once the slide settles, lock the row as the heading and FLIP the
-        //     preview image into a full-width header image beneath it. The
-        //     preview's cover and the hero share the same src and the same
-        //     16/10 aspect, so the expand is a clean (distortion-free) scale.
-        setTimeout(() => {
-          const prefersReduced =
-            window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-          const previewFrame =
-            document.querySelector('.preview__frame') as HTMLElement | null;
-          const hero = detail.querySelector('.detail__hero') as HTMLElement | null;
-          const back = detail.querySelector('.detail__back') as HTMLElement | null;
-          const bodyText = detail.querySelector('.detail__body') as HTMLElement | null;
-          const fadeIns = [back, bodyText].filter(Boolean) as HTMLElement[];
-
-          // Land at the top first so every rect we read shares one coordinate
-          // space (no scroll happens after this point during the animation).
-          window.scrollTo({ top: 0, behavior: 'instant' });
-
-          // FIRST: the preview image's on-screen box, captured while it's still
-          // visible (before the layout collapse hides it).
-          const firstRect = previewFrame ? previewFrame.getBoundingClientRect() : null;
-
-          // Collapse to one column; drop the faded rows and the preview pane.
+          // Commit the final layout. The title holds in place (transform →
+          // flow); the preview is swapped for the hero at the same spot.
           split.classList.add('is-detail');
           for (const r of rows) {
             if (r !== row) r.style.display = 'none';
           }
-
-          // The slid row's natural position is now the top, so clearing its
-          // transform leaves it exactly where it parked — the title holds.
-          // Also drop the slide-only position/z-index so .is-heading's CSS wins.
           row.style.transition = '';
           row.style.transform = '';
           row.style.position = '';
           row.style.zIndex = '';
           row.classList.add('is-heading');
-          list.style.pointerEvents = '';
 
-          // Reveal the body. The hero animates; the back link + text fade in.
           detail.hidden = false;
           openRow = row;
           openDetail = detail;
           history.pushState({ slug }, '', `/work/${slug}`);
 
-          const canFlip = !prefersReduced && hero && firstRect && firstRect.width > 0;
+          const isMobile = window.innerWidth < BP_DESKTOP;
+          const canFlip =
+            !prefersReduced && !isMobile && hero && imageFirst && imageFirst.width > 0;
 
-          if (canFlip) {
-            for (const el of fadeIns) {
-              el.style.opacity = '0';
-              el.style.transition = 'opacity 360ms ease 120ms';
-            }
-
-            // LAST: the hero's resting box (full-width header, now laid out).
-            const lastRect = hero!.getBoundingClientRect();
-            const sx = firstRect!.width / lastRect.width;
-            const sy = firstRect!.height / lastRect.height;
-            const tx = firstRect!.left - lastRect.left;
-            const ty = firstRect!.top - lastRect.top;
-
-            // INVERT: drop the hero exactly over where the preview image was.
-            hero!.style.transformOrigin = 'top left';
-            hero!.style.willChange = 'transform';
-            hero!.style.transition = 'none';
-            hero!.style.transform = `translate(${tx}px, ${ty}px) scale(${sx}, ${sy})`;
-
-            // PLAY: release to the natural full-width box on the next frame.
-            requestAnimationFrame(() => {
-              requestAnimationFrame(() => {
-                hero!.style.transition = 'transform 620ms cubic-bezier(0.22, 1, 0.36, 1)';
-                hero!.style.transform = '';
-                for (const el of fadeIns) el.style.opacity = '1';
-              });
-            });
-
-            const cleanup = () => {
-              hero!.style.transition = '';
-              hero!.style.transform = '';
-              hero!.style.transformOrigin = '';
-              hero!.style.willChange = '';
-              for (const el of fadeIns) { el.style.transition = ''; el.style.opacity = ''; }
-              hero!.removeEventListener('transitionend', onEnd);
-              busy = false;
-            };
-            const onEnd = (e: TransitionEvent) => {
-              if (e.propertyName === 'transform') cleanup();
-            };
-            hero!.addEventListener('transitionend', onEnd);
-            // Safety net in case transitionend is missed.
-            setTimeout(cleanup, 720);
-          } else {
-            // Fallback (reduced motion, or mobile where there's no preview):
-            // a plain reveal.
+          if (!canFlip) {
+            // Fallback (reduced motion, or mobile with no preview).
+            list.style.pointerEvents = '';
+            if (prefersReduced) { busy = false; return; } // instant
             detail.style.opacity = '0';
             detail.style.transition = 'opacity 320ms ease';
             requestAnimationFrame(() => { detail.style.opacity = '1'; });
@@ -520,30 +488,60 @@ const inlineEntries = await Promise.all(
               busy = false;
             };
             detail.addEventListener('transitionend', onEnd);
-            setTimeout(onEnd, 420); // safety net if transitionend is missed
+            setTimeout(onEnd, 420);
+            return;
           }
-        }, 550);
+
+          // Fade the back link + body text in behind the motion.
+          for (const el of fadeIns) {
+            el.style.opacity = '0';
+            el.style.transition = 'opacity 380ms ease 140ms';
+          }
+          requestAnimationFrame(() => { for (const el of fadeIns) el.style.opacity = '1'; });
+
+          // Concerted move: the title rises (straight expo) while the image
+          // FLIPs in from the preview pane, trailing slightly and arcing
+          // DOWNWARD — yielding so the title can pass above without crossing.
+          activeAnims = [
+            arcFlip(row, titleFirst, CHOREO.title),
+            arcFlip(hero!, imageFirst!, CHOREO.image),
+          ];
+
+          concert(activeAnims).then(() => {
+            if (myToken !== token) return; // a close/open superseded us
+            activeAnims = [];
+            list.style.pointerEvents = ''; // restore hover only after the motion
+            for (const el of fadeIns) { el.style.transition = ''; el.style.opacity = ''; }
+            busy = false;
+          });
+        };
+
+        window.setTimeout(runCommit, prefersReduced ? 0 : CHOREO.leadIn);
       }
 
-      // ── CLOSE ──
+      // ── CLOSE ── (also interrupts an in-flight open)
       function close() {
-        if (!openRow || !openDetail || busy) return;
+        if (!openDetail || !openRow || closing) return;
+        closing = true;
+        busy = true;
+        ++token;                 // invalidate any pending open finalize
+        cancelActive();          // stop an in-flight open animation
+
         const row = openRow;
         const detail = openDetail;
-        busy = true;
-
         const pw = document.querySelector('.list__pill-wrap') as HTMLElement | null;
         const preview = document.querySelector('.preview') as HTMLElement | null;
+        const prefersReduced = reducedMotion();
 
-        detail.style.transition = 'opacity 180ms ease';
-        detail.style.opacity = '0';
+        list.style.pointerEvents = 'none';
+        detail.style.transition = prefersReduced ? '' : 'opacity 180ms ease';
+        detail.style.opacity = prefersReduced ? '' : '0';
 
-        setTimeout(() => {
+        const restore = () => {
           detail.hidden = true;
           detail.style.transition = '';
           detail.style.opacity = '';
 
-          // Restore the list to its resting state.
           split.classList.remove('is-detail');
           row.classList.remove('is-heading');
           row.style.cssText = '';
@@ -554,7 +552,7 @@ const inlineEntries = await Promise.all(
           if (preview) { preview.style.transition = ''; preview.style.opacity = ''; }
 
           // Reset the pill's velocity-driven CSS vars to rest so it doesn't
-          // snap from a stale value when the list fades back in.
+          // snap from a stale value when the list returns.
           const docStyle = document.documentElement.style;
           docStyle.setProperty('--pill-velocity-blur', '0px');
           docStyle.setProperty('--pill-velocity-opacity', '0.06');
@@ -563,19 +561,22 @@ const inlineEntries = await Promise.all(
           openDetail = null;
           window.scrollTo({ top: 0, behavior: 'instant' });
 
-          // Gentle fade of the restored list. Freeze hover during the fade so a
-          // stray pointermove/focus can't drive the pill spring mid-animation.
-          list.style.pointerEvents = 'none';
-          list.style.opacity = '0';
-          list.style.transition = 'opacity 250ms ease';
-          requestAnimationFrame(() => { list.style.opacity = '1'; });
-          setTimeout(() => {
+          const done = () => {
             list.style.transition = '';
             list.style.opacity = '';
             list.style.pointerEvents = '';
+            closing = false;
             busy = false;
-          }, 260);
-        }, 180);
+          };
+
+          if (prefersReduced) { done(); return; }
+          list.style.opacity = '0';
+          list.style.transition = 'opacity 250ms ease';
+          requestAnimationFrame(() => { list.style.opacity = '1'; });
+          setTimeout(done, 260);
+        };
+
+        setTimeout(restore, prefersReduced ? 0 : 180);
       }
 
       // ── listeners ──
