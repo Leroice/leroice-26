@@ -425,7 +425,7 @@ img, video { max-width: 100%; height: auto; display: block; }
 /* ── Detail pages ───────────────────────────────────────── */
 
 .detail {
-  max-width: 44rem;
+  max-width: var(--page-max);
   margin: 0 auto;
   padding: 4rem var(--content-pad) 8rem;
 }
@@ -473,14 +473,21 @@ img, video { max-width: 100%; height: auto; display: block; }
   letter-spacing: var(--tracking-tight);
   color: var(--text-primary);
 }
+/* Prose is held to a readable measure; media spans the full content width. */
+.detail__body > p,
+.detail__body > h2,
+.detail__body > h3,
+.detail__body > ul,
+.detail__body > ol { max-width: 44rem; }
 .detail__body p { margin: 0 0 1.25rem; }
-.detail__body p:last-child { margin-bottom: 0; }
 .detail__body h2 {
   font-size: var(--fs-sm);
   font-weight: 450;
   letter-spacing: var(--tracking-tight);
   margin: 3rem 0 1rem;
 }
+.detail__body ul { padding-left: 1.1rem; margin: 0 0 1.25rem; }
+.detail__body li { margin: 0 0 0.4rem; }
 .detail__body a {
   color: var(--text-primary);
   text-decoration: underline;
@@ -488,9 +495,41 @@ img, video { max-width: 100%; height: auto; display: block; }
   text-underline-offset: 3px;
 }
 .detail__body img, .detail__body video {
-  margin: 2rem 0;
   width: 100%;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
+  display: block;
+  margin: 0;
+}
+
+/* ── Case-study layout kit ──────────────────────────────────
+   Recreates the old site's arrangements. Use raw HTML in the markdown body:
+     <figure class="cs-full"><img …></figure>      — full-width single
+     <div class="cs-mocks">  4× <img> </div>        — phone mockup row
+     <div class="cs-3">      3× <img> </div>         — three-up grid / bento
+     <div class="cs-2">      2× <img> </div>         — two-up grid
+   (Images live in raw HTML, not markdown ![], so they sit outside <p> and
+   span full width.) */
+.detail__body figure { margin: 2rem 0; }
+.detail__body .cs-mocks,
+.detail__body .cs-2,
+.detail__body .cs-3 {
+  display: grid;
+  gap: 1rem;
+  align-items: start;
+  margin: 2rem 0;
+}
+.detail__body .cs-mocks { grid-template-columns: repeat(4, 1fr); }
+.detail__body .cs-3 { grid-template-columns: repeat(3, 1fr); }
+.detail__body .cs-2 { grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 880px) {
+  .detail__body .cs-mocks { grid-template-columns: repeat(2, 1fr); }
+  .detail__body .cs-3 { grid-template-columns: repeat(2, 1fr); }
+  .detail__body .cs-2 { grid-template-columns: 1fr; }
+}
+@media (max-width: 520px) {
+  .detail__body .cs-mocks,
+  .detail__body .cs-3,
+  .detail__body .cs-2 { grid-template-columns: 1fr; }
 }
 
 /* ── CACNA-1A inline detail ─────────────────────────────────
@@ -535,7 +574,8 @@ img, video { max-width: 100%; height: auto; display: block; }
   backface-visibility: hidden;
 }
 
-.list__detail .detail__body { max-width: 46rem; }
+/* Inline detail body spans the list's full width; prose inside is held to a
+   readable measure by the shared .detail__body rules above. */
 
 /* ── Site-wide reveal ───────────────────────────────────────
    Nothing pops in. [data-reveal] elements start hidden (only when JS is

@@ -14,17 +14,17 @@ A collaborative art project between father and son exploring gene mutation, proc
 
 During 2022, I was looking for creative outlets and saw a way to connect with my son and his disability. I noticed he created art with no consequence. Taking his naive sketches and approach, I turned them into splines and added textures and lighting, using Redshift, which was a process I hadn't tried before. Resulting in my own naive abstractions, we created art together and explored NFTs in the process.
 
-![Charlie's hospital drawing](/images/work/cacna-1a/Charlie-hospital-draw.jpg)
+<div class="cs-3">
+  <img src="/images/work/cacna-1a/Charlie-hospital-draw.jpg" alt="Charlie's hospital drawing" />
+  <img src="/images/work/cacna-1a/Charlie-hospital-drawing-1.jpg" alt="Charlie's hospital drawing" />
+  <img src="/images/work/cacna-1a/Spline-1.jpg" alt="Spline study" />
+</div>
 
-![Charlie's hospital drawing](/images/work/cacna-1a/Charlie-hospital-drawing-1.jpg)
-
-![Spline study](/images/work/cacna-1a/Spline-1.jpg)
-
-![Ca5e](/images/work/cacna-1a/Ca5e.jpg)
-
-![Mut4te](/images/work/cacna-1a/Mut4te.jpg)
-
-![O7i](/images/work/cacna-1a/O7i.jpg)
+<div class="cs-3">
+  <img src="/images/work/cacna-1a/Ca5e.jpg" alt="Ca5e — 3D abstraction" />
+  <img src="/images/work/cacna-1a/Mut4te.jpg" alt="Mut4te — 3D abstraction" />
+  <img src="/images/work/cacna-1a/O7i.jpg" alt="O7i — 3D abstraction" />
+</div>
 
 The collection lives on [foundation.app](https://foundation.app/collection/cacna1a).
 

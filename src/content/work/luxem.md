@@ -10,23 +10,24 @@ cover: "/images/work/luxem.jpg"
 coverAlt: "Luxem — 'Globally informed' headline over a faceted dark sphere"
 ---
 
+<figure class="cs-full"><img src="/images/work/luxem/header.jpg" alt="LUXEM Ventures brand header" /></figure>
+
 LUXEM Ventures engaged me to expand their brand identity beyond a basic logo, colour palette, and typeface.
 
 Our goal was to create a cohesive visual and digital presence that reflected their core focus: investing in promising seed and startup ventures. Drawing on themes of connectivity, innovation, and digital networks, we extended the brand across multiple touch points to reflect LUXEM Ventures' forward-thinking investment philosophy.
 
-![LUXEM mobile intro](/images/work/luxem/01-LUXEM-Mobile-Intro.png)
+<div class="cs-mocks">
+  <img src="/images/work/luxem/01-LUXEM-Mobile-Intro.png" alt="LUXEM mobile intro" />
+  <img src="/images/work/luxem/02-LUXEM-Mobile-Intro.png" alt="LUXEM mobile intro" />
+  <img src="/images/work/luxem/03-LUXEM-Mobile-Intro.png" alt="LUXEM mobile intro" />
+  <img src="/images/work/luxem/04LUXEM-Mobile-Intro.png" alt="LUXEM mobile intro" />
+</div>
 
-![LUXEM mobile intro](/images/work/luxem/02-LUXEM-Mobile-Intro.png)
+<figure class="cs-full"><img src="/images/work/luxem/Moodboard.jpg" alt="LUXEM moodboard" /></figure>
 
-![LUXEM mobile intro](/images/work/luxem/03-LUXEM-Mobile-Intro.png)
+<figure class="cs-full"><video src="/videos/work/luxem/LUXEMVC-BG-Animation-Wide-transcode.mp4" autoplay muted loop playsinline></video></figure>
 
-![LUXEM mobile intro](/images/work/luxem/04LUXEM-Mobile-Intro.png)
-
-![Moodboard](/images/work/luxem/Moodboard.jpg)
-
-<video src="/videos/work/luxem/LUXEMVC-BG-Animation-Wide-transcode.mp4" autoplay muted loop playsinline></video>
-
-![LUXEM web mockup](/images/work/luxem/WeLuxem-WebMock.jpg)
+<figure class="cs-full"><img src="/images/work/luxem/WeLuxem-WebMock.jpg" alt="LUXEM web mockup" /></figure>
 
 ## Project info
 

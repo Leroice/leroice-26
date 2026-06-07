@@ -14,13 +14,12 @@ The chance to build a bank from scratch within a major incumbent is rare; ANZ Pl
 
 With a bold mission to create a substantially better bank, and armed with a foundational set of principles to help people with their financial wellbeing, we integrated scalable cloud platforms (GCP) and modern CX tools (Salesforce) into a best-in-class, mobile-first experience.
 
-![ANZ Plus app screens](/images/work/anz-plus/01-ANZ-.png)
-
-![ANZ Plus app screens](/images/work/anz-plus/02-ANZ-.png)
-
-![ANZ Plus app screens](/images/work/anz-plus/03-ANZ-.png)
-
-![ANZ Plus app screens](/images/work/anz-plus/04-ANZ-.png)
+<div class="cs-mocks">
+  <img src="/images/work/anz-plus/01-ANZ-.png" alt="ANZ Plus app screen" />
+  <img src="/images/work/anz-plus/02-ANZ-.png" alt="ANZ Plus app screen" />
+  <img src="/images/work/anz-plus/03-ANZ-.png" alt="ANZ Plus app screen" />
+  <img src="/images/work/anz-plus/04-ANZ-.png" alt="ANZ Plus app screen" />
+</div>
 
 As one of two principal product designers appointed pre-inception, our initial task was to prototype and validate early CX concepts, accelerating launch readiness by six months.
 
@@ -28,9 +27,9 @@ I was critical in shaping the product vision, mission, and strategy, and went on
 
 Together, we defined and delivered a modern brand and product, fit for ANZ's future, and in the process delivered Australia's fastest-growing banking app.
 
-![ANZ Plus home screen](/images/work/anz-plus/HS-09.jpg)
+<figure class="cs-full"><img src="/images/work/anz-plus/HS-09.jpg" alt="ANZ Plus home screen" /></figure>
 
-![ANZ Plus card delivery](/images/work/anz-plus/Card-Delivery.png)
+<figure class="cs-full"><img src="/images/work/anz-plus/Card-Delivery.png" alt="ANZ Plus card delivery" /></figure>
 
 ## Financial wellbeing
 
@@ -38,15 +37,16 @@ Long before ANZ Plus, an early concept formed the first pitch to convince our ex
 
 Born from the work in Grow — aimed at making wealth a concept people could grasp — the financial wellbeing principles formed a foundation for us to lean on as we designed the ANZ App and, later, ANZ Plus.
 
-![ANZ Plus spending view](/images/work/anz-plus/204-Spending---L1.png)
+<div class="cs-3">
+  <img src="/images/work/anz-plus/204-Spending---L1.png" alt="ANZ Plus spending view" />
+  <img src="/images/work/anz-plus/05-ANZ-SavingsJar.png" alt="ANZ Plus savings jar" />
+  <img src="/images/work/anz-plus/Tiles.png" alt="ANZ Plus tiles" />
+</div>
 
-![ANZ Plus savings jar](/images/work/anz-plus/05-ANZ-SavingsJar.png)
-
-![ANZ Plus tiles](/images/work/anz-plus/Tiles.png)
-
-![ANZ Plus typography](/images/work/anz-plus/Type.svg)
-
-![ANZ Plus icons](/images/work/anz-plus/icons.png)
+<div class="cs-2">
+  <img src="/images/work/anz-plus/Type.svg" alt="ANZ Plus typography" />
+  <img src="/images/work/anz-plus/icons.png" alt="ANZ Plus icons" />
+</div>
 
 ## Project info
 

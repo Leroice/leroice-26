@@ -14,13 +14,12 @@ Ghost VC needed an identity with presence — something that could feel quiet an
 
 The identity centres on an illustrated ghost and an animated logo that brings the character to life, paired with a system that carries across screens and interactions.
 
-![Ghost VC mobile design](/images/work/ghost/01-ghost.png)
-
-![Ghost VC mobile design](/images/work/ghost/02-ghost.png)
-
-![Ghost VC mobile design](/images/work/ghost/03-ghost.png)
-
-![Ghost VC mobile design](/images/work/ghost/04-ghost.png)
+<div class="cs-mocks">
+  <img src="/images/work/ghost/01-ghost.png" alt="Ghost VC mobile design" />
+  <img src="/images/work/ghost/02-ghost.png" alt="Ghost VC mobile design" />
+  <img src="/images/work/ghost/03-ghost.png" alt="Ghost VC mobile design" />
+  <img src="/images/work/ghost/04-ghost.png" alt="Ghost VC mobile design" />
+</div>
 
 You can explore the full project at [ghost-vc.com](https://www.ghost-vc.com).
 

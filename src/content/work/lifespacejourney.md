@@ -10,23 +10,26 @@ cover: "/images/work/lifespacejourney.jpg"
 coverAlt: "LifeSpaceJourney — copper foil triangular emblem on textured paper"
 ---
 
+<figure class="cs-full"><img src="/images/work/lifespacejourney/lifespacejourney-home-2018-2.jpg" alt="LifeSpaceJourney homeware" /></figure>
+
 Brothers Justin and Glenn Lamont create some of the most unique and beautiful objects for the home, with a friendly, human approach to manufacturing.
 
 Taking inspiration from roots in rural Australia, their vision and style is refined and luxurious, yet approachable and relaxed.
 
 Here, my long time collaborator Jayden Zernich and I created digital and brand assets to showcase and complement their unique approach.
 
-![LifeSpaceJourney](/images/work/lifespacejourney/LSJ1.jpg)
+<div class="cs-3">
+  <img src="/images/work/lifespacejourney/LSJ1.jpg" alt="LifeSpaceJourney object" />
+  <img src="/images/work/lifespacejourney/LSJ2.jpg" alt="LifeSpaceJourney object" />
+  <img src="/images/work/lifespacejourney/LSJ3.jpg" alt="LifeSpaceJourney object" />
+</div>
 
-![LifeSpaceJourney](/images/work/lifespacejourney/LSJ2.jpg)
+<figure class="cs-full"><img src="/images/work/lifespacejourney/LSJ2_1.jpg" alt="LifeSpaceJourney object" /></figure>
 
-![LifeSpaceJourney](/images/work/lifespacejourney/LSJ3.jpg)
-
-![LifeSpaceJourney](/images/work/lifespacejourney/LSJ2_1.jpg)
-
-![LifeSpaceJourney](/images/work/lifespacejourney/LSJ3_1.jpg)
-
-![LifeSpaceJourney website on Mac](/images/work/lifespacejourney/LSJMac.png)
+<div class="cs-2">
+  <img src="/images/work/lifespacejourney/LSJ3_1.jpg" alt="LifeSpaceJourney object" />
+  <img src="/images/work/lifespacejourney/LSJMac.png" alt="LifeSpaceJourney website on Mac" />
+</div>
 
 ## Project info
 
