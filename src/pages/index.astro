@@ -415,12 +415,12 @@ const inlineEntries = await Promise.all(
   const CHOREO_KEY = 'leroice-choreo';
   const DEFAULT_CHOREO = {
     leadIn: 0,          // ms: delay before the proximity cascade begins
-    easing: 'spring',   // easing name; 'spring' uses the params below
-    spring: { stiffness: 410, damping: 84, mass: 3 },
-    title: { duration: 720, delay: 0,  arc: 0,   scale: false },
-    image: { duration: 860, delay: 80, arc: 0.3, minYield: 22, scale: true },
+    easing: 'gentle',   // soft-landing curve (smooth in, gentle settle)
+    spring: { stiffness: 900, damping: 160, mass: 0.5 },
+    title: { duration: 1000, delay: 0, arc: 0,   scale: false },
+    image: { duration: 980,  delay: 0, arc: 0.1, minYield: 58, scale: true },
     // Proximity cascade when a row opens: nearest rows fade+blur out first.
-    stagger: { step: 40, blur: 6, outDuration: 340 },
+    stagger: { step: 15, blur: 6, outDuration: 340 },
   };
   // Mutable runtime config — the TUNING panel writes here + to localStorage.
   const CHOREO = (() => {
