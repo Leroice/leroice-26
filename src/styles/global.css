@@ -536,12 +536,14 @@ img, video { max-width: 100%; height: auto; display: block; }
    present, to avoid a no-JS flash) and fade+blur in via reveal.ts on load.
    The attribute is stripped once revealed, so this only applies pre-reveal. */
 
-html.is-js [data-reveal] {
+html.is-js:not(.revealed) [data-reveal],
+html.is-js:not(.revealed) [data-reveal-children] > * {
   opacity: 0;
   filter: blur(6px);
 }
 @media (prefers-reduced-motion: reduce) {
-  html.is-js [data-reveal] { opacity: 1; filter: none; }
+  html.is-js [data-reveal],
+  html.is-js [data-reveal-children] > * { opacity: 1; filter: none; }
 }
 
 /* ── Reduced motion ─────────────────────────────────────── */

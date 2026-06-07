@@ -119,10 +119,48 @@ const {
     </script>
 
     <script>
-      // Site-wide load-in: every [data-reveal] element fades + blurs in,
-      // top-down. "Nothing just appears."
-      import { revealOnLoad } from '../lib/reveal';
+      // Site-wide motion: nothing appears or vanishes instantly.
+      import { revealOnLoad, revealItems, pageExit } from '../lib/reveal';
+
+      // Load-in: content fades + blurs in, top-down.
       revealOnLoad();
+
+      // Exit: clicking an internal link (nav menu items, project links, back
+      // links) fades + blurs the page out — rippling from where you clicked —
+      // then navigates. The next page cascades in via revealOnLoad.
+      document.addEventListener('click', (e) => {
+        if (e.defaultPrevented || e.button !== 0) return;
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        const a = (e.target as HTMLElement).closest('a[href]') as HTMLAnchorElement | null;
+        if (!a) return;
+        if (a.target && a.target !== '_self') return;        // new tab/window
+        if (a.hasAttribute('download')) return;
+        let url: URL;
+        try { url = new URL(a.href, location.href); } catch { return; }
+        if (url.origin !== location.origin) return;          // external
+        if (url.pathname === location.pathname && url.hash) return; // in-page anchor
+        if (url.href === location.href) return;              // same page
+        // If an inline open/close transition is mid-flight, let the browser
+        // navigate normally — don't layer a conflicting exit cascade on the
+        // same elements.
+        const busy = (window as any).__leroiceBusy;
+        if (typeof busy === 'function' && busy()) return;
+        e.preventDefault();
+        pageExit(url.href, a);
+      });
+
+      // bfcache: a page restored via back/forward must never show its
+      // faded-out exit state — force everything visible.
+      window.addEventListener('pageshow', (e) => {
+        if (!e.persisted) return;
+        document.documentElement.classList.add('revealed');
+        for (const el of revealItems()) {
+          el.style.transition = '';
+          el.style.willChange = '';
+          el.style.opacity = '';
+          el.style.filter = '';
+        }
+      });
     </script>
   </body>
 </html>

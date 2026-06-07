@@ -591,6 +591,7 @@ const inlineEntries = await Promise.all(
         closing = true;
         busy = true;
         ++token;                 // invalidate any pending open finalize
+        const myToken = token;
         cancelActive();          // stop an in-flight open animation
 
         const row = openRow;
@@ -600,13 +601,24 @@ const inlineEntries = await Promise.all(
         const prefersReduced = reducedMotion();
 
         list.style.pointerEvents = 'none';
-        detail.style.transition = prefersReduced ? '' : 'opacity 180ms ease';
-        detail.style.opacity = prefersReduced ? '' : '0';
+
+        // The detail content fades + blurs out softly (rippling from the
+        // heading), then the list cascades gently back in.
+        const back = detail.querySelector('.detail__back') as HTMLElement | null;
+        const bodyText = detail.querySelector('.detail__body') as HTMLElement | null;
+        const hero = detail.querySelector('.detail__hero') as HTMLElement | null;
+        const outEls = [
+          hero,
+          back,
+          ...(bodyText ? (Array.from(bodyText.children) as HTMLElement[]) : []),
+        ].filter(Boolean) as HTMLElement[];
 
         const restore = () => {
+          if (myToken !== token) return; // superseded
           detail.hidden = true;
-          detail.style.transition = '';
-          detail.style.opacity = '';
+          for (const el of outEls) {
+            el.style.transition = ''; el.style.opacity = ''; el.style.filter = ''; el.style.willChange = '';
+          }
 
           split.classList.remove('is-detail');
           row.classList.remove('is-heading');
@@ -628,22 +640,33 @@ const inlineEntries = await Promise.all(
           window.scrollTo({ top: 0, behavior: 'instant' });
 
           const done = () => {
-            list.style.transition = '';
-            list.style.opacity = '';
             list.style.pointerEvents = '';
             closing = false;
             busy = false;
           };
 
           if (prefersReduced) { done(); return; }
-          list.style.opacity = '0';
-          list.style.transition = 'opacity 250ms ease';
-          requestAnimationFrame(() => { list.style.opacity = '1'; });
-          setTimeout(done, 260);
+          // Rows ripple back in from where the heading sat, landing gently.
+          staggerIn(rows, {
+            origin: row,
+            step: CHOREO.stagger.step,
+            blur: CHOREO.stagger.blur,
+          }).then(done);
         };
 
-        setTimeout(restore, prefersReduced ? 0 : 180);
+        if (prefersReduced) { restore(); return; }
+        staggerOut(outEls, {
+          origin: row,
+          step: CHOREO.stagger.step,
+          blur: CHOREO.stagger.blur,
+          duration: 260,
+        }).then(restore);
       }
+
+      // Expose the live transition state so the site-wide exit handler
+      // (Base.astro) can defer to an in-flight open/close instead of layering
+      // a conflicting page-exit cascade on the same elements.
+      (window as any).__leroiceBusy = () => busy || closing;
 
       // ── listeners ──
       const tryOpen = (row: HTMLElement | null) => {

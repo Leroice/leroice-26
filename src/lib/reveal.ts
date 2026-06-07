@@ -95,32 +95,42 @@ export function staggerIn(els: HTMLElement[], opts: StaggerOptions = {}): Promis
   return wait(baseDelay + (ordered.length - 1) * step + duration + 40).then(clear);
 }
 
+/** Selector for everything that participates in the reveal system. A
+ *  [data-reveal] element reveals as one block; the direct children of a
+ *  [data-reveal-children] element reveal individually (per-paragraph). */
+const REVEAL_SELECTOR = '[data-reveal], [data-reveal-children] > *';
+
+export function revealItems(): HTMLElement[] {
+  return Array.from(document.querySelectorAll<HTMLElement>(REVEAL_SELECTOR));
+}
+
+const clearReveal = (el: HTMLElement) => {
+  el.style.transition = '';
+  el.style.willChange = '';
+  el.style.opacity = '';
+  el.style.filter = '';
+};
+
 /**
- * Site-wide load-in: reveal every [data-reveal] element in top-down order.
- * They start hidden via CSS (html.is-js [data-reveal]); this fades+blurs them
- * in, then strips the attribute + inline styles so they rest naturally.
- * Robust: always clears (finally + safety sweep) so content can never stick
- * hidden if something throws.
+ * Site-wide load-in: fade + blur every reveal item in, top-down. Items start
+ * hidden via CSS (html.is-js:not(.revealed) ...) so there's no no-JS flash;
+ * once revealed, the root gets `.revealed` (CSS stops hiding) and inline
+ * styles are cleared so elements rest naturally — the markers persist so the
+ * same items can fade back out on navigation. Robust: a failsafe always
+ * reveals so content can never stick hidden.
  */
 export function revealOnLoad(opts: StaggerOptions = {}): void {
-  const els = Array.from(document.querySelectorAll<HTMLElement>('[data-reveal]'));
-  if (!els.length) return;
+  const root = document.documentElement;
+  const reveal = () => root.classList.add('revealed');
+  const els = revealItems();
+  if (!els.length) { reveal(); return; }
 
-  const finish = (el: HTMLElement) => {
-    el.removeAttribute('data-reveal');
-    el.style.transition = '';
-    el.style.willChange = '';
-    el.style.opacity = '';
-    el.style.filter = '';
-  };
-  // Safety sweep: whatever happens, nothing stays hidden.
-  window.setTimeout(() => {
-    for (const el of document.querySelectorAll<HTMLElement>('[data-reveal]')) finish(el);
-  }, 4000);
+  const finishAll = () => { reveal(); for (const el of els) clearReveal(el); };
+  window.setTimeout(finishAll, 4000); // failsafe — nothing stays hidden
 
   try {
     els.sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top);
-    if (reduced()) { els.forEach(finish); return; }
+    if (reduced()) { finishAll(); return; }
 
     const { duration = 520, step = 60, baseDelay = 40, blur = 6, easing = IN_EASE } = opts;
     els.forEach((el, i) => {
@@ -131,11 +141,31 @@ export function revealOnLoad(opts: StaggerOptions = {}): void {
     requestAnimationFrame(() => requestAnimationFrame(() => {
       for (const el of els) { el.style.opacity = '1'; el.style.filter = 'blur(0px)'; }
     }));
-    window.setTimeout(
-      () => els.forEach(finish),
-      baseDelay + (els.length - 1) * step + duration + 60,
-    );
+    window.setTimeout(finishAll, baseDelay + (els.length - 1) * step + duration + 60);
   } catch {
-    els.forEach(finish);
+    finishAll();
   }
+}
+
+/**
+ * Site-wide exit: fade + blur the page's content out (rippling from `origin`),
+ * then navigate to `href`. Honours reduced motion and always navigates even if
+ * the animation is interrupted.
+ */
+export function pageExit(href: string, origin?: StaggerOptions['origin'], opts: StaggerOptions = {}): void {
+  let navigated = false;
+  const go = () => { if (!navigated) { navigated = true; window.location.href = href; } };
+  if (reduced()) { go(); return; }
+  const els = revealItems();
+  if (!els.length) { go(); return; }
+
+  // Keep the exit quick regardless of page size: cap the TOTAL stagger spread,
+  // so a content-heavy page (CV) doesn't drag the navigation out.
+  const n = els.length;
+  const maxSpread = 160; // ms across all items
+  const step = n > 1 ? Math.min(opts.step ?? 14, maxSpread / (n - 1)) : 0;
+  const duration = opts.duration ?? 260;
+  staggerOut(els, { origin, step, blur: opts.blur ?? 6, duration }).then(go);
+  // Safety matched to the actual animation length (+ buffer) — never blocks long.
+  window.setTimeout(go, (n - 1) * step + duration + 150);
 }
