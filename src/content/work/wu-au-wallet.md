@@ -5,7 +5,7 @@ context: "Western Union · iOS, Android"
 summary: "Leading design on Western Union's AU digital wallet — a multicurrency consumer wallet built within a global design system that needed to flex. The first sequence shipped a redesigned send-money flow; the current sequence is bringing PayID, PayTo, BPay and BPay top-up into a single coherent surface."
 order: 1
 detail: true
-cover: "/images/wu-cover.png"
+cover: "/images/work/wu-au-wallet.svg"
 coverAlt: "Western Union AU wallet — send money flow"
 ---
 
