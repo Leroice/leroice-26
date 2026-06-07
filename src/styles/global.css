@@ -19,12 +19,6 @@
   src: url('/fonts/Geist-SemiBold.woff2') format('woff2');
   font-weight: 600; font-style: normal; font-display: swap;
 }
-@font-face {
-  font-family: 'GeistMono';
-  src: url('/fonts/GeistMono-Regular.woff2') format('woff2');
-  font-weight: 400; font-style: normal; font-display: swap;
-}
-
 /* ── Tokens (Figma) ─────────────────────────────────────── */
 
 :root {
@@ -41,7 +35,6 @@
 
   /* Type — Figma tokens */
   --font-sans:    'Geist', system-ui, -apple-system, sans-serif;
-  --font-mono:    'GeistMono', ui-monospace, 'SF Mono', monospace;
 
   /* Type sizes from Figma */
   --fs-meta:      11px;
@@ -395,7 +388,7 @@ img, video { max-width: 100%; height: auto; display: block; }
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: var(--fs-meta);
   color: var(--text-primary);
   opacity: var(--op-soft);
@@ -412,7 +405,7 @@ img, video { max-width: 100%; height: auto; display: block; }
   background: transparent; border: none;
   color: var(--text-primary);
   opacity: var(--op-soft);
-  font-family: var(--font-mono); font-size: var(--fs-meta);
+  font-family: var(--font-sans); font-size: var(--fs-meta);
   cursor: pointer; padding: 0;
   transition: opacity 160ms ease;
 }
@@ -428,7 +421,7 @@ img, video { max-width: 100%; height: auto; display: block; }
 .detail__back {
   display: inline-block;
   margin-bottom: 4rem;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: var(--fs-meta);
   color: var(--text-primary);
   opacity: var(--op-strong);
@@ -457,7 +450,7 @@ img, video { max-width: 100%; height: auto; display: block; }
   margin: 0 0 0.5rem;
 }
 .detail__meta {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: var(--fs-meta);
   color: var(--text-primary);
   opacity: var(--op-soft);
