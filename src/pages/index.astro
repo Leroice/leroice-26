@@ -42,6 +42,15 @@ const inlineEntries = await Promise.all(
         const extra = entry.data.external
           ? { href, rel: 'noopener', target: '_blank' }
           : href ? { href } : {};
+        // Inline rows are <div>s (no href), so make them keyboard-operable.
+        const inlineAttrs = isInline
+          ? {
+              'data-inline': 'true',
+              role: 'button',
+              tabindex: '0',
+              'aria-label': `Open ${entry.data.title} case study`,
+            }
+          : {};
 
         return (
           <Tag
@@ -50,6 +59,7 @@ const inlineEntries = await Promise.all(
             data-slug={slug(entry.id)}
             data-index={i}
             {...extra}
+            {...inlineAttrs}
           >
             <div class="row__inner">
               <div class="row__year">{entry.data.year}</div>
@@ -380,7 +390,6 @@ const inlineEntries = await Promise.all(
         busy = true;
 
         const pw = document.querySelector('.list__pill-wrap') as HTMLElement | null;
-        const preview = document.querySelector('.preview') as HTMLElement | null;
 
         // 1 — hide pill immediately
         if (pw) { pw.style.transition = 'opacity 150ms'; pw.style.opacity = '0'; }
@@ -407,47 +416,112 @@ const inlineEntries = await Promise.all(
         row.style.position = 'relative';
         row.style.zIndex = '10';
 
-        // 6 — fade the preview column out
-        if (preview) {
-          preview.style.transition = 'opacity 400ms ease';
-          preview.style.opacity = '0';
-        }
+        // 6 — leave the preview visible: it's the source frame for the FLIP.
 
-        // 7 — once the slide settles, commit the row AS the heading. The title
-        //     does not move or resize: we only switch how it's anchored at the
-        //     top (transform → normal flow) so its on-screen box is identical.
-        //     Then the case-study body fades in beneath it.
+        // 7 — once the slide settles, lock the row as the heading and FLIP the
+        //     preview image into a full-width header image beneath it. The
+        //     preview's cover and the hero share the same src and the same
+        //     16/10 aspect, so the expand is a clean (distortion-free) scale.
         setTimeout(() => {
-          // Collapse to one column; drop the faded rows and empty preview.
+          const prefersReduced =
+            window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          const previewFrame =
+            document.querySelector('.preview__frame') as HTMLElement | null;
+          const hero = detail.querySelector('.detail__hero') as HTMLElement | null;
+          const back = detail.querySelector('.detail__back') as HTMLElement | null;
+          const bodyText = detail.querySelector('.detail__body') as HTMLElement | null;
+          const fadeIns = [back, bodyText].filter(Boolean) as HTMLElement[];
+
+          // Land at the top first so every rect we read shares one coordinate
+          // space (no scroll happens after this point during the animation).
+          window.scrollTo({ top: 0, behavior: 'instant' });
+
+          // FIRST: the preview image's on-screen box, captured while it's still
+          // visible (before the layout collapse hides it).
+          const firstRect = previewFrame ? previewFrame.getBoundingClientRect() : null;
+
+          // Collapse to one column; drop the faded rows and the preview pane.
           split.classList.add('is-detail');
           for (const r of rows) {
             if (r !== row) r.style.display = 'none';
           }
 
-          // With the siblings gone, the selected row's natural position is the
-          // top — so clearing its transform leaves it exactly where the slide
-          // parked it. No jump, no morph; the title simply holds.
+          // The slid row's natural position is now the top, so clearing its
+          // transform leaves it exactly where it parked — the title holds.
+          // Also drop the slide-only position/z-index so .is-heading's CSS wins.
           row.style.transition = '';
           row.style.transform = '';
+          row.style.position = '';
+          row.style.zIndex = '';
           row.classList.add('is-heading');
           list.style.pointerEvents = '';
 
-          // Reveal the body under the held title.
+          // Reveal the body. The hero animates; the back link + text fade in.
           detail.hidden = false;
-          detail.style.opacity = '0';
-          detail.style.transition = 'opacity 320ms ease';
-          requestAnimationFrame(() => { detail.style.opacity = '1'; });
-
           openRow = row;
           openDetail = detail;
           history.pushState({ slug }, '', `/work/${slug}`);
-          window.scrollTo({ top: 0, behavior: 'instant' });
 
-          setTimeout(() => {
-            detail.style.transition = '';
-            detail.style.opacity = '';
-            busy = false;
-          }, 330);
+          const canFlip = !prefersReduced && hero && firstRect && firstRect.width > 0;
+
+          if (canFlip) {
+            for (const el of fadeIns) {
+              el.style.opacity = '0';
+              el.style.transition = 'opacity 360ms ease 120ms';
+            }
+
+            // LAST: the hero's resting box (full-width header, now laid out).
+            const lastRect = hero!.getBoundingClientRect();
+            const sx = firstRect!.width / lastRect.width;
+            const sy = firstRect!.height / lastRect.height;
+            const tx = firstRect!.left - lastRect.left;
+            const ty = firstRect!.top - lastRect.top;
+
+            // INVERT: drop the hero exactly over where the preview image was.
+            hero!.style.transformOrigin = 'top left';
+            hero!.style.willChange = 'transform';
+            hero!.style.transition = 'none';
+            hero!.style.transform = `translate(${tx}px, ${ty}px) scale(${sx}, ${sy})`;
+
+            // PLAY: release to the natural full-width box on the next frame.
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                hero!.style.transition = 'transform 620ms cubic-bezier(0.22, 1, 0.36, 1)';
+                hero!.style.transform = '';
+                for (const el of fadeIns) el.style.opacity = '1';
+              });
+            });
+
+            const cleanup = () => {
+              hero!.style.transition = '';
+              hero!.style.transform = '';
+              hero!.style.transformOrigin = '';
+              hero!.style.willChange = '';
+              for (const el of fadeIns) { el.style.transition = ''; el.style.opacity = ''; }
+              hero!.removeEventListener('transitionend', onEnd);
+              busy = false;
+            };
+            const onEnd = (e: TransitionEvent) => {
+              if (e.propertyName === 'transform') cleanup();
+            };
+            hero!.addEventListener('transitionend', onEnd);
+            // Safety net in case transitionend is missed.
+            setTimeout(cleanup, 720);
+          } else {
+            // Fallback (reduced motion, or mobile where there's no preview):
+            // a plain reveal.
+            detail.style.opacity = '0';
+            detail.style.transition = 'opacity 320ms ease';
+            requestAnimationFrame(() => { detail.style.opacity = '1'; });
+            const onEnd = () => {
+              detail.style.transition = '';
+              detail.style.opacity = '';
+              detail.removeEventListener('transitionend', onEnd);
+              busy = false;
+            };
+            detail.addEventListener('transitionend', onEnd);
+            setTimeout(onEnd, 420); // safety net if transitionend is missed
+          }
         }, 550);
       }
 
@@ -479,28 +553,50 @@ const inlineEntries = await Promise.all(
           if (pw) { pw.style.transition = ''; pw.style.opacity = ''; }
           if (preview) { preview.style.transition = ''; preview.style.opacity = ''; }
 
+          // Reset the pill's velocity-driven CSS vars to rest so it doesn't
+          // snap from a stale value when the list fades back in.
+          const docStyle = document.documentElement.style;
+          docStyle.setProperty('--pill-velocity-blur', '0px');
+          docStyle.setProperty('--pill-velocity-opacity', '0.06');
+
           openRow = null;
           openDetail = null;
           window.scrollTo({ top: 0, behavior: 'instant' });
 
-          // Gentle fade of the restored list.
+          // Gentle fade of the restored list. Freeze hover during the fade so a
+          // stray pointermove/focus can't drive the pill spring mid-animation.
+          list.style.pointerEvents = 'none';
           list.style.opacity = '0';
           list.style.transition = 'opacity 250ms ease';
           requestAnimationFrame(() => { list.style.opacity = '1'; });
           setTimeout(() => {
             list.style.transition = '';
             list.style.opacity = '';
+            list.style.pointerEvents = '';
             busy = false;
           }, 260);
         }, 180);
       }
 
       // ── listeners ──
-      list.addEventListener('click', (e) => {
-        const row = (e.target as HTMLElement).closest<HTMLElement>('[data-row]');
+      const tryOpen = (row: HTMLElement | null) => {
         if (!row) return;
         const s = row.dataset.slug;
-        if (s && document.querySelector(`[data-detail-slug="${s}"]`)) open(row);
+        if (s && document.querySelector(`.list__detail[data-detail-slug="${s}"]`)) open(row);
+      };
+
+      list.addEventListener('click', (e) => {
+        tryOpen((e.target as HTMLElement).closest<HTMLElement>('[data-row]'));
+      });
+
+      // Keyboard: Enter / Space on a focused inline row opens it (the inline
+      // rows are <div>s, so they get role=button + tabindex in the template).
+      list.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+        const row = (e.target as HTMLElement).closest<HTMLElement>('[data-row]');
+        if (!row || row.dataset.inline !== 'true') return;
+        e.preventDefault();
+        tryOpen(row);
       });
 
       document.addEventListener('click', (e) => {

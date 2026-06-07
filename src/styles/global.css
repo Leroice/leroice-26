@@ -497,16 +497,31 @@ img, video { max-width: 100%; height: auto; display: block; }
    just locked to full opacity and non-interactive. */
 .row.is-heading { cursor: default; z-index: 1; }
 .row.is-heading .row__inner { opacity: 1; }
+/* On mobile the row shows a cover thumbnail; as the heading that would
+   duplicate the full-width hero below, so hide it. */
+.row.is-heading .row__media { display: none; }
 
-/* Case-study body, revealed under the heading. Left-aligned to sit
-   directly beneath the title (matching the row's internal padding). */
+/* Case-study body, revealed under the heading. The hero spans the full
+   content column (it FLIPs in from the preview pane); the text stays at a
+   readable measure beneath it. */
 .list__detail {
-  max-width: 46rem;
-  padding: 0 var(--sp-base);
   margin-top: 2rem;
 }
-.list__detail .detail__back { margin-bottom: 2.5rem; }
-.list__detail .detail__hero { margin-bottom: 3rem; }
+.list__detail .detail__back { display: inline-block; margin-bottom: 2rem; }
+
+/* Hero shares the preview frame's 16/10 aspect so the FLIP scale is uniform
+   (no distortion). object-fit: cover keeps the image crisp at any size. */
+.list__detail .detail__hero {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  margin: 0 0 3rem;
+  display: block;
+  backface-visibility: hidden;
+}
+
+.list__detail .detail__body { max-width: 46rem; }
 
 /* ── Reduced motion ─────────────────────────────────────── */
 
