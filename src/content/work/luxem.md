@@ -1,10 +1,36 @@
 ---
 title: "Luxem"
 year: "2023"
-context: "Brand, web, 3D, motion"
-summary: "Brand identity and site for Luxem. A values-aligned partner project I took on alongside the day job, partly as a creative exercise and partly to keep practising the disciplines product work doesn't always exercise."
+context: "Brand, Web, 3D, Motion"
+summary: "Expanding LUXEM Ventures' brand beyond a logo, palette, and typeface into a cohesive visual and digital presence built on themes of connectivity, innovation, and digital networks."
 order: 4
-detail: false
+detail: true
+external: "https://www.luxemvc.com.au"
 cover: "/images/work/luxem.jpg"
 coverAlt: "Luxem — 'Globally informed' headline over a faceted dark sphere"
 ---
+
+LUXEM Ventures engaged me to expand their brand identity beyond a basic logo, colour palette, and typeface.
+
+Our goal was to create a cohesive visual and digital presence that reflected their core focus: investing in promising seed and startup ventures. Drawing on themes of connectivity, innovation, and digital networks, we extended the brand across multiple touch points to reflect LUXEM Ventures' forward-thinking investment philosophy.
+
+![LUXEM mobile intro](/images/work/luxem/01-LUXEM-Mobile-Intro.png)
+
+![LUXEM mobile intro](/images/work/luxem/02-LUXEM-Mobile-Intro.png)
+
+![LUXEM mobile intro](/images/work/luxem/03-LUXEM-Mobile-Intro.png)
+
+![LUXEM mobile intro](/images/work/luxem/04LUXEM-Mobile-Intro.png)
+
+![Moodboard](/images/work/luxem/Moodboard.jpg)
+
+<video src="/videos/work/luxem/LUXEMVC-BG-Animation-Wide-transcode.mp4" autoplay muted loop playsinline></video>
+
+![LUXEM web mockup](/images/work/luxem/WeLuxem-WebMock.jpg)
+
+## Project info
+
+- **Role:** Principal Designer / Design Director
+- **Responsibilities / Deliverables:** Brand & Creative Direction, UI / UX Direction, Prototyping, 3D/2D Animation, Interaction Design & Development
+- **Credits:** Jayden Zernich / Original Brand Definition; Woodrow Wilson / Photography
+- **Visit:** [luxemvc.com.au →](https://www.luxemvc.com.au)
