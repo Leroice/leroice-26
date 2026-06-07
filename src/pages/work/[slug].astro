@@ -16,22 +16,22 @@ const { Content } = await render(entry);
 
 <Base title={`${entry.data.title} — Leigh Scholten`} description={entry.data.summary}>
   <article class="detail">
-    <a href="/" class="detail__back">← back</a>
+    <a href="/" class="detail__back" data-reveal>← back</a>
 
-    <header class="detail__header">
+    <header class="detail__header" data-reveal>
       <h1>{entry.data.title}</h1>
       <div class="detail__meta">{entry.data.year} · {entry.data.context}</div>
     </header>
 
     {entry.data.cover && (
       <img
-        class="detail__hero"
+        class="detail__hero" data-reveal
         src={entry.data.cover}
         alt={entry.data.coverAlt ?? entry.data.title}
       />
     )}
 
-    <div class="detail__body">
+    <div class="detail__body" data-reveal>
       <Content />
     </div>
   </article>

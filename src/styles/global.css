@@ -531,6 +531,19 @@ img, video { max-width: 100%; height: auto; display: block; }
 
 .list__detail .detail__body { max-width: 46rem; }
 
+/* ── Site-wide reveal ───────────────────────────────────────
+   Nothing pops in. [data-reveal] elements start hidden (only when JS is
+   present, to avoid a no-JS flash) and fade+blur in via reveal.ts on load.
+   The attribute is stripped once revealed, so this only applies pre-reveal. */
+
+html.is-js [data-reveal] {
+  opacity: 0;
+  filter: blur(6px);
+}
+@media (prefers-reduced-motion: reduce) {
+  html.is-js [data-reveal] { opacity: 1; filter: none; }
+}
+
 /* ── Reduced motion ─────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {

@@ -55,6 +55,12 @@ const {
         if (stored === 'light' || stored === 'dark') {
           document.documentElement.setAttribute('data-theme', stored);
         }
+        // Mark JS available so [data-reveal] content can start hidden (and
+        // fade+blur in) without ever flashing for no-JS users. Failsafe: drop
+        // the flag after 4s so content can't stay hidden if the reveal stalls.
+        const root = document.documentElement;
+        root.classList.add('is-js');
+        setTimeout(() => root.classList.remove('is-js'), 4000);
       })();
     </script>
   </head>
@@ -110,6 +116,13 @@ const {
         document.documentElement.setAttribute('data-theme', next);
         localStorage.setItem('theme', next);
       });
+    </script>
+
+    <script>
+      // Site-wide load-in: every [data-reveal] element fades + blurs in,
+      // top-down. "Nothing just appears."
+      import { revealOnLoad } from '../lib/reveal';
+      revealOnLoad();
     </script>
   </body>
 </html>

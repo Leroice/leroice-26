@@ -159,16 +159,16 @@ const lastUpdated = "June 2026";
   description="Design Director and Lead UX Designer — two decades of high-impact digital product work across fintech and financial services."
 >
   <main class="cv">
-    <a href="/" class="cv__back">← back</a>
+    <a href="/" class="cv__back" data-reveal>← back</a>
 
-    <section class="cv-section">
+    <section class="cv-section" data-reveal>
       <p class="cv-label">profile</p>
       <div class="cv-content cv-profile">
         {profile.map((para) => <p>{para}</p>)}
       </div>
     </section>
 
-    <section class="cv-section">
+    <section class="cv-section" data-reveal>
       <p class="cv-label">selected impact</p>
       <div class="cv-content">
         <ul class="cv-stats">
@@ -182,7 +182,7 @@ const lastUpdated = "June 2026";
       </div>
     </section>
 
-    <section class="cv-section">
+    <section class="cv-section" data-reveal>
       <p class="cv-label">current</p>
       <div class="cv-content cv-roles">
         {current.map((job) => (
@@ -202,7 +202,7 @@ const lastUpdated = "June 2026";
       </div>
     </section>
 
-    <section class="cv-section">
+    <section class="cv-section" data-reveal>
       <p class="cv-label">prior</p>
       <div class="cv-content cv-roles">
         {prior.map((job) => (
@@ -222,7 +222,7 @@ const lastUpdated = "June 2026";
       </div>
     </section>
 
-    <section class="cv-section">
+    <section class="cv-section" data-reveal>
       <p class="cv-label">core skills</p>
       <div class="cv-content">
         <ul class="cv-skills">
@@ -231,7 +231,7 @@ const lastUpdated = "June 2026";
       </div>
     </section>
 
-    <section class="cv-section">
+    <section class="cv-section" data-reveal>
       <p class="cv-label">education &amp; awards</p>
       <div class="cv-content cv-edu-grid">
         <div>
@@ -254,7 +254,7 @@ const lastUpdated = "June 2026";
       </div>
     </section>
 
-    <p class="cv-updated">cv · last updated {lastUpdated}</p>
+    <p class="cv-updated" data-reveal>cv · last updated {lastUpdated}</p>
   </main>
 </Base>
 

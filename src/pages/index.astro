@@ -56,6 +56,7 @@ const inlineEntries = await Promise.all(
           <Tag
             class="row"
             data-row
+            data-reveal
             data-slug={slug(entry.id)}
             data-index={i}
             {...extra}
@@ -130,6 +131,8 @@ const inlineEntries = await Promise.all(
       <label><span class="tuner__lab">Image delay (trail) <output id="out-idelay"></output></span><input type="range" id="tune-idelay" /></label>
       <label><span class="tuner__lab">Image arc (yield) <output id="out-iarc"></output></span><input type="range" id="tune-iarc" /></label>
       <label><span class="tuner__lab">Min yield <output id="out-iyield"></output></span><input type="range" id="tune-iyield" /></label>
+      <label><span class="tuner__lab">Cascade step <output id="out-sgstep"></output></span><input type="range" id="tune-sgstep" /></label>
+      <label><span class="tuner__lab">Cascade blur <output id="out-sgblur"></output></span><input type="range" id="tune-sgblur" /></label>
       <label><span class="tuner__lab">Easing</span>
         <select id="tune-easing"></select>
       </label>
@@ -403,6 +406,7 @@ const inlineEntries = await Promise.all(
   // Inline transition: list → detail (same page, no navigation)
   // ─────────────────────────────────────────────────────────
   import { arcFlip, concert, easings, makeSpring } from '../lib/arc-flip';
+  import { staggerOut, staggerIn } from '../lib/reveal';
 
   // Choreography props for the list → detail move. The title leads; the image
   // yields — trailing slightly and arcing downward so it never crosses the
@@ -410,11 +414,13 @@ const inlineEntries = await Promise.all(
   // (tokens 410/84/3). Live-editable via the TUNING panel below.
   const CHOREO_KEY = 'leroice-choreo';
   const DEFAULT_CHOREO = {
-    leadIn: 170,        // ms: dissolve the other rows before the move begins
+    leadIn: 0,          // ms: delay before the proximity cascade begins
     easing: 'spring',   // easing name; 'spring' uses the params below
     spring: { stiffness: 410, damping: 84, mass: 3 },
     title: { duration: 720, delay: 0,  arc: 0,   scale: false },
     image: { duration: 860, delay: 80, arc: 0.3, minYield: 22, scale: true },
+    // Proximity cascade when a row opens: nearest rows fade+blur out first.
+    stagger: { step: 40, blur: 6, outDuration: 340 },
   };
   // Mutable runtime config — the TUNING panel writes here + to localStorage.
   const CHOREO = (() => {
@@ -427,6 +433,7 @@ const inlineEntries = await Promise.all(
           spring: { ...DEFAULT_CHOREO.spring, ...(saved.spring || {}) },
           title: { ...DEFAULT_CHOREO.title, ...(saved.title || {}) },
           image: { ...DEFAULT_CHOREO.image, ...(saved.image || {}) },
+          stagger: { ...DEFAULT_CHOREO.stagger, ...(saved.stagger || {}) },
         };
       }
     } catch { /* ignore bad storage */ }
@@ -478,7 +485,6 @@ const inlineEntries = await Promise.all(
         const hero = detail.querySelector('.detail__hero') as HTMLElement | null;
         const back = detail.querySelector('.detail__back') as HTMLElement | null;
         const bodyText = detail.querySelector('.detail__body') as HTMLElement | null;
-        const fadeIns = [back, bodyText].filter(Boolean) as HTMLElement[];
         const prefersReduced = reducedMotion();
 
         // Hide pill, freeze hover, and settle scroll so every rect we read —
@@ -493,19 +499,10 @@ const inlineEntries = await Promise.all(
         const titleFirst = row.getBoundingClientRect();
         const imageFirst = previewFrame ? previewFrame.getBoundingClientRect() : null;
 
-        // Lead-in: dissolve the other rows. The preview stays put — it hands
-        // straight off to the hero so the image never blinks out. Instant under
-        // reduced motion.
-        for (const r of rows) {
-          if (r === row) continue;
-          if (prefersReduced) {
-            r.style.opacity = '0';
-          } else {
-            r.style.transition = 'opacity 160ms ease, transform 300ms ease';
-            r.style.opacity = '0';
-            r.style.transform = 'scale(0.985)';
-          }
-        }
+        // The other rows cascade OUT by proximity to the clicked row (nearest
+        // fades+blurs first, rippling outward). The preview stays put — it
+        // hands straight off to the hero so the image never blinks out.
+        const others = rows.filter((r) => r !== row);
 
         const runCommit = () => {
           if (myToken !== token) return; // superseded before the lead-in fired
@@ -549,12 +546,13 @@ const inlineEntries = await Promise.all(
             return;
           }
 
-          // Fade the back link + body text in behind the motion.
-          for (const el of fadeIns) {
-            el.style.opacity = '0';
-            el.style.transition = 'opacity 380ms ease 140ms';
-          }
-          requestAnimationFrame(() => { for (const el of fadeIns) el.style.opacity = '1'; });
+          // The case-study content loads IN in sequence (fade + blur), behind
+          // the image as it settles — nothing just appears.
+          const bodyEls = [
+            back,
+            ...(bodyText ? (Array.from(bodyText.children) as HTMLElement[]) : []),
+          ].filter(Boolean) as HTMLElement[];
+          staggerIn(bodyEls, { baseDelay: 160, step: CHOREO.stagger.step, blur: CHOREO.stagger.blur });
 
           // Concerted move: the title rises (straight expo) while the image
           // FLIPs in from the preview pane, trailing slightly and arcing
@@ -568,12 +566,23 @@ const inlineEntries = await Promise.all(
             if (myToken !== token) return; // a close/open superseded us
             activeAnims = [];
             list.style.pointerEvents = ''; // restore hover only after the motion
-            for (const el of fadeIns) { el.style.transition = ''; el.style.opacity = ''; }
             busy = false;
           });
         };
 
-        window.setTimeout(runCommit, prefersReduced ? 0 : CHOREO.leadIn);
+        // Run the proximity cascade, then move once the path is clear.
+        if (prefersReduced) {
+          for (const r of others) r.style.opacity = '0';
+          runCommit();
+        } else {
+          staggerOut(others, {
+            origin: row,
+            baseDelay: CHOREO.leadIn,
+            step: CHOREO.stagger.step,
+            blur: CHOREO.stagger.blur,
+            duration: CHOREO.stagger.outDuration,
+          }).then(() => { if (myToken === token) runCommit(); });
+        }
       }
 
       // ── CLOSE ── (also interrupts an in-flight open)
@@ -678,6 +687,8 @@ const inlineEntries = await Promise.all(
           { path: ['image', 'delay'],    id: 'idelay', min: 0,   max: 400,  step: 10,   unit: 'ms' },
           { path: ['image', 'arc'],      id: 'iarc',   min: 0,   max: 1,    step: 0.05, unit: '' },
           { path: ['image', 'minYield'], id: 'iyield', min: 0,   max: 120,  step: 2,    unit: 'px' },
+          { path: ['stagger', 'step'],   id: 'sgstep', min: 0,   max: 120,  step: 5,    unit: 'ms' },
+          { path: ['stagger', 'blur'],   id: 'sgblur', min: 0,   max: 20,   step: 1,    unit: 'px' },
           { path: ['spring', 'stiffness'], id: 'sstiff', min: 40,  max: 900, step: 10,  unit: '' },
           { path: ['spring', 'damping'],   id: 'sdamp',  min: 4,   max: 160, step: 2,   unit: '' },
           { path: ['spring', 'mass'],      id: 'smass',  min: 0.5, max: 8,   step: 0.5, unit: '' },
@@ -765,6 +776,7 @@ const inlineEntries = await Promise.all(
             `  spring: { stiffness: ${c.spring.stiffness}, damping: ${c.spring.damping}, mass: ${c.spring.mass} },\n` +
             `  title: { duration: ${c.title.duration}, delay: ${c.title.delay}, arc: ${c.title.arc}, scale: ${c.title.scale} },\n` +
             `  image: { duration: ${c.image.duration}, delay: ${c.image.delay}, arc: ${c.image.arc}, minYield: ${c.image.minYield}, scale: ${c.image.scale} },\n` +
+            `  stagger: { step: ${c.stagger.step}, blur: ${c.stagger.blur}, outDuration: ${c.stagger.outDuration} },\n` +
             `};`;
           try { await navigator.clipboard.writeText(cfg); flash('copied ✓'); }
           catch { flash('copy failed'); }
