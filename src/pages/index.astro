@@ -1,0 +1,491 @@
+---
+import Base from '../layouts/Base.astro';
+import { getCollection, render } from 'astro:content';
+
+const entries = (await getCollection('work')).sort(
+  (a, b) => a.data.order - b.data.order
+);
+
+const slug = (id: string) => id.replace(/\.md$/, '');
+
+// Only CACNA-1A gets an inline detail transition (no page navigation)
+const inlineSlugs = new Set(['cacna-1a']);
+
+const inlineEntries = await Promise.all(
+  entries
+    .filter((e) => inlineSlugs.has(slug(e.id)))
+    .map(async (entry) => {
+      const { Content } = await render(entry);
+      return { entry, Content };
+    })
+);
+---
+
+<Base
+  title="Leigh Scholten"
+  description="Designer based in Melbourne. Currently working on Western Union's AU digital wallet."
+>
+  <main class="split">
+    <section class="list" data-list>
+      <div class="list__pill-wrap">
+        <div class="list__pill" data-pill></div>
+      </div>
+
+      {entries.map((entry, i) => {
+        const isInline = inlineSlugs.has(slug(entry.id));
+        const href = isInline
+          ? null
+          : (entry.data.external
+            ?? (entry.data.detail ? `/work/${slug(entry.id)}` : null));
+
+        const Tag = href ? 'a' : 'div';
+        const extra = entry.data.external
+          ? { href, rel: 'noopener', target: '_blank' }
+          : href ? { href } : {};
+
+        return (
+          <Tag
+            class="row"
+            data-row
+            data-slug={slug(entry.id)}
+            data-index={i}
+            {...extra}
+          >
+            <div class="row__inner">
+              <div class="row__year">{entry.data.year}</div>
+              <div class="row__title">{entry.data.title}</div>
+              <div class="row__desc">{entry.data.context}</div>
+            </div>
+
+            {entry.data.cover && (
+              <div class="row__media">
+                <img
+                  src={entry.data.cover}
+                  alt={entry.data.coverAlt ?? entry.data.title}
+                  loading="lazy"
+                />
+              </div>
+            )}
+          </Tag>
+        );
+      })}
+    </section>
+
+    <aside class="preview" aria-hidden="true">
+      <div class="preview__frame" data-preview-frame>
+        {entries
+          .filter((e) => e.data.cover)
+          .map((entry) => (
+            <img
+              class="preview__image"
+              data-preview-image={slug(entry.id)}
+              src={entry.data.cover}
+              alt=""
+              loading="eager"
+            />
+          ))
+        }
+      </div>
+    </aside>
+  </main>
+
+  {inlineEntries.map(({ entry, Content }) => (
+    <section class="detail-inline" data-detail-slug={slug(entry.id)} style="display:none">
+      <article class="detail">
+        <button class="detail__back" type="button" data-detail-back>← back</button>
+        <header class="detail__header">
+          <h1>{entry.data.title}</h1>
+          <div class="detail__meta">{entry.data.year} · {entry.data.context}</div>
+        </header>
+        {entry.data.cover && (
+          <img
+            class="detail__hero"
+            src={entry.data.cover}
+            alt={entry.data.coverAlt ?? entry.data.title}
+          />
+        )}
+        <div class="detail__body">
+          <Content />
+        </div>
+      </article>
+    </section>
+  ))}
+</Base>
+
+<script>
+  // ─────────────────────────────────────────────────────────
+  // Pill — fast spring to target row.
+  // Gooey SVG filter (defined in Base layout) handles the liquid
+  // silhouette automatically; no manual deformation needed in JS.
+  // ─────────────────────────────────────────────────────────
+
+  const list = document.querySelector('[data-list]') as HTMLElement | null;
+  const pill = document.querySelector('[data-pill]') as HTMLElement | null;
+  const images = Array.from(document.querySelectorAll<HTMLImageElement>('[data-preview-image]'));
+  const rows = Array.from(document.querySelectorAll<HTMLElement>('[data-row]'));
+
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const isTouch = window.matchMedia('(hover: none)').matches;
+
+  if (list && pill && rows.length && !isTouch && !prefersReduced) {
+
+    const readMotion = () => {
+      const cs = getComputedStyle(document.documentElement);
+      const n = (name: string, fallback: number) =>
+        parseFloat(cs.getPropertyValue(name)) || fallback;
+      return {
+        stiffness:           n('--spring-stiffness',          410),
+        damping:             n('--spring-damping',            84),
+        mass:                n('--spring-mass',               3),
+        // Velocity-driven pill breath
+        breathPeakVelocity:  n('--pill-breath-peak-velocity', 2000),
+        breathBlurMax:       n('--pill-breath-blur-max',      16),
+        opacityRest:         n('--pill-opacity-rest',         0.06),
+        opacityMoving:       n('--pill-opacity-moving',       0.03),
+        // Velocity-driven frame breath (same signal as pill, different mapping)
+        frameBlurMax:        n('--frame-blur-max',            7),
+        frameOpacityMin:     n('--frame-opacity-min',         0.6),
+        frameScaleMin:       n('--frame-scale-min',           0.95),
+      };
+    };
+
+    const state = {
+      y: 0,
+      h: 0,
+      targetY: 0,
+      targetH: 0,
+      vy: 0,
+      vh: 0,
+    };
+
+    // Slug queued for swap on next high-velocity frame
+    // (transition state declared below, near step())
+
+    let activeRow: HTMLElement | null = null;
+    let rafId = 0;
+    let lastTs = 0;
+
+    const measureRow = (row: HTMLElement) => {
+      const listRect = list.getBoundingClientRect();
+      const rowRect = row.getBoundingClientRect();
+      return {
+        y: rowRect.top - listRect.top,
+        h: rowRect.height,
+      };
+    };
+
+    // Park pill on first row at rest
+    if (rows[0]) {
+      const { y, h } = measureRow(rows[0]);
+      state.y = state.targetY = y;
+      state.h = state.targetH = h;
+      pill.style.transform = `translateY(${y}px)`;
+      pill.style.height = `${h}px`;
+      // Note: no row is .is-active by default. All rows render at 90% opacity
+      // until the user hovers one, matching the "empty until hover" preview
+      // behaviour established earlier.
+    }
+
+    // Track transition for cross-fade between two images during spring travel
+    let outgoingSlug: string | null = null;
+    let incomingSlug: string | null = null;
+    let transitionStartY = 0;
+    let transitionDistance = 0;
+
+    const step = (dt: number) => {
+      const m = readMotion();
+      const stepDt = Math.min(dt, 1 / 30);
+
+      const fy = -m.stiffness * (state.y - state.targetY) - m.damping * state.vy;
+      state.vy += (fy / m.mass) * stepDt;
+      state.y  += state.vy * stepDt;
+
+      const fh = -m.stiffness * (state.h - state.targetH) - m.damping * state.vh;
+      state.vh += (fh / m.mass) * stepDt;
+      state.h  += state.vh * stepDt;
+
+      pill.style.transform = `translateY(${state.y.toFixed(2)}px)`;
+      pill.style.height = `${state.h}px`;
+
+      // ── Velocity-driven blur (the breath texture) ──
+      const speed = Math.hypot(state.vy, state.vh);
+      const velocityNorm = Math.min(speed / m.breathPeakVelocity, 1);
+
+      const pillBlur    = velocityNorm * m.breathBlurMax;
+      const pillOpacity = m.opacityRest - (velocityNorm * (m.opacityRest - m.opacityMoving));
+      const frameBlur   = velocityNorm * m.frameBlurMax;
+
+      const docStyle = document.documentElement.style;
+      docStyle.setProperty('--pill-velocity-blur', `${pillBlur.toFixed(2)}px`);
+      docStyle.setProperty('--pill-velocity-opacity', pillOpacity.toFixed(3));
+      docStyle.setProperty('--frame-blur', `${frameBlur.toFixed(2)}px`);
+
+      // ── Progress-driven cross-fade between outgoing and incoming images ──
+      // Progress is how far we've traveled toward the target as a fraction of
+      // total distance. Continuous through the whole motion — not a "swap event".
+      if (incomingSlug !== null && transitionDistance > 0.5) {
+        const traveled = Math.abs(state.y - transitionStartY);
+        const progress = Math.min(traveled / transitionDistance, 1);
+
+        // Smooth progress through a small ease so the cross-fade is the spring's curve
+        // (the spring is doing the easing on y; mapping y to opacity is linear).
+        images.forEach((img) => {
+          if (img.dataset.previewImage === incomingSlug) {
+            img.style.opacity = String(progress);
+          } else if (img.dataset.previewImage === outgoingSlug) {
+            img.style.opacity = String(1 - progress);
+          }
+        });
+      }
+
+      const settled =
+        Math.abs(state.y - state.targetY) < 0.1 &&
+        Math.abs(state.h - state.targetH) < 0.1 &&
+        Math.abs(state.vy) < 1.0 &&
+        Math.abs(state.vh) < 1.0;
+
+      if (settled) {
+        state.y = state.targetY;
+        state.h = state.targetH;
+        state.vy = 0;
+        state.vh = 0;
+        pill.style.transform = `translateY(${state.y}px)`;
+        pill.style.height = `${state.h}px`;
+        docStyle.setProperty('--pill-velocity-blur', '0px');
+        docStyle.setProperty('--pill-velocity-opacity', String(m.opacityRest));
+        docStyle.setProperty('--frame-blur', '0px');
+
+        // Finalise the cross-fade — incoming = 1, outgoing = 0, class state authoritative.
+        if (incomingSlug !== null) {
+          images.forEach((img) => {
+            const isIncoming = img.dataset.previewImage === incomingSlug;
+            img.classList.toggle('is-active', isIncoming);
+            img.style.opacity = ''; // clear inline opacity; let CSS class handle rest state
+          });
+          outgoingSlug = null;
+          incomingSlug = null;
+        }
+        return false;
+      }
+      return true;
+    };
+
+    const tick = (ts: number) => {
+      const dt = lastTs ? (ts - lastTs) / 1000 : 1 / 60;
+      lastTs = ts;
+      if (step(dt)) {
+        rafId = requestAnimationFrame(tick);
+      } else {
+        rafId = 0;
+        lastTs = 0;
+      }
+    };
+
+    const ensureRaf = () => {
+      if (!rafId) {
+        lastTs = 0;
+        rafId = requestAnimationFrame(tick);
+      }
+    };
+
+    const setActive = (row: HTMLElement) => {
+      if (row === activeRow) return;
+
+      // Toggle .is-active on rows for the inactive-dim styling
+      rows.forEach((r) => r.classList.toggle('is-active', r === row));
+
+      const newSlug = row.dataset.slug || null;
+
+      // What image is currently visible? If we're mid cross-fade, it's the
+      // current incomingSlug (which becomes the new outgoing). Otherwise it's
+      // whichever image has .is-active.
+      const currentActive = images.find((img) => img.classList.contains('is-active'));
+      const currentVisibleSlug = incomingSlug ?? (currentActive?.dataset.previewImage ?? null);
+
+      activeRow = row;
+
+      // Measure the new target row and update the spring's destination
+      const { y, h } = measureRow(row);
+      state.targetY = y;
+      state.targetH = h;
+
+      // Set up cross-fade: start from current pill position, travel to new target
+      outgoingSlug = currentVisibleSlug;
+      incomingSlug = newSlug;
+      transitionStartY = state.y;
+      transitionDistance = Math.abs(state.targetY - transitionStartY);
+
+      // Pre-position images for the fade: outgoing visible, incoming at 0
+      images.forEach((img) => {
+        if (img.dataset.previewImage === outgoingSlug) {
+          img.style.opacity = '1';
+          img.classList.add('is-active');
+        } else if (img.dataset.previewImage === incomingSlug) {
+          img.style.opacity = '0';
+          img.classList.add('is-active');
+        } else {
+          img.style.opacity = '';
+          img.classList.remove('is-active');
+        }
+      });
+
+      ensureRaf();
+    };
+
+    list.addEventListener('pointermove', (e) => {
+      const target = (e.target as HTMLElement).closest('[data-row]') as HTMLElement | null;
+      if (!target) return;
+      setActive(target);
+    }, { passive: true });
+
+    list.addEventListener('focusin', (e) => {
+      const target = (e.target as HTMLElement).closest('[data-row]') as HTMLElement | null;
+      if (target) setActive(target);
+    });
+
+    let resizeRaf = 0;
+    window.addEventListener('resize', () => {
+      cancelAnimationFrame(resizeRaf);
+      resizeRaf = requestAnimationFrame(() => {
+        if (activeRow) {
+          const { y, h } = measureRow(activeRow);
+          state.targetY = y;
+          state.targetH = h;
+          state.y = y; state.h = h;
+          state.vy = 0; state.vh = 0;
+          pill.style.transform = `translateY(${y}px)`;
+          pill.style.height = `${h}px`;
+        }
+      });
+    });
+  }
+</script>
+
+<script>
+  // ─────────────────────────────────────────────────────────
+  // Inline transition: list → detail (same page, no navigation)
+  // ─────────────────────────────────────────────────────────
+  {
+    const split = document.querySelector('.split') as HTMLElement;
+    const list = document.querySelector('[data-list]') as HTMLElement;
+    const rows = Array.from(document.querySelectorAll<HTMLElement>('[data-row]'));
+
+    if (split && list && rows.length) {
+
+      let busy = false;
+      let openDetail: HTMLElement | null = null;
+
+      // ── OPEN ──
+      function open(row: HTMLElement) {
+        const slug = row.dataset.slug!;
+        const detail = document.querySelector(`[data-detail-slug="${slug}"]`) as HTMLElement;
+        if (!detail || busy) return;
+        busy = true;
+
+        // 1 — hide pill immediately
+        const pw = document.querySelector('.list__pill-wrap') as HTMLElement | null;
+        if (pw) { pw.style.transition = 'opacity 150ms'; pw.style.opacity = '0'; }
+
+        // 2 — freeze pointer events so hover doesn't fight
+        list.style.pointerEvents = 'none';
+
+        // 3 — measure
+        const first = rows[0].getBoundingClientRect();
+        const sel   = row.getBoundingClientRect();
+        const dy    = first.top - sel.top;
+        const preview = document.querySelector('.preview') as HTMLElement | null;
+
+        // 4 — fade + shrink other rows
+        for (const r of rows) {
+          if (r === row) continue;
+          r.style.transition = 'opacity 350ms ease, transform 500ms ease';
+          r.style.opacity = '0';
+          r.style.transform = 'scale(0.96)';
+        }
+
+        // 5 — slide selected row to top
+        row.style.transition = 'transform 500ms cubic-bezier(.4,.0,.2,1)';
+        row.style.transform = `translateY(${dy}px)`;
+        row.style.position = 'relative';
+        row.style.zIndex = '10';
+
+        // 6 — fade preview column
+        if (preview) {
+          preview.style.transition = 'opacity 400ms ease';
+          preview.style.opacity = '0';
+        }
+
+        // 7 — after animations finish, swap views
+        setTimeout(() => {
+          // hide the entire split layout
+          split.style.display = 'none';
+          // reset inline styles so they don't persist
+          for (const r of rows) r.style.cssText = '';
+          list.style.pointerEvents = '';
+          if (pw) { pw.style.transition = ''; pw.style.opacity = ''; }
+          if (preview) { preview.style.transition = ''; preview.style.opacity = ''; }
+
+          // show detail
+          detail.style.display = 'block';
+          detail.style.opacity = '0';
+          detail.style.transition = 'opacity 250ms ease';
+          openDetail = detail;
+          requestAnimationFrame(() => { detail.style.opacity = '1'; });
+
+          history.pushState({ slug }, '', `/work/${slug}`);
+          window.scrollTo({ top: 0, behavior: 'instant' });
+
+          setTimeout(() => {
+            detail.style.transition = '';
+            detail.style.opacity = '';
+            busy = false;
+          }, 260);
+        }, 550);
+      }
+
+      // ── CLOSE ──
+      function close() {
+        if (!openDetail || busy) return;
+        const detail = openDetail;
+        busy = true;
+
+        detail.style.transition = 'opacity 200ms ease';
+        detail.style.opacity = '0';
+
+        setTimeout(() => {
+          detail.style.display = 'none';
+          detail.style.transition = '';
+          detail.style.opacity = '';
+          openDetail = null;
+
+          split.style.display = '';
+          split.style.opacity = '0';
+          split.style.transition = 'opacity 250ms ease';
+          requestAnimationFrame(() => { split.style.opacity = '1'; });
+
+          setTimeout(() => {
+            split.style.transition = '';
+            split.style.opacity = '';
+            busy = false;
+          }, 260);
+        }, 200);
+      }
+
+      // ── listeners ──
+      list.addEventListener('click', (e) => {
+        const row = (e.target as HTMLElement).closest<HTMLElement>('[data-row]');
+        if (!row) return;
+        const s = row.dataset.slug;
+        if (s && document.querySelector(`[data-detail-slug="${s}"]`)) open(row);
+      });
+
+      document.addEventListener('click', (e) => {
+        if ((e.target as HTMLElement).closest('[data-detail-back]')) history.back();
+      });
+
+      window.addEventListener('popstate', () => {
+        if (openDetail) close();
+      });
+    }
+  }
+</script>

@@ -1,0 +1,498 @@
+/* ─────────────────────────────────────────────────────────
+   leroice.com — globals
+   Type, spacing, palette all per Figma node 1:246 and 2:15.
+   Pill is permanent, physics-driven (JS-controlled, not CSS).
+   ───────────────────────────────────────────────────────── */
+
+@font-face {
+  font-family: 'Geist';
+  src: url('/fonts/Geist-Regular.woff2') format('woff2');
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Geist';
+  src: url('/fonts/Geist-Medium.woff2') format('woff2');
+  font-weight: 450; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Geist';
+  src: url('/fonts/Geist-SemiBold.woff2') format('woff2');
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'GeistMono';
+  src: url('/fonts/GeistMono-Regular.woff2') format('woff2');
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+
+/* ── Tokens (Figma) ─────────────────────────────────────── */
+
+:root {
+  /* Palette — light, from Figma tokens */
+  --text-primary:   #24221B;
+  --bg:             #FAFAF7;
+  --hover-bg:       rgba(0, 0, 0, 0.05);    /* Figma: NavItem rest pill */
+  --rule:           rgba(36, 34, 27, 0.08);
+
+  /* Opacity steps (Figma uses opacity, not separate colours) */
+  --op-primary:   1;
+  --op-strong:    0.7;
+  --op-soft:      0.5;
+
+  /* Type — Figma tokens */
+  --font-sans:    'Geist', system-ui, -apple-system, sans-serif;
+  --font-mono:    'GeistMono', ui-monospace, 'SF Mono', monospace;
+
+  /* Type sizes from Figma */
+  --fs-meta:      11px;
+  --fs-sm:        14px;
+  --fs-name:      17px;
+  --fs-h1:        32px;
+
+  /* Letter-spacing (from Figma) */
+  --tracking-tight: -0.43px;
+
+  /* Spacing — Figma tokens */
+  --sp-3:           12px;
+  --sp-base:        16px;
+  --radius-md:      12px;
+
+  /* Layout */
+  --page-max:       76rem;
+  --list-width:     22rem;
+  --col-gap:        6rem;
+  --side-pad:       2rem;
+  --top-pad:        2.5rem;
+
+  /* ── Motion ──
+     One signal drives everything: spring velocity from the rAF loop.
+     - Pill position/size follow the spring directly.
+     - Pill blur/opacity = f(velocity).
+     - Frame blur/opacity/scale = f(velocity).
+     By construction these cannot desync. No CSS transitions in this stack —
+     the spring IS the easing curve, shared by every visual element. */
+
+  /* Spring — heavy, overdamped, deliberate */
+  --spring-stiffness:     410;
+  --spring-damping:       84;
+  --spring-mass:          3;
+
+  /* Mapping: spring velocity → visual state */
+  --pill-breath-peak-velocity: 2000;     /* px/s at which breath maxes out */
+
+  /* Pill, when at peak velocity */
+  --pill-breath-blur-max:      16;
+  --pill-opacity-rest:         0.06;
+  --pill-opacity-moving:       0.03;
+
+  /* Frame, when at peak velocity (synced to the same signal) */
+  --frame-blur-max:            7;
+
+  /* Live values written by rAF — defaults until JS kicks in */
+  --pill-velocity-blur:        0px;
+  --pill-velocity-opacity:     0.06;
+  --frame-blur:                0px;
+
+  /* Used by the row inactive-state opacity transition (still CSS-driven —
+     this isn't velocity-linked, it's a discrete state change) */
+  --image-ease:                cubic-bezier(0.2, 0.8, 0.2, 1);
+  --row-fade-duration:         600ms;
+
+  /* Gooey filter — neutralised (clean rectangle, no liquid silhouette) */
+  --goo-blur:             0;
+  --goo-threshold:        4;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text-primary: #F2EFE8;
+    --bg:           #14130F;
+    --hover-bg:     rgba(255, 255, 255, 0.06);
+    --rule:         rgba(242, 239, 232, 0.08);
+  }
+}
+:root[data-theme="dark"] {
+  --text-primary: #F2EFE8;
+  --bg:           #14130F;
+  --hover-bg:     rgba(255, 255, 255, 0.06);
+  --rule:         rgba(242, 239, 232, 0.08);
+}
+:root[data-theme="light"] {
+  --text-primary: #24221B;
+  --bg:           #FAFAF7;
+  --hover-bg:     rgba(0, 0, 0, 0.05);
+  --rule:         rgba(36, 34, 27, 0.08);
+}
+
+/* ── Reset ──────────────────────────────────────────────── */
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  font-weight: 450;
+  line-height: 1.45;
+  letter-spacing: var(--tracking-tight);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 240ms ease, color 240ms ease;
+}
+
+img, video { max-width: 100%; height: auto; display: block; }
+
+/* ── Header — Figma node 2:15 ───────────────────────────── */
+
+.nav {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  /* Top padding: 64px off the page edge.
+     Horizontal padding: side-pad + sp-base so the brand text aligns with
+     the row text (which has 16px of internal padding). */
+  padding: 64px calc(var(--side-pad) + var(--sp-base)) var(--sp-3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav__brand {
+  font-family: var(--font-sans);
+  font-size: var(--fs-name);
+  font-weight: 450;
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+  text-decoration: none;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: baseline;
+}
+.nav__brand .role {
+  color: var(--text-primary);
+  opacity: 0.5;
+  margin-left: 0.25rem;
+}
+
+.nav__links {
+  display: flex;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-base);
+  align-items: center;
+}
+
+.nav__links a {
+  font-size: var(--fs-meta);
+  font-weight: 450;
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+  opacity: var(--op-strong);
+  text-decoration: none;
+  transition: opacity 160ms ease;
+  white-space: nowrap;
+}
+.nav__links a:hover {
+  opacity: 1;
+}
+
+/* ── Main split layout ──────────────────────────────────── */
+
+.split {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 2rem var(--side-pad) 8rem;
+  display: grid;
+  grid-template-columns: var(--list-width) 1fr;
+  column-gap: var(--col-gap);
+  align-items: start;
+}
+
+/* ── List with always-present pill ──────────────────────── */
+
+.list {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* The permanent pill.
+   Renders inside a gooey-filter wrapper. The pill itself is solid; the
+   wrapper applies the gooey filter for the liquid silhouette.
+
+   Meditative breath: the rAF loop sets --pill-velocity-blur and
+   --pill-velocity-opacity every frame based on the spring's current
+   velocity. Moving fast = blurred, dimmer. Settled = sharp, full opacity.
+   No CSS transition — the spring physics IS the easing. */
+.list__pill-wrap {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  filter: url(#leroice-goo) blur(var(--pill-velocity-blur));
+  opacity: var(--pill-velocity-opacity);
+  will-change: filter, opacity;
+}
+
+.list__pill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 0;
+  border-radius: var(--radius-md);
+  background: #000;
+  pointer-events: none;
+  will-change: transform, height;
+}
+
+:root[data-theme="dark"] .list__pill { background: #fff; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .list__pill { background: #fff; }
+}
+
+.row {
+  position: relative;
+  display: block;
+  padding: var(--sp-base);
+  border-radius: var(--radius-md);
+  background: transparent;
+  cursor: pointer;
+  color: inherit;
+  text-decoration: none;
+  z-index: 1;
+}
+
+/* All rows dim to 90% by default. Only the actively-hovered row stays full. */
+.row__inner {
+  display: flex;
+  flex-direction: column;
+  word-break: break-word;
+  opacity: 0.9;
+  transition: opacity var(--row-fade-duration) var(--image-ease);
+  will-change: opacity;
+}
+
+.row.is-active .row__inner {
+  opacity: 1;
+}
+
+.row__year {
+  font-family: var(--font-sans);
+  font-size: var(--fs-meta);
+  font-weight: 450;
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+  opacity: var(--op-strong);
+  line-height: normal;
+  white-space: nowrap;
+  margin-bottom: 8px;
+}
+
+.row__title {
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  font-weight: 450;
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+  opacity: var(--op-primary);
+  line-height: normal;
+  white-space: nowrap;
+  margin-bottom: 2px;
+}
+
+.row__desc {
+  font-family: var(--font-sans);
+  font-size: var(--fs-meta);
+  font-weight: 400;
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+  opacity: var(--op-soft);
+  line-height: normal;
+  white-space: nowrap;
+}
+
+/* ── Preview pane ───────────────────────────────────────── */
+
+.preview {
+  position: sticky;
+  top: 6rem;
+  height: calc(100vh - 12rem);
+  min-height: 400px;
+  max-height: 720px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.preview__frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  max-height: 100%;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  /* The frame stays full opacity and at full scale always.
+     The blur is the only velocity-driven texture on the frame.
+     Image cross-fade is driven directly on each <img> by the rAF loop. */
+  filter: blur(var(--frame-blur, 0px));
+  will-change: filter;
+}
+
+/* Images cross-fade by direct opacity manipulation from JS during transit.
+   The is-active class keeps the image visible (display-wise) — opacity is set
+   inline by step(). At rest, the class alone is enough. */
+.preview__image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+}
+.preview__image.is-active {
+  opacity: 1;
+}
+
+/* ── Mobile ─────────────────────────────────────────────── */
+
+@media (max-width: 880px) {
+  .split { grid-template-columns: 1fr; padding-top: 2rem; padding-bottom: 5rem; }
+  .preview { display: none; }
+  .list__pill { display: none; }
+
+  .row {
+    padding: var(--sp-3) 0;
+    border-radius: 0;
+    border-top: 1px solid var(--rule);
+  }
+  .row:first-child { border-top: none; }
+
+  .row__media {
+    margin-top: 0.75rem;
+    aspect-ratio: 16 / 10;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--rule);
+  }
+  .row__media img, .row__media video {
+    width: 100%; height: 100%; object-fit: cover;
+  }
+}
+@media (min-width: 881px) {
+  .row__media { display: none; }
+}
+
+/* ── Footer ─────────────────────────────────────────────── */
+
+.foot {
+  max-width: var(--page-max);
+  margin: 4rem auto 0;
+  padding: 2rem var(--side-pad);
+  border-top: 1px solid var(--rule);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  color: var(--text-primary);
+  opacity: var(--op-soft);
+}
+.foot a {
+  color: var(--text-primary);
+  opacity: var(--op-soft);
+  text-decoration: none;
+  transition: opacity 160ms ease;
+}
+.foot a:hover { opacity: 1; }
+
+.theme-toggle {
+  background: transparent; border: none;
+  color: var(--text-primary);
+  opacity: var(--op-soft);
+  font-family: var(--font-mono); font-size: var(--fs-meta);
+  cursor: pointer; padding: 0;
+  transition: opacity 160ms ease;
+}
+.theme-toggle:hover { opacity: 1; }
+
+/* ── Detail pages ───────────────────────────────────────── */
+
+.detail {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 4rem var(--side-pad) 8rem;
+}
+.detail__back {
+  display: inline-block;
+  margin-bottom: 4rem;
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  color: var(--text-primary);
+  opacity: var(--op-strong);
+  text-decoration: none;
+  transition: opacity 160ms ease;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.detail__back:hover { opacity: 1; }
+
+.detail__hero {
+  width: 100%;
+  border-radius: var(--radius-md);
+  margin-bottom: 3rem;
+}
+
+.detail__header { margin-bottom: 3rem; }
+.detail__header h1 {
+  font-family: var(--font-sans);
+  font-size: var(--fs-h1);
+  font-weight: 450;
+  line-height: 1.15;
+  letter-spacing: -0.5px;
+  margin: 0 0 0.5rem;
+}
+.detail__meta {
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  color: var(--text-primary);
+  opacity: var(--op-soft);
+}
+.detail__body {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.55;
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+}
+.detail__body p { margin: 0 0 1.25rem; }
+.detail__body p:last-child { margin-bottom: 0; }
+.detail__body h2 {
+  font-size: var(--fs-sm);
+  font-weight: 450;
+  letter-spacing: var(--tracking-tight);
+  margin: 3rem 0 1rem;
+}
+.detail__body a {
+  color: var(--text-primary);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+.detail__body img, .detail__body video {
+  margin: 2rem 0;
+  width: 100%;
+  border-radius: 8px;
+}
+
+/* ── Reduced motion ─────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .preview__image, .list__pill {
+    transition-duration: 0ms !important;
+  }
+}

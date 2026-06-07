@@ -1,0 +1,38 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('work', ({ data }) => data.detail === true);
+  return entries.map((entry) => ({
+    params: { slug: entry.id.replace(/\.md$/, '') },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+---
+
+<Base title={`${entry.data.title} — Leigh Scholten`} description={entry.data.summary}>
+  <article class="detail">
+    <a href="/" class="detail__back">← back</a>
+
+    <header class="detail__header">
+      <h1>{entry.data.title}</h1>
+      <div class="detail__meta">{entry.data.year} · {entry.data.context}</div>
+    </header>
+
+    {entry.data.cover && (
+      <img
+        class="detail__hero"
+        src={entry.data.cover}
+        alt={entry.data.coverAlt ?? entry.data.title}
+      />
+    )}
+
+    <div class="detail__body">
+      <Content />
+    </div>
+  </article>
+</Base>

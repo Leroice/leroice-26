@@ -1,0 +1,98 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'Leigh Scholten',
+  description = 'Designer based in Melbourne.',
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={Astro.url.href} />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+
+    <script is:inline>
+      (() => {
+        const stored = localStorage.getItem('theme');
+        if (stored === 'light' || stored === 'dark') {
+          document.documentElement.setAttribute('data-theme', stored);
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <!-- Gooey filter — used by .list__pill-wrap. Invisible. -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+      <defs>
+        <filter id="leroice-goo">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="0" result="blur" />
+          <feColorMatrix in="blur" mode="matrix"
+            values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 4 -2"
+            result="goo" />
+          <feComposite in="SourceGraphic" in2="goo" operator="atop" />
+        </filter>
+      </defs>
+    </svg>
+
+    <header class="nav">
+      <a href="/" class="nav__brand">
+        Leigh Scholten.<span class="role">Designer</span>
+      </a>
+
+      <nav class="nav__links">
+        <a href="/about">About</a>
+        <a href="/connect">Connect</a>
+        <a href="/documents/LS-CV-2026.pdf">CV</a>
+      </nav>
+    </header>
+
+    <slot />
+
+    <footer class="foot">
+      <span>© {new Date().getFullYear()} Leigh Scholten</span>
+      <button
+        class="theme-toggle"
+        type="button"
+        aria-label="Toggle theme"
+        data-theme-toggle
+      >
+        theme
+      </button>
+    </footer>
+
+    <script>
+      const btn = document.querySelector('[data-theme-toggle]');
+      btn?.addEventListener('click', () => {
+        const current = document.documentElement.getAttribute('data-theme');
+        const prefers = window.matchMedia('(prefers-color-scheme: dark)').matches
+          ? 'dark'
+          : 'light';
+        const resolved = current || prefers;
+        const next = resolved === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
+      });
+    </script>
+  </body>
+</html>
