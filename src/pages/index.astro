@@ -369,6 +369,9 @@ const inlineEntries = await Promise.all(
     const split = document.querySelector('.split') as HTMLElement;
     const list = document.querySelector('[data-list]') as HTMLElement;
     const rows = Array.from(document.querySelectorAll<HTMLElement>('[data-row]'));
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const canViewTransition =
+      typeof (document as any).startViewTransition === 'function' && !prefersReduced;
 
     if (split && list && rows.length) {
 
@@ -415,31 +418,52 @@ const inlineEntries = await Promise.all(
           preview.style.opacity = '0';
         }
 
-        // 7 — after animations finish, swap views
+        // 7 — once the row has slid to the top, hand the swap to a View
+        //     Transition. The row's title and the detail <h1> share a
+        //     transition name, so the browser MORPHS one into the other —
+        //     the title that moved to the top literally becomes the heading
+        //     instead of cutting to a new layout.
         setTimeout(() => {
-          // hide the entire split layout
-          split.style.display = 'none';
-          // reset inline styles so they don't persist
-          for (const r of rows) r.style.cssText = '';
-          list.style.pointerEvents = '';
-          if (pw) { pw.style.transition = ''; pw.style.opacity = ''; }
-          if (preview) { preview.style.transition = ''; preview.style.opacity = ''; }
+          const rowTitle = row.querySelector('.row__title') as HTMLElement | null;
+          const detailTitle = detail.querySelector('.detail__header h1') as HTMLElement | null;
 
-          // show detail
-          detail.style.display = 'block';
-          detail.style.opacity = '0';
-          detail.style.transition = 'opacity 250ms ease';
-          openDetail = detail;
-          requestAnimationFrame(() => { detail.style.opacity = '1'; });
+          // The DOM mutation that takes us from list → detail.
+          const commit = () => {
+            split.style.display = 'none';
+            for (const r of rows) r.style.cssText = '';
+            list.style.pointerEvents = '';
+            if (pw) { pw.style.transition = ''; pw.style.opacity = ''; }
+            if (preview) { preview.style.transition = ''; preview.style.opacity = ''; }
+            detail.style.display = 'block';
+            openDetail = detail;
+            history.pushState({ slug }, '', `/work/${slug}`);
+            window.scrollTo({ top: 0, behavior: 'instant' });
+          };
 
-          history.pushState({ slug }, '', `/work/${slug}`);
-          window.scrollTo({ top: 0, behavior: 'instant' });
+          if (canViewTransition) {
+            // Tag the shared element on both ends. Only the rendered one is
+            // snapshotted at each phase, so there's never a name clash.
+            if (rowTitle) rowTitle.style.viewTransitionName = 'detail-title';
+            if (detailTitle) detailTitle.style.viewTransitionName = 'detail-title';
 
-          setTimeout(() => {
-            detail.style.transition = '';
-            detail.style.opacity = '';
-            busy = false;
-          }, 260);
+            const vt = (document as any).startViewTransition(commit);
+            vt.finished.finally(() => {
+              if (rowTitle) rowTitle.style.viewTransitionName = '';
+              if (detailTitle) detailTitle.style.viewTransitionName = '';
+              busy = false;
+            });
+          } else {
+            // Fallback: the original cross-fade swap.
+            commit();
+            detail.style.opacity = '0';
+            detail.style.transition = 'opacity 250ms ease';
+            requestAnimationFrame(() => { detail.style.opacity = '1'; });
+            setTimeout(() => {
+              detail.style.transition = '';
+              detail.style.opacity = '';
+              busy = false;
+            }, 260);
+          }
         }, 550);
       }
 
@@ -449,26 +473,50 @@ const inlineEntries = await Promise.all(
         const detail = openDetail;
         busy = true;
 
-        detail.style.transition = 'opacity 200ms ease';
-        detail.style.opacity = '0';
+        const detailSlug = detail.getAttribute('data-detail-slug');
+        const detailTitle = detail.querySelector('.detail__header h1') as HTMLElement | null;
+        const targetRow = rows.find((r) => r.dataset.slug === detailSlug) || null;
+        const rowTitle = targetRow
+          ? (targetRow.querySelector('.row__title') as HTMLElement | null)
+          : null;
 
-        setTimeout(() => {
+        // DOM mutation that takes us from detail → list.
+        const commit = () => {
           detail.style.display = 'none';
-          detail.style.transition = '';
-          detail.style.opacity = '';
           openDetail = null;
-
           split.style.display = '';
-          split.style.opacity = '0';
-          split.style.transition = 'opacity 250ms ease';
-          requestAnimationFrame(() => { split.style.opacity = '1'; });
+          window.scrollTo({ top: 0, behavior: 'instant' });
+        };
 
-          setTimeout(() => {
-            split.style.transition = '';
-            split.style.opacity = '';
+        if (canViewTransition) {
+          // Heading morphs back down into its row title — the reverse of open.
+          if (detailTitle) detailTitle.style.viewTransitionName = 'detail-title';
+          if (rowTitle) rowTitle.style.viewTransitionName = 'detail-title';
+
+          const vt = (document as any).startViewTransition(commit);
+          vt.finished.finally(() => {
+            if (detailTitle) detailTitle.style.viewTransitionName = '';
+            if (rowTitle) rowTitle.style.viewTransitionName = '';
             busy = false;
-          }, 260);
-        }, 200);
+          });
+        } else {
+          // Fallback: the original cross-fade swap.
+          detail.style.transition = 'opacity 200ms ease';
+          detail.style.opacity = '0';
+          setTimeout(() => {
+            commit();
+            detail.style.transition = '';
+            detail.style.opacity = '';
+            split.style.opacity = '0';
+            split.style.transition = 'opacity 250ms ease';
+            requestAnimationFrame(() => { split.style.opacity = '1'; });
+            setTimeout(() => {
+              split.style.transition = '';
+              split.style.opacity = '';
+              busy = false;
+            }, 260);
+          }, 200);
+        }
       }
 
       // ── listeners ──

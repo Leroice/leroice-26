@@ -482,6 +482,22 @@ img, video { max-width: 100%; height: auto; display: block; }
   border-radius: 8px;
 }
 
+/* ── CACNA-1A inline detail: list title morphs into the page heading ──
+   The row title and the detail <h1> share view-transition-name:
+   detail-title (set in index.astro), so the browser tweens position +
+   size between them. The rest of the page cross-fades via the root group.
+   Easing matches the row-slide curve so the two phases read as one motion. */
+
+::view-transition-group(detail-title) {
+  animation-duration: 500ms;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 360ms;
+  animation-timing-function: ease;
+}
+
 /* ── Reduced motion ─────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
