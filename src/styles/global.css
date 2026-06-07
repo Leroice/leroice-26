@@ -393,33 +393,18 @@ img, video { max-width: 100%; height: auto; display: block; }
   opacity: 1;
 }
 
+/* No cover thumbnails anywhere — the list is text-only (desktop shows covers
+   in the preview pane; mobile is just the text list). */
+.row__media { display: none; }
+
 /* ── Mobile ─────────────────────────────────────────────── */
 
 @media (max-width: 880px) {
+  /* Just the text list: same rows/text as desktop, minus the preview and the
+     rollover bar (no images). */
   .split { grid-template-columns: 1fr; padding-top: 2rem; padding-bottom: 5rem; }
   .preview { display: none; }
   .list__pill { display: none; }
-
-  .row {
-    padding: var(--sp-3) 0;
-    border-radius: 0;
-    border-top: 1px solid var(--rule);
-  }
-  .row:first-child { border-top: none; }
-
-  .row__media {
-    margin-top: 0.75rem;
-    aspect-ratio: 16 / 10;
-    border-radius: 8px;
-    overflow: hidden;
-    background: var(--rule);
-  }
-  .row__media img, .row__media video {
-    width: 100%; height: 100%; object-fit: cover;
-  }
-}
-@media (min-width: 881px) {
-  .row__media { display: none; }
 }
 
 /* ── Footer ─────────────────────────────────────────────── */
