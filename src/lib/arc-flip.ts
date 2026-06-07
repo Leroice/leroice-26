@@ -14,19 +14,126 @@
 
 export type EasingFn = (t: number) => number;
 
-/** Easing curves, expressed as position-along-path functions of time t∈[0,1]. */
+const C1 = 1.70158;          // back overshoot
+const C2 = C1 * 1.525;
+const C3 = C1 + 1;
+const C4 = (2 * Math.PI) / 3; // elastic
+const C5 = (2 * Math.PI) / 4.5;
+
+const bounceOut: EasingFn = (t) => {
+  const n1 = 7.5625, d1 = 2.75;
+  if (t < 1 / d1) return n1 * t * t;
+  if (t < 2 / d1) return n1 * (t -= 1.5 / d1) * t + 0.75;
+  if (t < 2.5 / d1) return n1 * (t -= 2.25 / d1) * t + 0.9375;
+  return n1 * (t -= 2.625 / d1) * t + 0.984375;
+};
+
+/** Easing curves, expressed as position-along-path functions of time t∈[0,1].
+    The full Penner set — pick any of these by name in the tuner. */
 export const easings: Record<string, EasingFn> = {
-  // Quick launch, long decelerating glide to rest — the premium "expo" feel.
+  linear: (t) => t,
+
+  sineIn: (t) => 1 - Math.cos((t * Math.PI) / 2),
+  sineOut: (t) => Math.sin((t * Math.PI) / 2),
+  sineInOut: (t) => -(Math.cos(Math.PI * t) - 1) / 2,
+
+  quadIn: (t) => t * t,
+  quadOut: (t) => 1 - (1 - t) * (1 - t),
+  quadInOut: (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2),
+
+  cubicIn: (t) => t * t * t,
+  cubicOut: (t) => 1 - Math.pow(1 - t, 3),
+  cubicInOut: (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2),
+
+  quartIn: (t) => t * t * t * t,
+  quartOut: (t) => 1 - Math.pow(1 - t, 4),
+  quartInOut: (t) => (t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2),
+
+  quintIn: (t) => t ** 5,
+  quintOut: (t) => 1 - Math.pow(1 - t, 5),
+  quintInOut: (t) => (t < 0.5 ? 16 * t ** 5 : 1 - Math.pow(-2 * t + 2, 5) / 2),
+
+  expoIn: (t) => (t === 0 ? 0 : Math.pow(2, 10 * t - 10)),
   expoOut: (t) => (t >= 1 ? 1 : 1 - Math.pow(2, -10 * t)),
-  expoInOut: (t) => {
-    if (t === 0 || t === 1) return t;
-    return t < 0.5
-      ? Math.pow(2, 20 * t - 10) / 2
-      : (2 - Math.pow(2, -20 * t + 10)) / 2;
-  },
-  // Matches the soft cubic ease-out used elsewhere on the site.
+  expoInOut: (t) =>
+    t === 0 ? 0 : t === 1 ? 1
+      : t < 0.5 ? Math.pow(2, 20 * t - 10) / 2 : (2 - Math.pow(2, -20 * t + 10)) / 2,
+
+  circIn: (t) => 1 - Math.sqrt(1 - Math.pow(t, 2)),
+  circOut: (t) => Math.sqrt(1 - Math.pow(t - 1, 2)),
+  circInOut: (t) =>
+    t < 0.5
+      ? (1 - Math.sqrt(1 - Math.pow(2 * t, 2))) / 2
+      : (Math.sqrt(1 - Math.pow(-2 * t + 2, 2)) + 1) / 2,
+
+  backIn: (t) => C3 * t * t * t - C1 * t * t,
+  backOut: (t) => 1 + C3 * Math.pow(t - 1, 3) + C1 * Math.pow(t - 1, 2),
+  backInOut: (t) =>
+    t < 0.5
+      ? (Math.pow(2 * t, 2) * ((C2 + 1) * 2 * t - C2)) / 2
+      : (Math.pow(2 * t - 2, 2) * ((C2 + 1) * (t * 2 - 2) + C2) + 2) / 2,
+
+  elasticIn: (t) =>
+    t === 0 ? 0 : t === 1 ? 1 : -Math.pow(2, 10 * t - 10) * Math.sin((t * 10 - 10.75) * C4),
+  elasticOut: (t) =>
+    t === 0 ? 0 : t === 1 ? 1 : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * C4) + 1,
+  elasticInOut: (t) =>
+    t === 0 ? 0 : t === 1 ? 1
+      : t < 0.5
+        ? -(Math.pow(2, 20 * t - 10) * Math.sin((20 * t - 11.125) * C5)) / 2
+        : (Math.pow(2, -20 * t + 10) * Math.sin((20 * t - 11.125) * C5)) / 2 + 1,
+
+  bounceIn: (t) => 1 - bounceOut(1 - t),
+  bounceOut,
+  bounceInOut: (t) => (t < 0.5 ? (1 - bounceOut(1 - 2 * t)) / 2 : (1 + bounceOut(2 * t - 1)) / 2),
+
+  // Legacy alias kept for back-compat.
   softOut: (t) => 1 - Math.pow(1 - t, 3),
 };
+
+export interface SpringOptions {
+  stiffness?: number;
+  damping?: number;
+  mass?: number;
+  velocity?: number;
+}
+
+/**
+ * Build an organic easing from a damped-spring simulation — the same physics
+ * as the menu/pill rollover (defaults match its tokens: 410 / 84 / 3, a heavy
+ * overdamped glide). Lower the damping for overshoot/bounce. The trajectory is
+ * pre-sampled once and normalised into t∈[0,1], so it plugs in as an EasingFn
+ * (the value can exceed 1 mid-flight when underdamped — that's the overshoot).
+ */
+export function makeSpring(opts: SpringOptions = {}): EasingFn {
+  const stiffness = opts.stiffness ?? 410;
+  const damping = opts.damping ?? 84;
+  const mass = opts.mass ?? 3;
+  const velocity = opts.velocity ?? 0;
+
+  const dt = 1 / 240;
+  const target = 1;
+  const maxSteps = 240 * 8; // 8s safety cap
+  const xs = [0];
+  let x = 0;
+  let v = velocity;
+  for (let i = 0; i < maxSteps; i++) {
+    const f = -stiffness * (x - target) - damping * v;
+    v += (f / mass) * dt;
+    x += v * dt;
+    xs.push(x);
+    if (Math.abs(target - x) < 0.0004 && Math.abs(v) < 0.0004) break;
+  }
+  const n = xs.length - 1;
+
+  return (p) => {
+    if (p <= 0) return 0;
+    if (p >= 1) return 1;
+    const fi = p * n;
+    const i = Math.floor(fi);
+    return xs[i] + (xs[i + 1] - xs[i]) * (fi - i);
+  };
+}
 
 export interface ArcFlipOptions {
   /** Total motion duration in ms. */

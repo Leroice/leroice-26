@@ -131,12 +131,15 @@ const inlineEntries = await Promise.all(
       <label><span class="tuner__lab">Image arc (yield) <output id="out-iarc"></output></span><input type="range" id="tune-iarc" /></label>
       <label><span class="tuner__lab">Min yield <output id="out-iyield"></output></span><input type="range" id="tune-iyield" /></label>
       <label><span class="tuner__lab">Easing</span>
-        <select id="tune-easing">
-          <option value="expoOut">expoOut</option>
-          <option value="expoInOut">expoInOut</option>
-          <option value="softOut">softOut</option>
-        </select>
+        <select id="tune-easing"></select>
       </label>
+    </div>
+
+    <div class="tuner__spring" data-tuner-spring>
+      <div class="tuner__sub">spring (when easing = spring)</div>
+      <label><span class="tuner__lab">Stiffness <output id="out-sstiff"></output></span><input type="range" id="tune-sstiff" /></label>
+      <label><span class="tuner__lab">Damping <output id="out-sdamp"></output></span><input type="range" id="tune-sdamp" /></label>
+      <label><span class="tuner__lab">Mass <output id="out-smass"></output></span><input type="range" id="tune-smass" /></label>
     </div>
     <div class="tuner__actions">
       <button type="button" data-tune-replay>Replay</button>
@@ -399,17 +402,19 @@ const inlineEntries = await Promise.all(
   // ─────────────────────────────────────────────────────────
   // Inline transition: list → detail (same page, no navigation)
   // ─────────────────────────────────────────────────────────
-  import { arcFlip, concert, easings } from '../lib/arc-flip';
+  import { arcFlip, concert, easings, makeSpring } from '../lib/arc-flip';
 
-  // Choreography props for the list → detail move. The title leads (straight
-  // expo rise); the image yields — trailing slightly and arcing downward so it
-  // never crosses the title's path. Live-editable via the TUNING panel below.
+  // Choreography props for the list → detail move. The title leads; the image
+  // yields — trailing slightly and arcing downward so it never crosses the
+  // title's path. Default easing is the organic SPRING from the menu rollover
+  // (tokens 410/84/3). Live-editable via the TUNING panel below.
   const CHOREO_KEY = 'leroice-choreo';
   const DEFAULT_CHOREO = {
     leadIn: 170,        // ms: dissolve the other rows before the move begins
-    easing: 'expoOut',  // shared easing name (resolved against `easings`)
-    title: { duration: 700, delay: 0,  arc: 0,   scale: false },
-    image: { duration: 780, delay: 90, arc: 0.5, minYield: 28, scale: true },
+    easing: 'spring',   // easing name; 'spring' uses the params below
+    spring: { stiffness: 410, damping: 84, mass: 3 },
+    title: { duration: 720, delay: 0,  arc: 0,   scale: false },
+    image: { duration: 860, delay: 80, arc: 0.3, minYield: 22, scale: true },
   };
   // Mutable runtime config — the TUNING panel writes here + to localStorage.
   const CHOREO = (() => {
@@ -419,6 +424,7 @@ const inlineEntries = await Promise.all(
         return {
           leadIn: saved.leadIn ?? DEFAULT_CHOREO.leadIn,
           easing: saved.easing ?? DEFAULT_CHOREO.easing,
+          spring: { ...DEFAULT_CHOREO.spring, ...(saved.spring || {}) },
           title: { ...DEFAULT_CHOREO.title, ...(saved.title || {}) },
           image: { ...DEFAULT_CHOREO.image, ...(saved.image || {}) },
         };
@@ -426,7 +432,10 @@ const inlineEntries = await Promise.all(
     } catch { /* ignore bad storage */ }
     return JSON.parse(JSON.stringify(DEFAULT_CHOREO));
   })();
-  const easingFor = () => easings[CHOREO.easing] || easings.expoOut;
+  const easingFor = () =>
+    CHOREO.easing === 'spring'
+      ? makeSpring(CHOREO.spring)
+      : (easings[CHOREO.easing] || easings.expoOut);
 
   {
     const split = document.querySelector('.split') as HTMLElement;
@@ -663,12 +672,15 @@ const inlineEntries = await Promise.all(
         const cacna = rows.find((r) => r.dataset.slug === 'cacna-1a') || null;
 
         const fields = [
-          { path: ['leadIn'],           id: 'leadIn', min: 0,   max: 400,  step: 10,   unit: 'ms' },
+          { path: ['leadIn'],            id: 'leadIn', min: 0,   max: 400,  step: 10,   unit: 'ms' },
           { path: ['title', 'duration'], id: 'tdur',   min: 200, max: 1400, step: 20,   unit: 'ms' },
           { path: ['image', 'duration'], id: 'idur',   min: 200, max: 1400, step: 20,   unit: 'ms' },
           { path: ['image', 'delay'],    id: 'idelay', min: 0,   max: 400,  step: 10,   unit: 'ms' },
           { path: ['image', 'arc'],      id: 'iarc',   min: 0,   max: 1,    step: 0.05, unit: '' },
           { path: ['image', 'minYield'], id: 'iyield', min: 0,   max: 120,  step: 2,    unit: 'px' },
+          { path: ['spring', 'stiffness'], id: 'sstiff', min: 40,  max: 900, step: 10,  unit: '' },
+          { path: ['spring', 'damping'],   id: 'sdamp',  min: 4,   max: 160, step: 2,   unit: '' },
+          { path: ['spring', 'mass'],      id: 'smass',  min: 0.5, max: 8,   step: 0.5, unit: '' },
         ];
         const getVal = (path: string[]) => path.reduce((o: any, k) => o[k], CHOREO);
         const setVal = (path: string[], v: number) => {
@@ -696,8 +708,10 @@ const inlineEntries = await Promise.all(
             if (input) input.value = String(getVal(f.path));
             if (out) out.textContent = getVal(f.path) + f.unit;
           }
-          const easeSel = tuner.querySelector('#tune-easing') as HTMLSelectElement | null;
-          if (easeSel) easeSel.value = CHOREO.easing;
+          const sel = tuner.querySelector('#tune-easing') as HTMLSelectElement | null;
+          if (sel) sel.value = CHOREO.easing;
+          const grp = tuner.querySelector('[data-tuner-spring]') as HTMLElement | null;
+          if (grp) grp.style.opacity = CHOREO.easing === 'spring' ? '1' : '0.35';
         };
 
         for (const f of fields) {
@@ -714,7 +728,22 @@ const inlineEntries = await Promise.all(
         }
 
         const easeSel = tuner.querySelector('#tune-easing') as HTMLSelectElement | null;
-        easeSel?.addEventListener('change', () => { CHOREO.easing = easeSel.value; save(); });
+        const springGroup = tuner.querySelector('[data-tuner-spring]') as HTMLElement | null;
+        const updateSpringVisibility = () => {
+          if (springGroup) springGroup.style.opacity = CHOREO.easing === 'spring' ? '1' : '0.35';
+        };
+        if (easeSel) {
+          // Populate from the full easing library, with the organic spring first.
+          const names = ['spring', ...Object.keys(easings)];
+          easeSel.innerHTML = names
+            .map((n) => `<option value="${n}">${n}</option>`)
+            .join('');
+          easeSel.addEventListener('change', () => {
+            CHOREO.easing = easeSel.value;
+            updateSpringVisibility();
+            save();
+          });
+        }
 
         tunerToggle.addEventListener('click', () => {
           tuner.hidden = !tuner.hidden;
@@ -733,6 +762,7 @@ const inlineEntries = await Promise.all(
             `const CHOREO = {\n` +
             `  leadIn: ${c.leadIn},\n` +
             `  easing: '${c.easing}',\n` +
+            `  spring: { stiffness: ${c.spring.stiffness}, damping: ${c.spring.damping}, mass: ${c.spring.mass} },\n` +
             `  title: { duration: ${c.title.duration}, delay: ${c.title.delay}, arc: ${c.title.arc}, scale: ${c.title.scale} },\n` +
             `  image: { duration: ${c.image.duration}, delay: ${c.image.delay}, arc: ${c.image.arc}, minYield: ${c.image.minYield}, scale: ${c.image.scale} },\n` +
             `};`;
@@ -805,6 +835,16 @@ const inlineEntries = await Promise.all(
   .tuner__status { opacity: 0.6; }
 
   .tuner__grid { display: flex; flex-direction: column; gap: 11px; }
+  .tuner__spring {
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--rule);
+    transition: opacity 160ms ease;
+  }
+  .tuner__sub { opacity: 0.5; letter-spacing: 0.02em; }
   .tuner label { display: flex; flex-direction: column; gap: 5px; opacity: 0.9; }
   .tuner__lab {
     display: flex;
