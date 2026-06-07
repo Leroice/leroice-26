@@ -69,6 +69,22 @@ const inlineEntries = await Promise.all(
           </Tag>
         );
       })}
+
+      {inlineEntries.map(({ entry, Content }) => (
+        <div class="list__detail" data-detail-slug={slug(entry.id)} hidden>
+          <button class="detail__back" type="button" data-detail-back>← back</button>
+          {entry.data.cover && (
+            <img
+              class="detail__hero"
+              src={entry.data.cover}
+              alt={entry.data.coverAlt ?? entry.data.title}
+            />
+          )}
+          <div class="detail__body">
+            <Content />
+          </div>
+        </div>
+      ))}
     </section>
 
     <aside class="preview" aria-hidden="true">
@@ -88,28 +104,6 @@ const inlineEntries = await Promise.all(
       </div>
     </aside>
   </main>
-
-  {inlineEntries.map(({ entry, Content }) => (
-    <section class="detail-inline" data-detail-slug={slug(entry.id)} style="display:none">
-      <article class="detail">
-        <button class="detail__back" type="button" data-detail-back>← back</button>
-        <header class="detail__header">
-          <h1>{entry.data.title}</h1>
-          <div class="detail__meta">{entry.data.year} · {entry.data.context}</div>
-        </header>
-        {entry.data.cover && (
-          <img
-            class="detail__hero"
-            src={entry.data.cover}
-            alt={entry.data.coverAlt ?? entry.data.title}
-          />
-        )}
-        <div class="detail__body">
-          <Content />
-        </div>
-      </article>
-    </section>
-  ))}
 </Base>
 
 <script>
@@ -369,36 +363,37 @@ const inlineEntries = await Promise.all(
     const split = document.querySelector('.split') as HTMLElement;
     const list = document.querySelector('[data-list]') as HTMLElement;
     const rows = Array.from(document.querySelectorAll<HTMLElement>('[data-row]'));
-    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const canViewTransition =
-      typeof (document as any).startViewTransition === 'function' && !prefersReduced;
 
     if (split && list && rows.length) {
 
       let busy = false;
+      let openRow: HTMLElement | null = null;
       let openDetail: HTMLElement | null = null;
 
       // ── OPEN ──
       function open(row: HTMLElement) {
         const slug = row.dataset.slug!;
-        const detail = document.querySelector(`[data-detail-slug="${slug}"]`) as HTMLElement;
-        if (!detail || busy) return;
+        const detail = document.querySelector(
+          `.list__detail[data-detail-slug="${slug}"]`
+        ) as HTMLElement;
+        if (!detail || busy || openRow) return;
         busy = true;
 
-        // 1 — hide pill immediately
         const pw = document.querySelector('.list__pill-wrap') as HTMLElement | null;
+        const preview = document.querySelector('.preview') as HTMLElement | null;
+
+        // 1 — hide pill immediately
         if (pw) { pw.style.transition = 'opacity 150ms'; pw.style.opacity = '0'; }
 
-        // 2 — freeze pointer events so hover doesn't fight
+        // 2 — freeze hover so it doesn't fight the slide
         list.style.pointerEvents = 'none';
 
-        // 3 — measure
+        // 3 — measure how far this row must travel to reach the top
         const first = rows[0].getBoundingClientRect();
         const sel   = row.getBoundingClientRect();
         const dy    = first.top - sel.top;
-        const preview = document.querySelector('.preview') as HTMLElement | null;
 
-        // 4 — fade + shrink other rows
+        // 4 — fade + shrink the other rows
         for (const r of rows) {
           if (r === row) continue;
           r.style.transition = 'opacity 350ms ease, transform 500ms ease';
@@ -406,117 +401,98 @@ const inlineEntries = await Promise.all(
           r.style.transform = 'scale(0.96)';
         }
 
-        // 5 — slide selected row to top
+        // 5 — slide the selected row to the top
         row.style.transition = 'transform 500ms cubic-bezier(.4,.0,.2,1)';
         row.style.transform = `translateY(${dy}px)`;
         row.style.position = 'relative';
         row.style.zIndex = '10';
 
-        // 6 — fade preview column
+        // 6 — fade the preview column out
         if (preview) {
           preview.style.transition = 'opacity 400ms ease';
           preview.style.opacity = '0';
         }
 
-        // 7 — once the row has slid to the top, hand the swap to a View
-        //     Transition. The row's title and the detail <h1> share a
-        //     transition name, so the browser MORPHS one into the other —
-        //     the title that moved to the top literally becomes the heading
-        //     instead of cutting to a new layout.
+        // 7 — once the slide settles, commit the row AS the heading. The title
+        //     does not move or resize: we only switch how it's anchored at the
+        //     top (transform → normal flow) so its on-screen box is identical.
+        //     Then the case-study body fades in beneath it.
         setTimeout(() => {
-          const rowTitle = row.querySelector('.row__title') as HTMLElement | null;
-          const detailTitle = detail.querySelector('.detail__header h1') as HTMLElement | null;
-
-          // The DOM mutation that takes us from list → detail.
-          const commit = () => {
-            split.style.display = 'none';
-            for (const r of rows) r.style.cssText = '';
-            list.style.pointerEvents = '';
-            if (pw) { pw.style.transition = ''; pw.style.opacity = ''; }
-            if (preview) { preview.style.transition = ''; preview.style.opacity = ''; }
-            detail.style.display = 'block';
-            openDetail = detail;
-            history.pushState({ slug }, '', `/work/${slug}`);
-            window.scrollTo({ top: 0, behavior: 'instant' });
-          };
-
-          if (canViewTransition) {
-            // Tag the shared element on both ends. Only the rendered one is
-            // snapshotted at each phase, so there's never a name clash.
-            if (rowTitle) rowTitle.style.viewTransitionName = 'detail-title';
-            if (detailTitle) detailTitle.style.viewTransitionName = 'detail-title';
-
-            const vt = (document as any).startViewTransition(commit);
-            vt.finished.finally(() => {
-              if (rowTitle) rowTitle.style.viewTransitionName = '';
-              if (detailTitle) detailTitle.style.viewTransitionName = '';
-              busy = false;
-            });
-          } else {
-            // Fallback: the original cross-fade swap.
-            commit();
-            detail.style.opacity = '0';
-            detail.style.transition = 'opacity 250ms ease';
-            requestAnimationFrame(() => { detail.style.opacity = '1'; });
-            setTimeout(() => {
-              detail.style.transition = '';
-              detail.style.opacity = '';
-              busy = false;
-            }, 260);
+          // Collapse to one column; drop the faded rows and empty preview.
+          split.classList.add('is-detail');
+          for (const r of rows) {
+            if (r !== row) r.style.display = 'none';
           }
+
+          // With the siblings gone, the selected row's natural position is the
+          // top — so clearing its transform leaves it exactly where the slide
+          // parked it. No jump, no morph; the title simply holds.
+          row.style.transition = '';
+          row.style.transform = '';
+          row.classList.add('is-heading');
+          list.style.pointerEvents = '';
+
+          // Reveal the body under the held title.
+          detail.hidden = false;
+          detail.style.opacity = '0';
+          detail.style.transition = 'opacity 320ms ease';
+          requestAnimationFrame(() => { detail.style.opacity = '1'; });
+
+          openRow = row;
+          openDetail = detail;
+          history.pushState({ slug }, '', `/work/${slug}`);
+          window.scrollTo({ top: 0, behavior: 'instant' });
+
+          setTimeout(() => {
+            detail.style.transition = '';
+            detail.style.opacity = '';
+            busy = false;
+          }, 330);
         }, 550);
       }
 
       // ── CLOSE ──
       function close() {
-        if (!openDetail || busy) return;
+        if (!openRow || !openDetail || busy) return;
+        const row = openRow;
         const detail = openDetail;
         busy = true;
 
-        const detailSlug = detail.getAttribute('data-detail-slug');
-        const detailTitle = detail.querySelector('.detail__header h1') as HTMLElement | null;
-        const targetRow = rows.find((r) => r.dataset.slug === detailSlug) || null;
-        const rowTitle = targetRow
-          ? (targetRow.querySelector('.row__title') as HTMLElement | null)
-          : null;
+        const pw = document.querySelector('.list__pill-wrap') as HTMLElement | null;
+        const preview = document.querySelector('.preview') as HTMLElement | null;
 
-        // DOM mutation that takes us from detail → list.
-        const commit = () => {
-          detail.style.display = 'none';
+        detail.style.transition = 'opacity 180ms ease';
+        detail.style.opacity = '0';
+
+        setTimeout(() => {
+          detail.hidden = true;
+          detail.style.transition = '';
+          detail.style.opacity = '';
+
+          // Restore the list to its resting state.
+          split.classList.remove('is-detail');
+          row.classList.remove('is-heading');
+          row.style.cssText = '';
+          for (const r of rows) {
+            if (r !== row) r.style.cssText = '';
+          }
+          if (pw) { pw.style.transition = ''; pw.style.opacity = ''; }
+          if (preview) { preview.style.transition = ''; preview.style.opacity = ''; }
+
+          openRow = null;
           openDetail = null;
-          split.style.display = '';
           window.scrollTo({ top: 0, behavior: 'instant' });
-        };
 
-        if (canViewTransition) {
-          // Heading morphs back down into its row title — the reverse of open.
-          if (detailTitle) detailTitle.style.viewTransitionName = 'detail-title';
-          if (rowTitle) rowTitle.style.viewTransitionName = 'detail-title';
-
-          const vt = (document as any).startViewTransition(commit);
-          vt.finished.finally(() => {
-            if (detailTitle) detailTitle.style.viewTransitionName = '';
-            if (rowTitle) rowTitle.style.viewTransitionName = '';
-            busy = false;
-          });
-        } else {
-          // Fallback: the original cross-fade swap.
-          detail.style.transition = 'opacity 200ms ease';
-          detail.style.opacity = '0';
+          // Gentle fade of the restored list.
+          list.style.opacity = '0';
+          list.style.transition = 'opacity 250ms ease';
+          requestAnimationFrame(() => { list.style.opacity = '1'; });
           setTimeout(() => {
-            commit();
-            detail.style.transition = '';
-            detail.style.opacity = '';
-            split.style.opacity = '0';
-            split.style.transition = 'opacity 250ms ease';
-            requestAnimationFrame(() => { split.style.opacity = '1'; });
-            setTimeout(() => {
-              split.style.transition = '';
-              split.style.opacity = '';
-              busy = false;
-            }, 260);
-          }, 200);
-        }
+            list.style.transition = '';
+            list.style.opacity = '';
+            busy = false;
+          }, 260);
+        }, 180);
       }
 
       // ── listeners ──

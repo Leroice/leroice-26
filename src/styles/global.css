@@ -482,21 +482,31 @@ img, video { max-width: 100%; height: auto; display: block; }
   border-radius: 8px;
 }
 
-/* ── CACNA-1A inline detail: list title morphs into the page heading ──
-   The row title and the detail <h1> share view-transition-name:
-   detail-title (set in index.astro), so the browser tweens position +
-   size between them. The rest of the page cross-fades via the root group.
-   Easing matches the row-slide curve so the two phases read as one motion. */
+/* ── CACNA-1A inline detail ─────────────────────────────────
+   After the row slides to the top it stays put and becomes the page
+   heading — the layout collapses to a single column, the other rows and
+   the preview drop away, and the case-study body reveals beneath the
+   held row. The title keeps its exact list look and position. */
 
-::view-transition-group(detail-title) {
-  animation-duration: 500ms;
-  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+.split.is-detail {
+  grid-template-columns: 1fr;
 }
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation-duration: 360ms;
-  animation-timing-function: ease;
+.split.is-detail .preview { display: none; }
+
+/* The held row, now acting as the heading. Same look as in the list,
+   just locked to full opacity and non-interactive. */
+.row.is-heading { cursor: default; z-index: 1; }
+.row.is-heading .row__inner { opacity: 1; }
+
+/* Case-study body, revealed under the heading. Left-aligned to sit
+   directly beneath the title (matching the row's internal padding). */
+.list__detail {
+  max-width: 46rem;
+  padding: 0 var(--sp-base);
+  margin-top: 2rem;
 }
+.list__detail .detail__back { margin-bottom: 2.5rem; }
+.list__detail .detail__hero { margin-bottom: 3rem; }
 
 /* ── Reduced motion ─────────────────────────────────────── */
 
