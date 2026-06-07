@@ -341,6 +341,16 @@ img, video { max-width: 100%; height: auto; display: block; }
   align-items: center;
   justify-content: center;
   pointer-events: none;
+  /* Tied to the rollover bar: the preview shows only while the pointer is in
+     the list column, fading in from blur. On leave it shares the same 1800ms
+     delay (the JS toggles .is-hovered after that wait). */
+  opacity: 0;
+  filter: blur(8px);
+  transition: opacity 520ms var(--image-ease), filter 520ms var(--image-ease);
+}
+.list.is-hovered ~ .preview {
+  opacity: 1;
+  filter: blur(0px);
 }
 
 .preview__frame {
