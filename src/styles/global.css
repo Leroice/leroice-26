@@ -336,19 +336,23 @@ img, video { max-width: 100%; height: auto; display: block; }
 /* ── Preview pane ───────────────────────────────────────── */
 
 .preview {
-  position: sticky;
-  top: 6rem;
-  height: calc(100vh - 12rem);
-  min-height: 400px;
-  max-height: 720px;
+  /* Fixed to the viewport and vertically centred (top:0/bottom:0 → full
+     viewport height, image centred at 50vh) so it stays neatly anchored to
+     the viewport regardless of scroll — not to the page height. Pinned
+     horizontally to the right (preview) column of the page-max grid. */
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: calc(max((100vw - var(--page-max)) / 2, 0px) + var(--side-pad) + var(--list-width) + var(--col-gap));
+  right: calc(max((100vw - var(--page-max)) / 2, 0px) + var(--content-pad));
   display: flex;
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  /* Tied to the rollover bar: the preview shows only while the pointer is in
-     the list column, fading in from blur. The pill leads; the image FOLLOWS
-     it by --preview-follow (a transition delay applied in both directions).
-     On leave it also shares the bar's 1800ms wait (JS toggles .is-hovered). */
+  /* Tied to the rollover bar: the preview shows only while the pointer is over
+     a row, fading in from blur. The pill leads; the image FOLLOWS it by
+     --preview-follow (a transition delay, both directions). On leave it shares
+     the bar's 1800ms wait (JS toggles .is-hovered). */
   opacity: 0;
   filter: blur(8px);
   transition:
