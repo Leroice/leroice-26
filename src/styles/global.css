@@ -263,13 +263,22 @@ img, video { max-width: 100%; height: auto; display: block; }
   height: 0;
   border-radius: var(--radius-md);
   background: #000;
+  /* Subtle 0.5px inner stroke at 5% — light mode (black on black pill) */
+  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.05);
   pointer-events: none;
   will-change: transform, height;
 }
 
-:root[data-theme="dark"] .list__pill { background: #fff; }
+:root[data-theme="dark"] .list__pill {
+  background: #fff;
+  /* Dark mode: 5% white inside the white pill */
+  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.05);
+}
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .list__pill { background: #fff; }
+  :root:not([data-theme="light"]) .list__pill {
+    background: #fff;
+    box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.05);
+  }
 }
 
 .row {
