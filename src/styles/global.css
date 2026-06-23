@@ -59,6 +59,9 @@
   /* Horizontal content inset — aligns every page's content (left AND right)
      with the nav brand "Leigh Scholten. Designer". Site-wide alignment rule. */
   --content-pad:    calc(var(--side-pad) + var(--sp-base));
+  /* Nav height — used by the case-study subnav so it sticks below the main
+     nav when both are pinned. Tuned to the rendered .nav box on desktop. */
+  --nav-height:     7rem;
 
   /* ── Motion ──
      One signal drives everything: spring velocity from the rAF loop.
@@ -451,10 +454,84 @@ img, video { max-width: 100%; height: auto; display: block; }
 
 /* ── Detail pages ───────────────────────────────────────── */
 
+/* ── Case-study subnav ─────────────────────────────────────
+   Project breadcrumb + in-page tabs. On case-study pages the main
+   .nav also goes sticky (via the :has() rule below) so the two
+   stack as a single nav rail under scroll. */
+body:has(.detail__subnav) .nav {
+  position: sticky;
+  top: 0;
+  z-index: 11;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+.detail__subnav {
+  position: sticky;
+  top: var(--nav-height);
+  z-index: 10;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--rule);
+}
+.detail__subnav-inner {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: var(--sp-3) var(--content-pad);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-base);
+}
+.detail__subnav-title {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  text-decoration: none;
+  color: var(--text-primary);
+  min-width: 0;
+}
+.detail__subnav-name {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 450;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+}
+.detail__subnav-meta {
+  font-family: var(--font-sans);
+  font-size: var(--fs-meta);
+  letter-spacing: var(--tracking-tight);
+  opacity: var(--op-soft);
+  line-height: 1.1;
+}
+.detail__subnav-tabs {
+  display: flex;
+  gap: var(--sp-base);
+  align-items: center;
+}
+.detail__subnav-tabs a {
+  font-family: var(--font-sans);
+  font-size: var(--fs-meta);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+  opacity: var(--op-strong);
+  text-decoration: none;
+  transition: opacity 160ms ease;
+}
+.detail__subnav-tabs a:hover { opacity: 1; }
+/* Subnav offset for in-page anchor links — so #details / #credits land
+   below the sticky stack, not under it. */
+.detail__body,
+.detail__body [id] {
+  scroll-margin-top: calc(var(--nav-height) + 4rem);
+}
+
 .detail {
   max-width: var(--page-max);
   margin: 0 auto;
-  padding: 4rem var(--content-pad) 8rem;
+  padding: 2rem var(--content-pad) 8rem;
 }
 .detail__back {
   display: inline-block;
@@ -475,7 +552,17 @@ img, video { max-width: 100%; height: auto; display: block; }
 .detail__hero {
   width: 100%;
   border-radius: var(--radius-md);
-  margin-bottom: 3rem;
+  /* Matches Figma `page_hero-wrapper` pb: 96px — the hero now carries the
+     page identity (no h1 underneath) so it earns more breathing room. */
+  margin-bottom: 6rem;
+}
+/* On mobile the hero crops to a portrait tile — covers strong enough to
+   carry the page identity by themselves, no title needed underneath. */
+@media (max-width: 520px) {
+  .detail__hero {
+    aspect-ratio: 390 / 630;
+    object-fit: cover;
+  }
 }
 
 .detail__header { margin-bottom: 3rem; }
@@ -493,19 +580,26 @@ img, video { max-width: 100%; height: auto; display: block; }
   color: var(--text-primary);
   opacity: var(--op-soft);
 }
+/* Body — 3-column grid. Prose (p / h / list) lives in cols 1–2 (≈2/3 of
+   content width, matching the Figma's 741px lead column). Imagery breaks
+   out to the full 3-col width via the .cs-* helpers below. Single column
+   on mobile. */
 .detail__body {
   font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.55;
   letter-spacing: var(--tracking-tight);
   color: var(--text-primary);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  column-gap: var(--sp-base);
+  row-gap: 0;
 }
-/* Prose is held to a readable measure; media spans the full content width. */
 .detail__body > p,
 .detail__body > h2,
 .detail__body > h3,
 .detail__body > ul,
-.detail__body > ol { max-width: 44rem; }
+.detail__body > ol { grid-column: 1 / span 2; }
 .detail__body p { margin: 0 0 1.25rem; }
 .detail__body h2 {
   font-size: var(--fs-sm);
@@ -521,6 +615,9 @@ img, video { max-width: 100%; height: auto; display: block; }
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
 }
+/* Project-info list labels — Geist SemiBold (per the Figma credits block). */
+.detail__body strong,
+.detail__body b { font-weight: 600; }
 .detail__body img, .detail__body video {
   width: 100%;
   border-radius: var(--radius-md);
@@ -536,22 +633,49 @@ img, video { max-width: 100%; height: auto; display: block; }
      <div class="cs-2">      2× <img> </div>         — two-up grid
    (Images live in raw HTML, not markdown ![], so they sit outside <p> and
    span full width.) */
-.detail__body figure { margin: 2rem 0; }
+.detail__body figure { margin: 2rem 0; grid-column: 1 / -1; }
 .detail__body .cs-mocks,
 .detail__body .cs-2,
-.detail__body .cs-3 {
+.detail__body .cs-3,
+.detail__body .cs-rows {
   display: grid;
   gap: 1rem;
   align-items: start;
   margin: 2rem 0;
+  /* Break out of the 2/3 prose column to the full content width. */
+  grid-column: 1 / -1;
 }
 .detail__body .cs-mocks { grid-template-columns: repeat(4, 1fr); }
 .detail__body .cs-3 { grid-template-columns: repeat(3, 1fr); }
 .detail__body .cs-2 { grid-template-columns: repeat(2, 1fr); }
+/* cs-rows — full-width stacked media. Each child spans the content width;
+   useful for hero sequences where each frame deserves its own viewport-width
+   moment (vs. a 3-up grid where they read as a comparison). */
+.detail__body .cs-rows { grid-template-columns: 1fr; }
+.detail__body .cs-rows img,
+.detail__body .cs-rows video {
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
 @media (max-width: 880px) {
+  /* Body collapses to a single column — prose + media share one rail. */
+  .detail__body { grid-template-columns: 1fr; }
+  .detail__body > p,
+  .detail__body > h2,
+  .detail__body > h3,
+  .detail__body > ul,
+  .detail__body > ol { grid-column: 1; }
   .detail__body .cs-mocks { grid-template-columns: repeat(2, 1fr); }
   .detail__body .cs-3 { grid-template-columns: repeat(2, 1fr); }
   .detail__body .cs-2 { grid-template-columns: 1fr; }
+  /* Subnav stacks vertically on narrow viewports — title above tabs. */
+  .detail__subnav-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--sp-3);
+  }
+  /* And the sticky offset matches the taller subnav stack. */
+  :root { --nav-height: 6rem; }
 }
 @media (max-width: 520px) {
   .detail__body .cs-mocks,

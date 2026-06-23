@@ -15,14 +15,20 @@ const { Content } = await render(entry);
 ---
 
 <Base title={`${entry.data.title} — Leigh Scholten`} description={entry.data.summary}>
+  <section class="detail__subnav" data-reveal>
+    <div class="detail__subnav-inner">
+      <a href="/" class="detail__subnav-title" aria-label="Back to work list">
+        <span class="detail__subnav-name">{entry.data.title}</span>
+        <span class="detail__subnav-meta">{entry.data.context}</span>
+      </a>
+      <nav class="detail__subnav-tabs" aria-label="Page sections">
+        <a href="#details">Details</a>
+        <a href="#credits">Credits</a>
+      </nav>
+    </div>
+  </section>
+
   <article class="detail">
-    <a href="/" class="detail__back" data-reveal>← back</a>
-
-    <header class="detail__header" data-reveal>
-      <h1>{entry.data.title}</h1>
-      <div class="detail__meta">{entry.data.year} · {entry.data.context}</div>
-    </header>
-
     {entry.data.cover && (
       <img
         class="detail__hero" data-reveal
@@ -31,7 +37,7 @@ const { Content } = await render(entry);
       />
     )}
 
-    <div class="detail__body" data-reveal-children>
+    <div class="detail__body" id="details" data-reveal-children>
       <Content />
     </div>
   </article>
