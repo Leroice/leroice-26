@@ -1,0 +1,450 @@
+---
+import Base from '../layouts/Base.astro';
+
+// /styleguide — the maintained catalogue of every token and component in
+// the build. Everything demoed here uses the site's real global.css classes
+// (no reinvented markup), so a tweak to a component updates both the live
+// site and this page. Not linked in the main nav — reference-only.
+
+const nav = [
+  { href: '#colour', label: 'Colour' },
+  { href: '#type', label: 'Type' },
+  { href: '#space', label: 'Space & radius' },
+  { href: '#motion', label: 'Motion' },
+  { href: '#nav-foot', label: 'Nav & footer' },
+  { href: '#list', label: 'List / row / preview' },
+  { href: '#subnav', label: 'Detail subnav' },
+  { href: '#cs-kit', label: 'Case-study kit' },
+  { href: '#cv', label: 'CV components' },
+  { href: '#links', label: 'Links' },
+];
+
+const colours = [
+  { name: '--text-primary', light: '#24221B', dark: '#F2EFE8' },
+  { name: '--bg',           light: '#FAFAF7', dark: '#14130F' },
+  { name: '--hover-bg',     light: 'rgba(0,0,0,0.05)', dark: 'rgba(255,255,255,0.06)' },
+  { name: '--rule',         light: 'rgba(36,34,27,0.08)', dark: 'rgba(242,239,232,0.08)' },
+];
+
+const opacities = [
+  { name: '--op-primary', value: '1' },
+  { name: '--op-strong', value: '0.7' },
+  { name: '--op-soft', value: '0.5' },
+];
+
+const type = [
+  { name: '--fs-h1', px: '32px', weight: 450, sample: 'Design Director & Lead UX Designer' },
+  { name: '--fs-name', px: '17px', weight: 450, sample: 'Leigh Scholten. Designer.' },
+  { name: '--fs-sm', px: '14px', weight: 450, sample: 'Body copy sits here, throughout the site.' },
+  { name: '--fs-meta', px: '11px', weight: 450, sample: '2026 · brand, web, 3d, motion' },
+];
+
+const weights = [
+  { label: 'Geist Regular', weight: 400 },
+  { label: 'Geist Medium', weight: 450 },
+  { label: 'Geist SemiBold', weight: 600 },
+];
+
+const space = [
+  { name: '--sp-3', px: 12 },
+  { name: '--sp-base', px: 16 },
+  { name: '--radius-md (px, not a bar)', px: 12 },
+];
+
+const layoutTokens = [
+  { name: '--page-max', value: '76rem', use: 'Max content width, every page' },
+  { name: '--list-width', value: '22rem', use: 'Home list column width' },
+  { name: '--col-gap', value: '6rem', use: 'Home split column gap' },
+  { name: '--side-pad', value: '2rem', use: 'Outer page padding' },
+  { name: '--content-pad', value: 'side-pad + sp-base', use: 'Text alignment inset (matches nav brand)' },
+  { name: '--nav-height', value: '7rem (6rem <880px)', use: 'Sticky offset for detail subnav' },
+];
+
+const motionTokens = [
+  { name: 'Spring (pill / arc-flip)', value: 'stiffness 410 · damping 84 · mass 3', use: 'Rollover pill, arcFlip default spring' },
+  { name: 'Reveal — load cascade', value: '520ms in, 60ms step, 40ms base delay', use: 'revealOnLoad(), top-down' },
+  { name: 'Reveal — proximity out', value: '380ms out / 480ms in, 45ms step', use: 'staggerOut / staggerIn, ripples from trigger' },
+  { name: 'Page exit', value: '260ms, capped 160ms total spread', use: 'pageExit() before navigation' },
+  { name: 'Subnav elastic entrance', value: '1409.864ms, one-shot', use: 'subnav-elastic.ts — back badge → title → subtitle → credits' },
+  { name: 'Blur (reveal hidden state)', value: '6px', use: 'Every [data-reveal] / [data-elastic] hidden state' },
+];
+
+const skills = [
+  'Product Design (iOS / Android / Web)', 'Design Systems Strategy', 'Fintech / Financial Services',
+  'CX Strategy', 'Rapid Prototyping',
+];
+---
+
+<Base
+  title="Style guide — Leigh Scholten"
+  description="Component and token reference for leroice.com."
+>
+  <div class="sg">
+    <nav class="sg__nav" aria-label="Style guide sections">
+      {nav.map((n) => <a href={n.href}>{n.label}</a>)}
+    </nav>
+
+    <main class="sg__main">
+      <section class="sg-section">
+        <h2>Style guide</h2>
+        <p class="sg-intro">
+          Every token and component actually shipping on leroice.com, pulled live from
+          <code>global.css</code>. Tweak a class there and it updates here and on the real
+          pages at once — this page has no styles of its own beyond its own scaffolding.
+        </p>
+      </section>
+
+      <section class="sg-section" id="colour">
+        <h2>Colour</h2>
+        <p class="sg-intro">Four tokens, light + dark. No other colours exist in the system.</p>
+        <div class="sg-block">
+          <h3>Palette</h3>
+          <div class="sg-swatches">
+            {colours.map((c) => (
+              <div class="sg-swatch">
+                <div class="sg-swatch__chip" style={`background:${c.light}`}></div>
+                <div class="sg-swatch__chip" style={`background:${c.dark}`}></div>
+                <span class="sg-swatch__meta">
+                  <span class="sg-swatch__name">{c.name}</span>
+                  <span class="sg-swatch__value">{c.light} / {c.dark}</span>
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div class="sg-block">
+          <h3>Opacity steps</h3>
+          <div class="sg-demo">
+            {opacities.map((o) => (
+              <p style={`opacity:${o.value}; margin: 0 0 0.5rem; font-size: var(--fs-sm);`}>
+                {o.name} — {o.value}
+              </p>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section class="sg-section" id="type">
+        <h2>Type</h2>
+        <p class="sg-intro">Geist, three weights. Tracking sits at −0.43px everywhere.</p>
+        <div class="sg-block">
+          <h3>Weights</h3>
+          <div class="sg-demo">
+            {weights.map((w) => (
+              <p style={`font-weight:${w.weight}; margin: 0 0 0.75rem; font-size: 20px;`}>
+                {w.label} ({w.weight}) — Leigh Scholten
+              </p>
+            ))}
+          </div>
+        </div>
+        <div class="sg-block">
+          <h3>Scale</h3>
+          <div class="sg-demo">
+            {type.map((t) => (
+              <div class="sg-type-row">
+                <span class="sg-type-row__sample" style={`font-size:${t.px}; font-weight:${t.weight};`}>{t.sample}</span>
+                <span class="sg-type-row__meta">{t.name} — {t.px} / {t.weight}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section class="sg-section" id="space">
+        <h2>Space &amp; radius</h2>
+        <div class="sg-block">
+          <h3>Spacing tokens</h3>
+          <div class="sg-demo">
+            {space.map((s) => (
+              <div class="sg-space-row">
+                <div class="sg-space-row__bar" style={`width:${s.px}px`}></div>
+                <span class="sg-space-row__label">{s.name} — {s.px}px</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div class="sg-block">
+          <h3>Layout tokens</h3>
+          <div class="sg-demo">
+            <table class="sg-token-table">
+              <thead><tr><th>Token</th><th>Value</th><th>Use</th></tr></thead>
+              <tbody>
+                {layoutTokens.map((t) => (
+                  <tr><td><code>{t.name}</code></td><td>{t.value}</td><td>{t.use}</td></tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="sg-section" id="motion">
+        <h2>Motion</h2>
+        <p class="sg-intro">
+          One rule sites-wide: nothing appears or vanishes instantly. Pure opacity + blur for
+          reveals (no transform, so layout measurements stay stable for FLIP); named easings
+          and spring physics live in <code>arc-flip.ts</code>.
+        </p>
+        <div class="sg-block">
+          <h3>Timing reference</h3>
+          <div class="sg-demo">
+            <table class="sg-token-table">
+              <thead><tr><th>System</th><th>Values</th><th>Used by</th></tr></thead>
+              <tbody>
+                {motionTokens.map((t) => (
+                  <tr><td><code>{t.name}</code></td><td>{t.value}</td><td>{t.use}</td></tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="sg-block">
+          <h3>Reveal cascade — replay</h3>
+          <div class="sg-demo" id="reveal-demo">
+            <button class="sg-replay" type="button" data-replay="reveal">Replay</button>
+            <ul style="list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:0.75rem;">
+              {skills.map((s) => <li class="cv-skill" style="width:fit-content;" data-reveal-item>{s}</li>)}
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="sg-section" id="nav-foot">
+        <h2>Nav &amp; footer</h2>
+        <div class="sg-block">
+          <h3>Header</h3>
+          <div class="sg-demo sg-demo--flush">
+            <header class="nav" style="position:static;">
+              <a href="/" class="nav__brand">Leigh Scholten.<span class="role">Designer</span></a>
+              <nav class="nav__links">
+                <a href="/about">About</a>
+                <a href="/connect">Connect</a>
+                <a href="/cv">CV</a>
+              </nav>
+            </header>
+          </div>
+        </div>
+        <div class="sg-block">
+          <h3>Footer (theme toggle is live — try it)</h3>
+          <div class="sg-demo sg-demo--flush">
+            <footer class="foot" style="margin:0;">
+              <span>© 2026 Leigh Scholten</span>
+              <button class="theme-toggle" type="button" aria-label="Toggle theme" data-theme-toggle>theme</button>
+            </footer>
+          </div>
+        </div>
+      </section>
+
+      <section class="sg-section" id="list">
+        <h2>List / row / preview</h2>
+        <p class="sg-intro">
+          The homepage's rollover pill is driven by an rAF spring loop tied to live pointer
+          tracking, inline in <code>index.astro</code> — not extracted to a shared module, so
+          it isn't reproduced here. Static reference only; see the
+          <a href="/">homepage</a> for the interactive version.
+        </p>
+        <div class="sg-block">
+          <h3>Rows</h3>
+          <div class="sg-demo sg-demo--flush">
+            <section class="list" style="padding: var(--sp-base);">
+              <div class="row" style="cursor:default;">
+                <div class="row__inner" style="opacity:1;">
+                  <div class="row__year">2026</div>
+                  <div class="row__title">AU multicurrency wallet</div>
+                  <div class="row__desc">Western Union · iOS, Android</div>
+                </div>
+              </div>
+              <div class="row" style="cursor:default;">
+                <div class="row__inner">
+                  <div class="row__year">2023</div>
+                  <div class="row__title">Luxem</div>
+                  <div class="row__desc">Brand, web, 3D, motion</div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+        <div class="sg-block">
+          <h3>Preview frame</h3>
+          <div class="sg-demo sg-demo--flush" style="max-width: 28rem;">
+            <div class="preview__frame" style="aspect-ratio:16/10;">
+              <img class="preview__image is-active" src="/images/work/luxem.jpg" alt="" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sg-section" id="subnav">
+        <h2>Detail subnav</h2>
+        <p class="sg-intro">
+          Back badge, title block, subtitle, and credits spring in as a staggered elastic
+          entrance (Figma node 132:140), built in <code>subnav-elastic.ts</code>. Replay it
+          as often as you like while tuning.
+        </p>
+        <div class="sg-block">
+          <div class="sg-demo sg-demo--flush">
+            <button class="sg-replay" type="button" data-replay="subnav">Replay entrance</button>
+            <section class="detail__subnav" style="position:static;" data-elastic-nav>
+              <div class="detail__subnav-inner">
+                <a href="#" class="detail__subnav-title" aria-label="Back to work list" onclick="return false">
+                  <span class="detail__subnav-back" data-elastic="badge" aria-hidden="true">
+                    <svg width="8" height="13" viewBox="0 0 8 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M6.69386 0.622259L1.24414 6.07198L6.69386 11.5217" stroke="currentColor" stroke-width="1.76" />
+                    </svg>
+                  </span>
+                  <span class="detail__subnav-title-text" data-elastic="title">
+                    <span class="detail__subnav-name">CACNA-1a</span>
+                    <span class="detail__subnav-meta" data-elastic="subtitle">3D illustration · NFT</span>
+                  </span>
+                </a>
+                <nav class="detail__subnav-tabs" data-elastic="credits" aria-label="Page sections">
+                  <a href="#" onclick="return false">Details</a>
+                  <a href="#" onclick="return false">Credits</a>
+                </nav>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <section class="sg-section" id="cs-kit">
+        <h2>Case-study layout kit</h2>
+        <p class="sg-intro">
+          Raw HTML blocks dropped into a project's markdown body — <code>cs-mocks</code>,
+          <code>cs-3</code>, <code>cs-2</code>, <code>cs-rows</code>. Each breaks out of the
+          2/3 prose column to the full content width.
+        </p>
+        <div class="sg-block">
+          <h3>cs-mocks — 4-up phone row</h3>
+          <div class="sg-demo sg-demo--flush">
+            <div class="cs-mocks" style="margin:0;">
+              <img src="/images/work/anz-plus/01-ANZ-.png" alt="" />
+              <img src="/images/work/anz-plus/02-ANZ-.png" alt="" />
+              <img src="/images/work/anz-plus/03-ANZ-.png" alt="" />
+              <img src="/images/work/anz-plus/04-ANZ-.png" alt="" />
+            </div>
+          </div>
+        </div>
+        <div class="sg-block">
+          <h3>cs-3 — three-up grid</h3>
+          <div class="sg-demo sg-demo--flush">
+            <div class="cs-3" style="margin:0;">
+              <img src="/images/work/anz-plus/204-Spending---L1.png" alt="" />
+              <img src="/images/work/anz-plus/05-ANZ-SavingsJar.png" alt="" />
+              <img src="/images/work/anz-plus/Tiles.png" alt="" />
+            </div>
+          </div>
+        </div>
+        <div class="sg-block">
+          <h3>cs-2 — two-up grid</h3>
+          <div class="sg-demo sg-demo--flush">
+            <div class="cs-2" style="margin:0;">
+              <img src="/images/work/anz-plus/Type.svg" alt="" />
+              <img src="/images/work/anz-plus/icons.png" alt="" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sg-section" id="cv">
+        <h2>CV components</h2>
+        <div class="sg-block">
+          <h3>Stat card</h3>
+          <div class="sg-demo sg-demo--flush">
+            <ul class="cv-stats" style="margin:0;">
+              <li class="cv-stat">
+                <span class="cv-stat__num">1M customers</span>
+                <span class="cv-stat__desc">acquired in 24 months — fastest digital banking app growth in Australia</span>
+              </li>
+              <li class="cv-stat">
+                <span class="cv-stat__num">$2.4B+ FUM</span>
+                <span class="cv-stat__desc">delivered within 18 months of ANZ Plus launch</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="sg-block">
+          <h3>Role block</h3>
+          <div class="sg-demo sg-demo--flush">
+            <article class="cv-role">
+              <header class="cv-role__head">
+                <div>
+                  <h2 class="cv-role__title">Lead UX Designer / Design Director</h2>
+                  <p class="cv-role__org">TELUS Digital · Western Union E1 Wallet · Melbourne, AU</p>
+                </div>
+                <span class="cv-role__date">Oct 2025 — Present</span>
+              </header>
+              <ul class="cv-role__bullets">
+                <li>Leading UX design for the E1 Wallet — a next-generation multicurrency digital wallet.</li>
+                <li>Driving a cross-market design audit across AU and MX.</li>
+              </ul>
+            </article>
+          </div>
+        </div>
+        <div class="sg-block">
+          <h3>Skill chips</h3>
+          <div class="sg-demo sg-demo--flush">
+            <ul class="cv-skills" style="margin:0;">
+              {skills.map((s) => <li class="cv-skill">{s}</li>)}
+            </ul>
+          </div>
+        </div>
+        <div class="sg-block">
+          <h3>Label rail (section pattern)</h3>
+          <div class="sg-demo sg-demo--flush">
+            <section class="cv-section" style="padding:0; border-top:none;">
+              <p class="cv-label">profile</p>
+              <div class="cv-content cv-profile">
+                <p>Every CV section uses this two-column rail: a lowercase label on the left, content on the right. Collapses to a stacked heading under 880px.</p>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <section class="sg-section" id="links">
+        <h2>Links</h2>
+        <p class="sg-intro">
+          There's no distinct button component on the site — every interactive element is a
+          text link with an opacity transition on hover (soft/strong → full).
+        </p>
+        <div class="sg-block">
+          <div class="sg-demo" style="display:flex; flex-direction:column; gap:1rem; align-items:flex-start;">
+            <a href="#" class="detail__back" onclick="return false">← back (.detail__back)</a>
+            <a href="#" class="cv__back" onclick="return false">← back (.cv__back)</a>
+            <p class="detail__body" style="display:block;">
+              <a href="#" onclick="return false">In-body link (.detail__body a)</a>
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</Base>
+
+<script>
+  import { subnavElasticEnter, clearSubnavElastic } from '../lib/subnav-elastic';
+  import { staggerIn } from '../lib/reveal';
+
+  const subnavBtn = document.querySelector<HTMLButtonElement>('[data-replay="subnav"]');
+  const subnavDemo = document.getElementById('subnav')?.querySelector('.sg-demo');
+  subnavBtn?.addEventListener('click', () => {
+    if (!subnavDemo) return;
+    clearSubnavElastic(subnavDemo);
+    // Re-run on next frame so the cleared state paints first.
+    requestAnimationFrame(() => subnavElasticEnter(subnavDemo));
+  });
+
+  const revealBtn = document.querySelector<HTMLButtonElement>('[data-replay="reveal"]');
+  const revealItems = Array.from(
+    document.querySelectorAll<HTMLElement>('[data-reveal-item]')
+  );
+  revealBtn?.addEventListener('click', () => {
+    for (const el of revealItems) {
+      el.style.transition = 'none';
+      el.style.opacity = '0';
+      el.style.filter = 'blur(6px)';
+    }
+    requestAnimationFrame(() => staggerIn(revealItems, { origin: revealBtn }));
+  });
+</script>

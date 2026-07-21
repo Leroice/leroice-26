@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import DetailSubnav from '../components/DetailSubnav.astro';
 import { getCollection, render } from 'astro:content';
 
 const entries = (await getCollection('work')).sort(
@@ -87,7 +88,7 @@ const inlineEntries = await Promise.all(
 
       {inlineEntries.map(({ entry, Content }) => (
         <div class="list__detail" data-detail-slug={slug(entry.id)} hidden>
-          <button class="detail__back" type="button" data-detail-back>← back</button>
+          <DetailSubnav title={entry.data.title} context={entry.data.context} href="/" />
           {entry.data.cover && (
             <img
               class="detail__hero"
@@ -130,7 +131,6 @@ const inlineEntries = await Promise.all(
     </header>
     <div class="tuner__grid">
       <label><span class="tuner__lab">Lead-in <output id="out-leadIn"></output></span><input type="range" id="tune-leadIn" /></label>
-      <label><span class="tuner__lab">Title duration <output id="out-tdur"></output></span><input type="range" id="tune-tdur" /></label>
       <label><span class="tuner__lab">Image duration <output id="out-idur"></output></span><input type="range" id="tune-idur" /></label>
       <label><span class="tuner__lab">Image delay (trail) <output id="out-idelay"></output></span><input type="range" id="tune-idelay" /></label>
       <label><span class="tuner__lab">Image arc (yield) <output id="out-iarc"></output></span><input type="range" id="tune-iarc" /></label>
@@ -138,6 +138,8 @@ const inlineEntries = await Promise.all(
       <label><span class="tuner__lab">Cascade step <output id="out-sgstep"></output></span><input type="range" id="tune-sgstep" /></label>
       <label><span class="tuner__lab">Cascade blur <output id="out-sgblur"></output></span><input type="range" id="tune-sgblur" /></label>
       <label><span class="tuner__lab">Image follow <output id="out-pfollow"></output></span><input type="range" id="tune-pfollow" /></label>
+      <label><span class="tuner__lab">Subnav delay <output id="out-sndelay"></output></span><input type="range" id="tune-sndelay" /></label>
+      <label><span class="tuner__lab">Subnav duration scale <output id="out-snscale"></output></span><input type="range" id="tune-snscale" /></label>
       <label><span class="tuner__lab">Easing</span>
         <select id="tune-easing"></select>
       </label>
@@ -436,22 +438,34 @@ const inlineEntries = await Promise.all(
   // ─────────────────────────────────────────────────────────
   import { arcFlip, concert, easings, makeSpring } from '../lib/arc-flip';
   import { staggerOut, staggerIn } from '../lib/reveal';
+  import { subnavElasticEnter, clearSubnavElastic } from '../lib/subnav-elastic';
 
-  // Choreography props for the list → detail move. The title leads; the image
-  // yields — trailing slightly and arcing downward so it never crosses the
-  // title's path. Default easing is the organic SPRING from the menu rollover
-  // (tokens 410/84/3). Live-editable via the TUNING panel below.
+  // Figma's verbatim cohort duration for "title + credits · elastic"
+  // (node 169:1155) — subnav-elastic.ts's own default, kept in sync here
+  // so CHOREO.subnav.durationScale has a known baseline to multiply.
+  const SUBNAV_ELASTIC_DURATION = 1409.864;
+
+  // Choreography props for the list → detail move. All rows (including the
+  // clicked one) fade out via the proximity cascade; the image then FLIPs in
+  // from the preview pane while DetailSubnav plays its own unmodified
+  // subnav-elastic entrance underneath. Default easing is the organic SPRING
+  // from the menu rollover (tokens 410/84/3). Live-editable via the TUNING
+  // panel below.
   const CHOREO_KEY = 'leroice-choreo';
   const DEFAULT_CHOREO = {
     leadIn: 0,          // ms: delay before the proximity cascade begins
     easing: 'gentle',   // soft-landing curve (smooth in, gentle settle)
     spring: { stiffness: 900, damping: 160, mass: 0.5 },
-    title: { duration: 1000, delay: 0, arc: 0,   scale: false },
     image: { duration: 980,  delay: 0, arc: 0.1, minYield: 58, scale: true },
     // Proximity cascade when a row opens: nearest rows fade+blur out first.
     stagger: { step: 15, blur: 6, outDuration: 340 },
     // ms the preview image trails the rollover pill (both directions).
     previewFollow: 300,
+    // DetailSubnav's badge/subtitle/credits entrance (subnav-elastic),
+    // concerted with the title/hero arc-flip above. delay offsets the
+    // whole cohort's start; durationScale multiplies Figma's baked
+    // 1409.864ms duration without altering the eased curve shape.
+    subnav: { delay: 0, durationScale: 1 },
   };
   // Mutable runtime config — the TUNING panel writes here + to localStorage.
   const CHOREO = (() => {
@@ -462,10 +476,10 @@ const inlineEntries = await Promise.all(
           leadIn: saved.leadIn ?? DEFAULT_CHOREO.leadIn,
           easing: saved.easing ?? DEFAULT_CHOREO.easing,
           spring: { ...DEFAULT_CHOREO.spring, ...(saved.spring || {}) },
-          title: { ...DEFAULT_CHOREO.title, ...(saved.title || {}) },
           image: { ...DEFAULT_CHOREO.image, ...(saved.image || {}) },
           stagger: { ...DEFAULT_CHOREO.stagger, ...(saved.stagger || {}) },
           previewFollow: saved.previewFollow ?? DEFAULT_CHOREO.previewFollow,
+          subnav: { ...DEFAULT_CHOREO.subnav, ...(saved.subnav || {}) },
         };
       }
     } catch { /* ignore bad storage */ }
@@ -518,7 +532,7 @@ const inlineEntries = await Promise.all(
         const previewFrame =
           document.querySelector('.preview__frame') as HTMLElement | null;
         const hero = detail.querySelector('.detail__hero') as HTMLElement | null;
-        const back = detail.querySelector('.detail__back') as HTMLElement | null;
+        const subnavRoot = detail.querySelector('[data-elastic-nav]') as HTMLElement | null;
         const bodyText = detail.querySelector('.detail__body') as HTMLElement | null;
         const prefersReduced = reducedMotion();
 
@@ -528,31 +542,27 @@ const inlineEntries = await Promise.all(
         list.style.pointerEvents = 'none';
         window.scrollTo({ top: 0, behavior: 'instant' });
 
-        // FIRST rects, captured while everything is still in its list state.
+        // FIRST rect, captured while the preview is still in its list state.
         // (FLIP is meant to span the layout change: `from` is the pre-collapse
         // box, the post-collapse box is measured inside arcFlip.)
-        const titleFirst = row.getBoundingClientRect();
         const imageFirst = previewFrame ? previewFrame.getBoundingClientRect() : null;
 
-        // The other rows cascade OUT by proximity to the clicked row (nearest
-        // fades+blurs first, rippling outward). The preview stays put — it
-        // hands straight off to the hero so the image never blinks out.
-        const others = rows.filter((r) => r !== row);
+        // Every row — including the clicked one — cascades OUT by proximity
+        // to the clicked row (nearest fades+blurs first, rippling outward).
+        // No row is held back or specially treated; the clicked row's title
+        // doesn't travel anywhere, it just fades out with the rest. The
+        // preview stays put — it hands straight off to the hero so the image
+        // never blinks out.
+        const others = rows;
 
         const runCommit = () => {
           if (myToken !== token) return; // superseded before the lead-in fired
 
-          // Commit the final layout. The title holds in place (transform →
-          // flow); the preview is swapped for the hero at the same spot.
+          // Commit the final layout. Every row (including the clicked one)
+          // has already faded out via the cascade above; DetailSubnav takes
+          // over as the heading once it's revealed below.
           split.classList.add('is-detail');
-          for (const r of rows) {
-            if (r !== row) r.style.display = 'none';
-          }
-          row.style.transition = '';
-          row.style.transform = '';
-          row.style.position = '';
-          row.style.zIndex = '';
-          row.classList.add('is-heading');
+          for (const r of rows) r.style.display = 'none';
 
           detail.hidden = false;
           openRow = row;
@@ -584,18 +594,24 @@ const inlineEntries = await Promise.all(
           // The case-study content loads IN in sequence (fade + blur), behind
           // the image as it settles — nothing just appears.
           const bodyEls = [
-            back,
             ...(bodyText ? (Array.from(bodyText.children) as HTMLElement[]) : []),
           ].filter(Boolean) as HTMLElement[];
           staggerIn(bodyEls, { baseDelay: 160, step: CHOREO.stagger.step, blur: CHOREO.stagger.blur });
 
-          // Concerted move: the title rises (straight expo) while the image
-          // FLIPs in from the preview pane, trailing slightly and arcing
-          // DOWNWARD — yielding so the title can pass above without crossing.
+          // The image FLIPs in from the preview pane. DetailSubnav appears on
+          // its own beat, right after the cascade — its entrance is entirely
+          // subnav-elastic's unmodified 4-track spring (badge, title,
+          // subtitle, credits), exactly as authored in Figma. Nothing FLIPs
+          // or travels into it; it just plays its own animation in place.
           activeAnims = [
-            arcFlip(row, titleFirst, { ...CHOREO.title, easing: easingFor() }),
             arcFlip(hero!, imageFirst!, { ...CHOREO.image, easing: easingFor() }),
           ];
+          if (subnavRoot) {
+            subnavElasticEnter(detail, {
+              duration: SUBNAV_ELASTIC_DURATION * CHOREO.subnav.durationScale,
+              delay: CHOREO.subnav.delay,
+            });
+          }
 
           concert(activeAnims).then(() => {
             if (myToken !== token) return; // a close/open superseded us
@@ -638,13 +654,17 @@ const inlineEntries = await Promise.all(
         list.style.pointerEvents = 'none';
 
         // The detail content fades + blurs out softly (rippling from the
-        // heading), then the list cascades gently back in.
-        const back = detail.querySelector('.detail__back') as HTMLElement | null;
+        // subnav), then the list cascades gently back in. DetailSubnav fades
+        // as ONE piece (badge/title/subtitle/credits together, immediately),
+        // not four separately-staggered elements — it's a single component,
+        // not four.
+        const subnavRoot = detail.querySelector('[data-elastic-nav]') as HTMLElement | null;
+        const subnavBadge = subnavRoot?.querySelector('[data-elastic="badge"]') as HTMLElement | null;
         const bodyText = detail.querySelector('.detail__body') as HTMLElement | null;
         const hero = detail.querySelector('.detail__hero') as HTMLElement | null;
         const outEls = [
           hero,
-          back,
+          subnavRoot,
           ...(bodyText ? (Array.from(bodyText.children) as HTMLElement[]) : []),
         ].filter(Boolean) as HTMLElement[];
 
@@ -654,9 +674,11 @@ const inlineEntries = await Promise.all(
           for (const el of outEls) {
             el.style.transition = ''; el.style.opacity = ''; el.style.filter = ''; el.style.willChange = '';
           }
+          // Clear subnav-elastic's own inline styles too (transform,
+          // column-gap) — outEls above only covers staggerOut's properties.
+          clearSubnavElastic(detail);
 
           split.classList.remove('is-detail');
-          row.classList.remove('is-heading');
           row.style.cssText = '';
           for (const r of rows) {
             if (r !== row) r.style.cssText = '';
@@ -690,8 +712,11 @@ const inlineEntries = await Promise.all(
         };
 
         if (prefersReduced) { restore(); return; }
+        // origin is the back badge, not `row` — `row` is display:none at this
+        // point (hidden since open()'s commit), so its rect is degenerate
+        // (0,0) and would throw proximity ordering off.
         staggerOut(outEls, {
-          origin: row,
+          origin: subnavBadge ?? undefined,
           step: CHOREO.stagger.step,
           blur: CHOREO.stagger.blur,
           duration: 260,
@@ -725,7 +750,14 @@ const inlineEntries = await Promise.all(
       });
 
       document.addEventListener('click', (e) => {
-        if ((e.target as HTMLElement).closest('[data-detail-back]')) history.back();
+        // DetailSubnav's back trigger is a real <a href="/"> (shared with the
+        // standalone /work/[slug] page). Inline, intercept it so it replays
+        // the close() transition instead of a full navigation.
+        const backTrigger = (e.target as HTMLElement).closest('[data-detail-back]');
+        if (backTrigger && openDetail) {
+          e.preventDefault();
+          history.back();
+        }
       });
 
       window.addEventListener('popstate', () => {
@@ -740,7 +772,6 @@ const inlineEntries = await Promise.all(
 
         const fields = [
           { path: ['leadIn'],            id: 'leadIn', min: 0,   max: 400,  step: 10,   unit: 'ms' },
-          { path: ['title', 'duration'], id: 'tdur',   min: 200, max: 1400, step: 20,   unit: 'ms' },
           { path: ['image', 'duration'], id: 'idur',   min: 200, max: 1400, step: 20,   unit: 'ms' },
           { path: ['image', 'delay'],    id: 'idelay', min: 0,   max: 400,  step: 10,   unit: 'ms' },
           { path: ['image', 'arc'],      id: 'iarc',   min: 0,   max: 1,    step: 0.05, unit: '' },
@@ -748,6 +779,8 @@ const inlineEntries = await Promise.all(
           { path: ['stagger', 'step'],   id: 'sgstep', min: 0,   max: 120,  step: 5,    unit: 'ms' },
           { path: ['stagger', 'blur'],   id: 'sgblur', min: 0,   max: 20,   step: 1,    unit: 'px' },
           { path: ['previewFollow'],     id: 'pfollow', min: 0,  max: 800,  step: 20,   unit: 'ms', cssVar: '--preview-follow' },
+          { path: ['subnav', 'delay'],         id: 'sndelay', min: 0,   max: 400, step: 10,   unit: 'ms' },
+          { path: ['subnav', 'durationScale'], id: 'snscale', min: 0.5, max: 2,   step: 0.05, unit: 'x' },
           { path: ['spring', 'stiffness'], id: 'sstiff', min: 40,  max: 900, step: 10,  unit: '' },
           { path: ['spring', 'damping'],   id: 'sdamp',  min: 4,   max: 160, step: 2,   unit: '' },
           { path: ['spring', 'mass'],      id: 'smass',  min: 0.5, max: 8,   step: 0.5, unit: '' },
@@ -839,10 +872,10 @@ const inlineEntries = await Promise.all(
             `  leadIn: ${c.leadIn},\n` +
             `  easing: '${c.easing}',\n` +
             `  spring: { stiffness: ${c.spring.stiffness}, damping: ${c.spring.damping}, mass: ${c.spring.mass} },\n` +
-            `  title: { duration: ${c.title.duration}, delay: ${c.title.delay}, arc: ${c.title.arc}, scale: ${c.title.scale} },\n` +
             `  image: { duration: ${c.image.duration}, delay: ${c.image.delay}, arc: ${c.image.arc}, minYield: ${c.image.minYield}, scale: ${c.image.scale} },\n` +
             `  stagger: { step: ${c.stagger.step}, blur: ${c.stagger.blur}, outDuration: ${c.stagger.outDuration} },\n` +
             `  previewFollow: ${c.previewFollow},\n` +
+            `  subnav: { delay: ${c.subnav.delay}, durationScale: ${c.subnav.durationScale} },\n` +
             `};`;
           try { await navigator.clipboard.writeText(cfg); flash('copied ✓'); }
           catch { flash('copy failed'); }

@@ -473,7 +473,6 @@ body:has(.detail__subnav) .nav {
   background: color-mix(in srgb, var(--bg) 88%, transparent);
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--rule);
 }
 .detail__subnav-inner {
   max-width: var(--page-max);
@@ -486,25 +485,53 @@ body:has(.detail__subnav) .nav {
 }
 .detail__subnav-title {
   display: inline-flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: flex-end;
+  gap: 11px;
   text-decoration: none;
   color: var(--text-primary);
   min-width: 0;
 }
+.detail__subnav-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 26px;
+  height: 32px;
+  border-radius: 12px 2px 2px 12px; /* TL/TR/BR/BL — matches Figma's tl-12 tr-2 br-2 bl-12 */
+  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
+  color: var(--text-primary);
+}
+.detail__subnav-back svg {
+  width: 8px;
+  height: 13px;
+  display: block;
+}
+.detail__subnav-title-text {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+/* Sizes below are literal, not var(--fs-meta)/var(--fs-*), because they're
+   scoped to this one node ("title + credits · elastic", Figma node
+   169:1155) — --fs-meta etc. are shared across the whole site and this
+   component's type ramp (14px / 11px) doesn't match any of them.
+   Title = Figma's "Label" style, subtitle + tabs = "Subline" style. */
 .detail__subnav-name {
   font-family: var(--font-sans);
-  font-size: 16px;
-  font-weight: 450;
-  letter-spacing: -0.5px;
-  line-height: 1.1;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.43px;
+  line-height: 1;
 }
 .detail__subnav-meta {
   font-family: var(--font-sans);
-  font-size: var(--fs-meta);
-  letter-spacing: var(--tracking-tight);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1;
   opacity: var(--op-soft);
-  line-height: 1.1;
 }
 .detail__subnav-tabs {
   display: flex;
@@ -513,10 +540,12 @@ body:has(.detail__subnav) .nav {
 }
 .detail__subnav-tabs a {
   font-family: var(--font-sans);
-  font-size: var(--fs-meta);
-  letter-spacing: var(--tracking-tight);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1;
   color: var(--text-primary);
-  opacity: var(--op-strong);
+  opacity: var(--op-soft);
   text-decoration: none;
   transition: opacity 160ms ease;
 }
@@ -611,9 +640,7 @@ body:has(.detail__subnav) .nav {
 .detail__body li { margin: 0 0 0.4rem; }
 .detail__body a {
   color: var(--text-primary);
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
+  text-decoration: none;
 }
 /* Project-info list labels — Geist SemiBold (per the Figma credits block). */
 .detail__body strong,
@@ -683,35 +710,39 @@ body:has(.detail__subnav) .nav {
   .detail__body .cs-2 { grid-template-columns: 1fr; }
 }
 
-/* ── CACNA-1A inline detail ─────────────────────────────────
-   After the row slides to the top it stays put and becomes the page
-   heading — the layout collapses to a single column, the other rows and
-   the preview drop away, and the case-study body reveals beneath the
-   held row. The title keeps its exact list look and position. */
+/* ── Inline detail ──────────────────────────────────────────
+   When a row opens, every row (including the clicked one) fades out via
+   the proximity cascade — nothing freezes in place or travels anywhere.
+   The layout collapses to a single column and the preview drops away;
+   DetailSubnav + the case-study body reveal in its place, DetailSubnav
+   playing its own unmodified subnav-elastic entrance. */
 
 .split.is-detail {
   grid-template-columns: 1fr;
 }
 .split.is-detail .preview { display: none; }
 
-/* The held row, now acting as the heading. Same look as in the list,
-   just locked to full opacity and non-interactive. */
-.row.is-heading { cursor: default; z-index: 1; }
-.row.is-heading .row__inner { opacity: 1; }
-/* On mobile the row shows a cover thumbnail; as the heading that would
-   duplicate the full-width hero below, so hide it. */
-.row.is-heading .row__media { display: none; }
-
-/* Case-study body, revealed under the heading. The hero spans the full
-   content column (it FLIPs in from the preview pane); the text stays at a
-   readable measure beneath it. */
+/* Case-study body, revealed beneath the DetailSubnav. The hero spans the
+   full content column (it FLIPs in from the preview pane); the text
+   stays at a readable measure beneath it. */
 .list__detail {
-  margin-top: 2rem;
-  /* Match the row's internal padding so the hero + body align with the
-     heading text (which is inset by the row's 16px padding). */
   padding: 0 var(--sp-base);
 }
-.list__detail .detail__back { display: inline-block; margin-bottom: 2rem; }
+/* .list__detail's own padding above already lands content at content-pad
+   (--side-pad from .split + --sp-base here = --content-pad), matching the
+   nav brand and the hero/body below. .detail__subnav-inner's padding is
+   built for sitting flush against the viewport on the standalone
+   /work/[slug] page (its own --content-pad) — nested here that would
+   double up, so it's zeroed and .list__detail's padding does the job
+   instead. No bleed, no extra margin: the badge/title land exactly where
+   .nav's "Leigh Scholten." does. */
+.list__detail .detail__subnav {
+  margin: 0 0 2rem;
+}
+.list__detail .detail__subnav-inner {
+  padding-left: 0;
+  padding-right: 0;
+}
 
 /* Hero shares the preview frame's 16/10 aspect so the FLIP scale is uniform
    (no distortion). object-fit: cover keeps the image crisp at any size. */
@@ -743,10 +774,408 @@ html.is-js:not(.revealed) [data-reveal-children] > * {
   html.is-js [data-reveal-children] > * { opacity: 1; filter: none; }
 }
 
+/* Detail subnav — elastic entrance (springs in once on page load, driven by
+   subnav-elastic.ts). Pure opacity here; the JS sets the starting transform
+   inline before first paint so there's no flash of the resting position. */
+html.is-js:not(.revealed) [data-elastic] {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  html.is-js [data-elastic] { opacity: 1; }
+}
+
 /* ── Reduced motion ─────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
   .preview__image, .list__pill {
     transition-duration: 0ms !important;
+  }
+}
+
+/* ── CV page ─────────────────────────────────────────────────
+   Moved here from cv.astro's scoped <style> so /styleguide can reuse the
+   same classes — one source of truth for CV components. */
+
+.cv {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 1rem var(--content-pad) 4rem;
+}
+
+.cv__back {
+  display: inline-block;
+  margin-bottom: 3rem;
+  font-family: var(--font-sans);
+  font-size: var(--fs-meta);
+  color: var(--text-primary);
+  opacity: var(--op-strong);
+  text-decoration: none;
+  transition: opacity 160ms ease;
+}
+.cv__back:hover { opacity: 1; }
+
+/* Two-column section: lowercase label rail + content */
+.cv-section {
+  display: grid;
+  grid-template-columns: 11rem 1fr;
+  column-gap: 3rem;
+  padding: 3rem 0;
+  border-top: 1px solid var(--rule);
+}
+.cv-section:first-of-type { border-top: none; padding-top: 0; }
+
+.cv-label {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-meta);
+  letter-spacing: 0.02em;
+  color: var(--text-primary);
+  opacity: var(--op-soft);
+}
+
+.cv-content { min-width: 0; max-width: 46rem; }
+
+/* Profile */
+.cv-profile p {
+  margin: 0 0 1.25rem;
+  font-size: 15px;
+  line-height: 1.6;
+}
+.cv-profile p:last-child { margin-bottom: 0; opacity: var(--op-strong); }
+
+/* Selected impact — stat grid */
+.cv-stats {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.cv-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px;
+  border-radius: var(--radius-md);
+  background: var(--hover-bg);
+}
+.cv-stat__num {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.1;
+}
+.cv-stat__desc {
+  font-size: var(--fs-meta);
+  line-height: 1.45;
+  opacity: var(--op-soft);
+}
+
+/* Roles */
+.cv-roles { display: flex; flex-direction: column; gap: 2.5rem; }
+.cv-role__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+.cv-role__title {
+  margin: 0 0 4px;
+  font-size: var(--fs-name);
+  font-weight: 450;
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.2;
+}
+.cv-role__org {
+  margin: 0;
+  font-size: var(--fs-meta);
+  opacity: var(--op-soft);
+}
+.cv-role__date {
+  flex-shrink: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-meta);
+  opacity: var(--op-soft);
+  white-space: nowrap;
+}
+.cv-role__bullets {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+.cv-role__bullets li {
+  position: relative;
+  padding-left: 1.3rem;
+  font-size: 14px;
+  line-height: 1.5;
+  opacity: var(--op-strong);
+}
+.cv-role__bullets li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 0.55em;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--text-primary);
+  opacity: var(--op-soft);
+}
+
+/* Skills — chips */
+.cv-skills {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.cv-skill {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--hover-bg);
+  font-size: var(--fs-meta);
+  letter-spacing: var(--tracking-tight);
+  opacity: var(--op-strong);
+}
+
+/* Education + awards */
+.cv-edu-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+}
+.cv-subhead {
+  margin: 0 0 1rem;
+  font-family: var(--font-sans);
+  font-size: var(--fs-meta);
+  opacity: var(--op-soft);
+}
+.cv-edu__degree, .cv-award__title {
+  margin: 0 0 6px;
+  font-size: var(--fs-name);
+  font-weight: 450;
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.2;
+}
+.cv-edu__detail {
+  margin: 0;
+  font-size: var(--fs-meta);
+  line-height: 1.5;
+  opacity: var(--op-soft);
+  white-space: pre-line;
+}
+.cv-awards { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1.5rem; }
+.cv-award__source {
+  margin: 0 0 4px;
+  font-size: var(--fs-meta);
+  opacity: var(--op-soft);
+}
+.cv-award__role {
+  margin: 0;
+  font-size: var(--fs-meta);
+  opacity: var(--op-soft);
+}
+
+.cv-updated {
+  margin: 3rem 0 0;
+  padding-top: 2rem;
+  border-top: 1px solid var(--rule);
+  font-family: var(--font-sans);
+  font-size: var(--fs-meta);
+  opacity: var(--op-soft);
+}
+
+/* Mobile — collapse rail, label becomes a heading above content */
+@media (max-width: 880px) {
+  .cv-section { grid-template-columns: 1fr; row-gap: 1.25rem; }
+  .cv-stats { grid-template-columns: repeat(2, 1fr); }
+  .cv-edu-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+  .cv-role__head { flex-direction: column; gap: 4px; }
+}
+@media (max-width: 480px) {
+  .cv-stats { grid-template-columns: 1fr; }
+}
+
+/* ── Style guide ─────────────────────────────────────────────
+   /styleguide — the maintained catalogue of every token and component
+   in the build. Everything above this line is the real, shipping site
+   CSS; this section only styles the guide's own scaffolding (section
+   frames, swatches, labels) — never the components being catalogued. */
+
+.sg {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 2rem var(--content-pad) 8rem;
+  display: grid;
+  grid-template-columns: 12rem 1fr;
+  column-gap: 3rem;
+  align-items: start;
+}
+.sg__nav {
+  position: sticky;
+  top: calc(var(--nav-height) + 1rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  font-family: var(--font-sans);
+  font-size: var(--fs-meta);
+}
+.sg__nav a {
+  color: var(--text-primary);
+  opacity: var(--op-soft);
+  text-decoration: none;
+  transition: opacity 160ms ease;
+}
+.sg__nav a:hover { opacity: 1; }
+.sg__main { min-width: 0; display: flex; flex-direction: column; }
+
+.sg-section {
+  padding: 3.5rem 0;
+  border-top: 1px solid var(--rule);
+}
+.sg-section:first-child { border-top: none; padding-top: 0; }
+.sg-section h2 {
+  font-family: var(--font-sans);
+  font-size: var(--fs-h1);
+  font-weight: 450;
+  letter-spacing: -0.5px;
+  margin: 0 0 0.5rem;
+}
+.sg-section > p.sg-intro {
+  margin: 0 0 2rem;
+  font-size: var(--fs-sm);
+  opacity: var(--op-strong);
+  max-width: 42rem;
+}
+
+.sg-block { margin: 0 0 2.5rem; }
+.sg-block:last-child { margin-bottom: 0; }
+.sg-block h3 {
+  font-family: var(--font-sans);
+  font-size: var(--fs-meta);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  opacity: var(--op-soft);
+  margin: 0 0 1rem;
+}
+.sg-demo {
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-md);
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+.sg-demo--flush { padding: 0; }
+
+.sg-swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: 1rem;
+}
+.sg-swatch { display: flex; flex-direction: column; gap: 0.5rem; }
+.sg-swatch__chip {
+  height: 4.5rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--rule);
+}
+.sg-swatch__meta {
+  font-family: var(--font-sans);
+  font-size: var(--fs-meta);
+}
+.sg-swatch__name { display: block; opacity: var(--op-strong); }
+.sg-swatch__value { display: block; opacity: var(--op-soft); }
+
+.sg-type-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--rule);
+}
+.sg-type-row:first-child { border-top: none; }
+.sg-type-row__sample { color: var(--text-primary); }
+.sg-type-row__meta {
+  flex-shrink: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-meta);
+  opacity: var(--op-soft);
+  white-space: nowrap;
+}
+
+.sg-space-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 0;
+}
+.sg-space-row__bar {
+  height: 0.75rem;
+  background: var(--text-primary);
+  opacity: var(--op-strong);
+  border-radius: 2px;
+}
+.sg-space-row__label {
+  font-family: var(--font-sans);
+  font-size: var(--fs-meta);
+  opacity: var(--op-soft);
+  white-space: nowrap;
+}
+
+.sg-token-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-sans);
+  font-size: var(--fs-meta);
+}
+.sg-token-table th {
+  text-align: left;
+  opacity: var(--op-soft);
+  font-weight: 450;
+  padding: 0.5rem 1rem 0.5rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+.sg-token-table td {
+  padding: 0.6rem 1rem 0.6rem 0;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: top;
+}
+.sg-token-table code {
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 12px;
+}
+
+.sg-replay {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 20;
+  font-family: var(--font-sans);
+  font-size: var(--fs-meta);
+  color: var(--text-primary);
+  background: var(--hover-bg);
+  border: none;
+  border-radius: 999px;
+  padding: 6px 12px;
+  cursor: pointer;
+  opacity: var(--op-strong);
+  transition: opacity 160ms ease;
+}
+.sg-replay:hover { opacity: 1; }
+
+@media (max-width: 880px) {
+  .sg { grid-template-columns: 1fr; }
+  .sg__nav {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.25rem;
   }
 }

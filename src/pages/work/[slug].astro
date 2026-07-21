@@ -1,5 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
+import DetailSubnav from '../../components/DetailSubnav.astro';
 import { getCollection, render } from 'astro:content';
 
 export async function getStaticPaths() {
@@ -15,18 +16,7 @@ const { Content } = await render(entry);
 ---
 
 <Base title={`${entry.data.title} — Leigh Scholten`} description={entry.data.summary}>
-  <section class="detail__subnav" data-reveal>
-    <div class="detail__subnav-inner">
-      <a href="/" class="detail__subnav-title" aria-label="Back to work list">
-        <span class="detail__subnav-name">{entry.data.title}</span>
-        <span class="detail__subnav-meta">{entry.data.context}</span>
-      </a>
-      <nav class="detail__subnav-tabs" aria-label="Page sections">
-        <a href="#details">Details</a>
-        <a href="#credits">Credits</a>
-      </nav>
-    </div>
-  </section>
+  <DetailSubnav title={entry.data.title} context={entry.data.context} href="/" />
 
   <article class="detail">
     {entry.data.cover && (

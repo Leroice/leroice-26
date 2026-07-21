@@ -121,6 +121,7 @@ const {
     <script>
       // Site-wide motion: nothing appears or vanishes instantly.
       import { revealOnLoad, revealItems, pageExit } from '../lib/reveal';
+      import { subnavElasticEnter, clearSubnavElastic } from '../lib/subnav-elastic';
 
       // Load-in: content fades + blurs in, top-down.
       // On a cross-document NAVIGATION the browser holds the first paint until
@@ -129,7 +130,12 @@ const {
       // animates. To make navigation animate too, start the reveal once the
       // page is actually presented (pageshow); keep reloads immediate.
       let revealed = false;
-      const startReveal = () => { if (revealed) return; revealed = true; revealOnLoad(); };
+      const startReveal = () => {
+        if (revealed) return;
+        revealed = true;
+        revealOnLoad();
+        subnavElasticEnter(); // no-op on pages without a detail subnav
+      };
       const navEntry = (performance.getEntriesByType?.('navigation')?.[0]) as
         PerformanceNavigationTiming | undefined;
       if (navEntry && navEntry.type === 'navigate') {
@@ -164,7 +170,8 @@ const {
       });
 
       // bfcache: a page restored via back/forward must never show its
-      // faded-out exit state — force everything visible.
+      // faded-out exit state (or a frozen mid-spring subnav frame) — force
+      // everything to rest.
       window.addEventListener('pageshow', (e) => {
         if (!e.persisted) return;
         document.documentElement.classList.add('revealed');
@@ -174,6 +181,7 @@ const {
           el.style.opacity = '';
           el.style.filter = '';
         }
+        clearSubnavElastic();
       });
     </script>
   </body>

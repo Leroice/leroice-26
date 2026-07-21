@@ -1,0 +1,46 @@
+---
+/* ───────────────────────────────────────────────────────────
+   DetailSubnav — the case-study header: back-badge, title, and
+   Details/Credits tabs. Shared by every entry point into a project:
+   the standalone /work/[slug] page and the home list's inline
+   transition. Ported from Figma ("title + credits · elastic",
+   node 169:1155) — markup + typography match that node verbatim.
+
+   The entrance itself is driven by subnav-elastic.ts's
+   subnavElasticEnter(), triggered by the caller (Base.astro's
+   startReveal() on a full page load, or index.astro's CHOREO on the
+   inline transition). This component only renders the structure —
+   it doesn't invoke the animation itself, so it stays inert markup
+   until whichever page wires it up.
+   ─────────────────────────────────────────────────────────── */
+
+interface Props {
+  title: string;
+  context: string;
+  /** Back-link target. Always "/" today (every detail page returns to
+   *  the home list), but left as a prop rather than hardcoded. */
+  href?: string;
+}
+
+const { title, context, href = '/' } = Astro.props as Props;
+---
+
+<section class="detail__subnav" data-elastic-nav>
+  <div class="detail__subnav-inner">
+    <a href={href} class="detail__subnav-title" data-detail-back aria-label="Back to work list">
+      <span class="detail__subnav-back" data-elastic="badge" aria-hidden="true">
+        <svg width="8" height="13" viewBox="0 0 8 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6.69386 0.622259L1.24414 6.07198L6.69386 11.5217" stroke="currentColor" stroke-width="1.76" />
+        </svg>
+      </span>
+      <span class="detail__subnav-title-text" data-elastic="title">
+        <span class="detail__subnav-name">{title}</span>
+        <span class="detail__subnav-meta" data-elastic="subtitle">{context}</span>
+      </span>
+    </a>
+    <nav class="detail__subnav-tabs" data-elastic="credits" aria-label="Page sections">
+      <a href="#details">Details</a>
+      <a href="#credits">Credits</a>
+    </nav>
+  </div>
+</section>
