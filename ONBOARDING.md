@@ -122,7 +122,21 @@ durations, image delay/arc/minYield, cascade step/blur, an easing dropdown (incl
 
 `src/content/work/<slug>.md` frontmatter (`src/content/config.ts`):
 `title, year, context, summary, order` (1 = top), `detail` (true → inline transition +
-`/work/[slug]` page), `external` (optional URL), `cover`, `coverAlt`.
+`/work/[slug]` page), `external` (optional URL), `cover`, `coverAlt`, and for gated
+case studies `locked: true` + `lockHash`.
+
+### Gated case studies (lock/unlock — Figma "✅ Components" Nav-Item + unlock sets)
+A locked row shows a padlock on its top line; hovering swaps it (fade-from-blur) for an
+"Unlock on request" pill; clicking opens the code-entry dialog (`UnlockDialog.astro` +
+`src/lib/unlock.ts`) instead of the transition. Correct code → unlock persists for the
+session (sessionStorage `leroice-unlocked`), the row reads "Unlocked", and the open plays.
+"Request a code" is a prefilled mailto to ls@leroice.com. Deep links (`/work/[slug]`)
+blur the page behind the same dialog; dismissing returns home. WU + Meddle are locked
+with the placeholder code `leroice26` — **change it**: set `lockHash` to
+`printf '<newcode>' | shasum -a 256`. Codes are verified client-side against the hash;
+note the page content itself still ships in the static HTML, so this is a soft gate —
+fine while those two are placeholder copy, but if genuinely sensitive content lands,
+revisit (e.g. build-time encryption of locked bodies).
 
 **Case-study layout kit** (use raw HTML in the markdown body — images live outside `<p>`
 so they span full width; prose stays markdown and is held to a readable measure):
@@ -186,10 +200,13 @@ Intent: **redesign the page layouts in Figma, then rebuild here.**
 - [ ] **Meddle & WU:** real case-study content; replace WU placeholder SVG cover.
 - [ ] **Years:** Ghost (2022), LifeSpaceJourney (2021), Luxem (2023) are placeholders to confirm.
 - [ ] **Ghost Lottie logo:** omitted; add via a small component if wanted.
-- [ ] **TUNING panel:** gate/remove before the real launch.
+- [x] **TUNING panel:** runtime-gated to localhost / 127.0.0.1 / 26.leroice.com
+      (`TUNING_ENABLED` in `index.astro`; localStorage CHOREO overrides gated too, so
+      other hosts always play the baked defaults). Panel links to `/styleguide`.
 - [ ] **Bento / full-bleed:** grids are clean 3-up with natural heights; could go true bento /
       viewport-edge full-bleed if desired.
-- [ ] `preview.html` (916 KB) in the repo is an unused export artifact — can be removed.
+- [x] `preview.html` removed; unused `assets/chevron.svg` + `public/icons/chevron-back.svg`
+      removed (the chevron is inlined in `DetailSubnav.astro`).
 - [ ] Not near launch — lots of content still to load.
 
 ## 8. Conventions / gotchas
