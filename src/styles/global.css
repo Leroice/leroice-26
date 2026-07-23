@@ -1266,11 +1266,7 @@ html.is-js:not(.revealed) [data-elastic] {
     filter 240ms var(--image-ease),
     box-shadow 240ms var(--image-ease);
 }
-/* The expansion waits for the gooey pill: .is-pill-rested is set by the
-   spring loop only once the pill has physically settled on the row, so
-   the label never fights the pill's travel. Leaving the row (or the pill
-   re-targeting) collapses it immediately. */
-.row.is-active.is-pill-rested:not(.is-unlocked) .row__lock-pill {
+.row.is-active:not(.is-unlocked) .row__lock-pill {
   box-shadow: inset 0 0 0 0.5px var(--rule);
 }
 
@@ -1281,15 +1277,15 @@ html.is-js:not(.revealed) [data-elastic] {
   opacity: 0;
   filter: blur(4px);
   transition:
-    max-width 480ms var(--image-ease),
-    opacity 420ms var(--image-ease),
-    filter 420ms var(--image-ease);
+    max-width 300ms var(--image-ease),
+    opacity 240ms var(--image-ease),
+    filter 240ms var(--image-ease);
 }
 .row__lock-label {
   opacity: var(--op-tertiary);
   padding-right: 8px;
 }
-.row.is-active.is-pill-rested:not(.is-unlocked) .row__lock-labelwrap {
+.row.is-active:not(.is-unlocked) .row__lock-labelwrap {
   max-width: 72px;
   opacity: 1;
   filter: blur(0);
@@ -1305,8 +1301,8 @@ html.is-js:not(.revealed) [data-elastic] {
 }
 .row__lock-glyphs .row__lock-glyph:first-child { opacity: var(--op-subtle); }
 .row__lock-glyphs .row__lock-glyph:last-child { opacity: 0; }
-.row.is-active.is-pill-rested:not(.is-unlocked) .row__lock-glyphs .row__lock-glyph:first-child { opacity: 0; }
-.row.is-active.is-pill-rested:not(.is-unlocked) .row__lock-glyphs .row__lock-glyph:last-child { opacity: var(--op-tertiary); }
+.row.is-active:not(.is-unlocked) .row__lock-glyphs .row__lock-glyph:first-child { opacity: 0; }
+.row.is-active:not(.is-unlocked) .row__lock-glyphs .row__lock-glyph:last-child { opacity: var(--op-tertiary); }
 
 /* Unlocked for the session: the pill hands off to the open padlock. */
 .row__lock-open {
