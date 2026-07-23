@@ -28,22 +28,41 @@
   --hover-bg:       rgba(0, 0, 0, 0.05);    /* Figma: NavItem rest pill */
   --rule:           rgba(36, 34, 27, 0.08);
 
-  /* Opacity steps (Figma uses opacity, not separate colours) */
+  /* Opacity steps — Figma Text + Icon ramp
+     (Primary 1 · Secondary 0.8 · Tertiary 0.7 · Subtle 0.5) */
   --op-primary:   1;
-  --op-strong:    0.7;
-  --op-soft:      0.5;
+  --op-secondary: 0.8;
+  --op-tertiary:  0.7;
+  --op-subtle:    0.5;
+  /* Legacy aliases (pre-Figma-sync names) */
+  --op-strong:    var(--op-tertiary);
+  --op-soft:      var(--op-subtle);
 
   /* Type — Figma tokens */
   --font-sans:    'Geist', system-ui, -apple-system, sans-serif;
 
-  /* Type sizes from Figma */
-  --fs-meta:      11px;
-  --fs-sm:        14px;
-  --fs-name:      17px;
-  --fs-h1:        32px;
+  /* Type styles — Figma text styles (StyleGuide page), 1:1.
+     Weight note: the Geist Medium woff2 is registered at 450, so
+     font-weight 450 here IS Figma's "Medium". */
+  --fs-display:   32px;   /* Display · Medium · auto · -0.43px */
+  --fs-title:     17px;   /* Title · Medium · auto · -0.43px */
+  --fs-link:      14px;   /* Link · Regular · auto · -0.2px */
+  --fs-meta:      13px;   /* Meta · Regular · 115% · -0.2px */
+  --fs-subline:   11px;   /* Subline · Regular · auto · 0 */
+  --fs-body-lg:   16px;   /* Body/Large · Regular · 155% · -0.43px */
+  --fs-body:      14px;   /* Body/Small · Regular · auto · -0.33px */
 
-  /* Letter-spacing (from Figma) */
+  /* Letter-spacing + line-height per style */
   --tracking-tight: -0.43px;
+  --tracking-meta:  -0.2px;
+  --tracking-body:  -0.33px;
+  --lh-meta:        1.15;
+  --lh-body-lg:     1.55;
+
+  /* Legacy size aliases (pre-Figma-sync names) */
+  --fs-sm:        var(--fs-body);
+  --fs-name:      var(--fs-title);
+  --fs-h1:        var(--fs-display);
 
   /* Spacing — Figma tokens */
   --sp-3:           12px;
@@ -192,7 +211,7 @@ img, video { max-width: 100%; height: auto; display: block; }
 }
 
 .nav__links a {
-  font-size: var(--fs-meta);
+  font-size: var(--fs-subline);
   font-weight: 450;
   letter-spacing: var(--tracking-tight);
   color: var(--text-primary);
@@ -287,7 +306,8 @@ img, video { max-width: 100%; height: auto; display: block; }
 .row {
   position: relative;
   display: block;
-  padding: var(--sp-base);
+  /* Figma row: 16 top/sides, 20 bottom */
+  padding: var(--sp-base) var(--sp-base) 20px;
   border-radius: var(--radius-md);
   background: transparent;
   cursor: pointer;
@@ -310,38 +330,41 @@ img, video { max-width: 100%; height: auto; display: block; }
   opacity: 1;
 }
 
+/* Row text — Figma "row" component set (198:785): year = Subline-sized
+   Medium @ Secondary, title = Title style, desc = Meta style @ Tertiary.
+   Gaps per Figma: year → title 10px (4 + 6 cap-trim pad), title → meta 7px. */
 .row__year {
   font-family: var(--font-sans);
-  font-size: var(--fs-meta);
+  font-size: var(--fs-subline);
   font-weight: 450;
   letter-spacing: var(--tracking-tight);
   color: var(--text-primary);
-  opacity: var(--op-strong);
+  opacity: var(--op-secondary);
   line-height: normal;
   white-space: nowrap;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .row__title {
   font-family: var(--font-sans);
-  font-size: var(--fs-sm);
+  font-size: var(--fs-title);
   font-weight: 450;
   letter-spacing: var(--tracking-tight);
   color: var(--text-primary);
   opacity: var(--op-primary);
-  line-height: normal;
+  line-height: 1;
   white-space: nowrap;
-  margin-bottom: 2px;
+  margin-bottom: 7px;
 }
 
 .row__desc {
   font-family: var(--font-sans);
   font-size: var(--fs-meta);
   font-weight: 400;
-  letter-spacing: var(--tracking-tight);
+  letter-spacing: var(--tracking-meta);
   color: var(--text-primary);
-  opacity: var(--op-soft);
-  line-height: normal;
+  opacity: var(--op-tertiary);
+  line-height: var(--lh-meta);
   white-space: nowrap;
 }
 
@@ -430,7 +453,7 @@ img, video { max-width: 100%; height: auto; display: block; }
   justify-content: space-between;
   align-items: center;
   font-family: var(--font-sans);
-  font-size: var(--fs-meta);
+  font-size: var(--fs-subline);
   color: var(--text-primary);
   opacity: var(--op-soft);
 }
@@ -446,7 +469,7 @@ img, video { max-width: 100%; height: auto; display: block; }
   background: transparent; border: none;
   color: var(--text-primary);
   opacity: var(--op-soft);
-  font-family: var(--font-sans); font-size: var(--fs-meta);
+  font-family: var(--font-sans); font-size: var(--fs-subline);
   cursor: pointer; padding: 0;
   transition: opacity 160ms ease;
 }
@@ -513,39 +536,42 @@ body:has(.detail__subnav) .nav {
   gap: 2px;
   min-width: 0;
 }
-/* Sizes below are literal, not var(--fs-meta)/var(--fs-*), because they're
+/* Sizes below are literal, not var(--fs-subline)/var(--fs-*), because they're
    scoped to this one node ("title + credits · elastic", Figma node
    169:1155) — --fs-meta etc. are shared across the whole site and this
    component's type ramp (14px / 11px) doesn't match any of them.
    Title = Figma's "Label" style, subtitle + tabs = "Subline" style. */
+/* Subnav text — Figma detail__subnav (194:4): title/meta reuse the same
+   List Title + Meta component as the home rows (Title + Meta styles); the
+   only difference is the meta opacity — Subtle here vs Tertiary in rows. */
 .detail__subnav-name {
   font-family: var(--font-sans);
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: -0.43px;
+  font-size: var(--fs-title);
+  font-weight: 450;
+  letter-spacing: var(--tracking-tight);
   line-height: 1;
 }
 .detail__subnav-meta {
   font-family: var(--font-sans);
-  font-size: 11px;
+  font-size: var(--fs-meta);
   font-weight: 400;
-  letter-spacing: 0;
-  line-height: 1;
-  opacity: var(--op-soft);
+  letter-spacing: var(--tracking-meta);
+  line-height: var(--lh-meta);
+  opacity: var(--op-subtle);
 }
 .detail__subnav-tabs {
   display: flex;
-  gap: var(--sp-base);
+  gap: var(--sp-3);
   align-items: center;
 }
 .detail__subnav-tabs a {
   font-family: var(--font-sans);
-  font-size: 11px;
+  font-size: var(--fs-meta);
   font-weight: 400;
-  letter-spacing: 0;
-  line-height: 1;
+  letter-spacing: var(--tracking-meta);
+  line-height: var(--lh-meta);
   color: var(--text-primary);
-  opacity: var(--op-soft);
+  opacity: var(--op-subtle);
   text-decoration: none;
   transition: opacity 160ms ease;
 }
@@ -566,7 +592,7 @@ body:has(.detail__subnav) .nav {
   display: inline-block;
   margin-bottom: 4rem;
   font-family: var(--font-sans);
-  font-size: var(--fs-meta);
+  font-size: var(--fs-subline);
   color: var(--text-primary);
   opacity: var(--op-strong);
   text-decoration: none;
@@ -605,7 +631,7 @@ body:has(.detail__subnav) .nav {
 }
 .detail__meta {
   font-family: var(--font-sans);
-  font-size: var(--fs-meta);
+  font-size: var(--fs-subline);
   color: var(--text-primary);
   opacity: var(--op-soft);
 }
@@ -615,8 +641,9 @@ body:has(.detail__subnav) .nav {
    on mobile. */
 .detail__body {
   font-family: var(--font-sans);
-  font-size: 16px;
-  line-height: 1.55;
+  /* Figma Body/Large — 16 · 155% · -0.43 */
+  font-size: var(--fs-body-lg);
+  line-height: var(--lh-body-lg);
   letter-spacing: var(--tracking-tight);
   color: var(--text-primary);
   display: grid;
@@ -806,7 +833,7 @@ html.is-js:not(.revealed) [data-elastic] {
   display: inline-block;
   margin-bottom: 3rem;
   font-family: var(--font-sans);
-  font-size: var(--fs-meta);
+  font-size: var(--fs-subline);
   color: var(--text-primary);
   opacity: var(--op-strong);
   text-decoration: none;
@@ -827,7 +854,7 @@ html.is-js:not(.revealed) [data-elastic] {
 .cv-label {
   margin: 0;
   font-family: var(--font-sans);
-  font-size: var(--fs-meta);
+  font-size: var(--fs-subline);
   letter-spacing: 0.02em;
   color: var(--text-primary);
   opacity: var(--op-soft);
@@ -867,7 +894,7 @@ html.is-js:not(.revealed) [data-elastic] {
   line-height: 1.1;
 }
 .cv-stat__desc {
-  font-size: var(--fs-meta);
+  font-size: var(--fs-subline);
   line-height: 1.45;
   opacity: var(--op-soft);
 }
@@ -890,13 +917,13 @@ html.is-js:not(.revealed) [data-elastic] {
 }
 .cv-role__org {
   margin: 0;
-  font-size: var(--fs-meta);
+  font-size: var(--fs-subline);
   opacity: var(--op-soft);
 }
 .cv-role__date {
   flex-shrink: 0;
   font-family: var(--font-sans);
-  font-size: var(--fs-meta);
+  font-size: var(--fs-subline);
   opacity: var(--op-soft);
   white-space: nowrap;
 }
@@ -940,7 +967,7 @@ html.is-js:not(.revealed) [data-elastic] {
   padding: 8px 14px;
   border-radius: 999px;
   background: var(--hover-bg);
-  font-size: var(--fs-meta);
+  font-size: var(--fs-subline);
   letter-spacing: var(--tracking-tight);
   opacity: var(--op-strong);
 }
@@ -954,7 +981,7 @@ html.is-js:not(.revealed) [data-elastic] {
 .cv-subhead {
   margin: 0 0 1rem;
   font-family: var(--font-sans);
-  font-size: var(--fs-meta);
+  font-size: var(--fs-subline);
   opacity: var(--op-soft);
 }
 .cv-edu__degree, .cv-award__title {
@@ -966,7 +993,7 @@ html.is-js:not(.revealed) [data-elastic] {
 }
 .cv-edu__detail {
   margin: 0;
-  font-size: var(--fs-meta);
+  font-size: var(--fs-subline);
   line-height: 1.5;
   opacity: var(--op-soft);
   white-space: pre-line;
@@ -974,12 +1001,12 @@ html.is-js:not(.revealed) [data-elastic] {
 .cv-awards { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1.5rem; }
 .cv-award__source {
   margin: 0 0 4px;
-  font-size: var(--fs-meta);
+  font-size: var(--fs-subline);
   opacity: var(--op-soft);
 }
 .cv-award__role {
   margin: 0;
-  font-size: var(--fs-meta);
+  font-size: var(--fs-subline);
   opacity: var(--op-soft);
 }
 
@@ -988,7 +1015,7 @@ html.is-js:not(.revealed) [data-elastic] {
   padding-top: 2rem;
   border-top: 1px solid var(--rule);
   font-family: var(--font-sans);
-  font-size: var(--fs-meta);
+  font-size: var(--fs-subline);
   opacity: var(--op-soft);
 }
 
@@ -1025,7 +1052,7 @@ html.is-js:not(.revealed) [data-elastic] {
   flex-direction: column;
   gap: 0.6rem;
   font-family: var(--font-sans);
-  font-size: var(--fs-meta);
+  font-size: var(--fs-subline);
 }
 .sg__nav a {
   color: var(--text-primary);
@@ -1059,7 +1086,7 @@ html.is-js:not(.revealed) [data-elastic] {
 .sg-block:last-child { margin-bottom: 0; }
 .sg-block h3 {
   font-family: var(--font-sans);
-  font-size: var(--fs-meta);
+  font-size: var(--fs-subline);
   letter-spacing: 0.02em;
   text-transform: uppercase;
   opacity: var(--op-soft);
@@ -1087,7 +1114,7 @@ html.is-js:not(.revealed) [data-elastic] {
 }
 .sg-swatch__meta {
   font-family: var(--font-sans);
-  font-size: var(--fs-meta);
+  font-size: var(--fs-subline);
 }
 .sg-swatch__name { display: block; opacity: var(--op-strong); }
 .sg-swatch__value { display: block; opacity: var(--op-soft); }
@@ -1105,7 +1132,7 @@ html.is-js:not(.revealed) [data-elastic] {
 .sg-type-row__meta {
   flex-shrink: 0;
   font-family: var(--font-sans);
-  font-size: var(--fs-meta);
+  font-size: var(--fs-subline);
   opacity: var(--op-soft);
   white-space: nowrap;
 }
@@ -1124,7 +1151,7 @@ html.is-js:not(.revealed) [data-elastic] {
 }
 .sg-space-row__label {
   font-family: var(--font-sans);
-  font-size: var(--fs-meta);
+  font-size: var(--fs-subline);
   opacity: var(--op-soft);
   white-space: nowrap;
 }
@@ -1133,7 +1160,7 @@ html.is-js:not(.revealed) [data-elastic] {
   width: 100%;
   border-collapse: collapse;
   font-family: var(--font-sans);
-  font-size: var(--fs-meta);
+  font-size: var(--fs-subline);
 }
 .sg-token-table th {
   text-align: left;
@@ -1158,7 +1185,7 @@ html.is-js:not(.revealed) [data-elastic] {
   right: 0.75rem;
   z-index: 20;
   font-family: var(--font-sans);
-  font-size: var(--fs-meta);
+  font-size: var(--fs-subline);
   color: var(--text-primary);
   background: var(--hover-bg);
   border: none;
@@ -1190,16 +1217,20 @@ html.is-js:not(.revealed) [data-elastic] {
    "Unlocked" (code accepted, for the session).
    ─────────────────────────────────────────────────────────── */
 
+/* Figma "unlock" component set: every state is a mini-pill on the row's
+   top line. Idle = icon-only (no border) · hovered = "Unlock" label + lock
+   (0.5px border) · unlocked = open lock only (0.5px border). Glyph/text
+   opacities: Subtle idle & unlocked, Tertiary on hover. */
 .row__lock {
   position: absolute;
-  top: calc(var(--sp-base) - 5px);
+  top: 12px;
   right: var(--sp-base);
   height: 22px;
   pointer-events: none;
   font-family: var(--font-sans);
-  font-size: var(--fs-meta);
+  font-size: var(--fs-subline);
   font-weight: 400;
-  letter-spacing: 0.2px;
+  letter-spacing: 0;
   color: var(--text-primary);
   z-index: 2;
 }
@@ -1211,7 +1242,10 @@ html.is-js:not(.revealed) [data-elastic] {
   height: 22px;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--hover-bg);
   white-space: nowrap;
   opacity: 0;
   filter: blur(4px);
@@ -1224,10 +1258,13 @@ html.is-js:not(.revealed) [data-elastic] {
   display: block;
   flex: none;
 }
+.row__lock .row__lock-glyph { opacity: var(--op-subtle); }
+.row__lock-pill .row__lock-glyph,
+.row__lock-label { opacity: var(--op-tertiary); }
 
-/* Idle: just the padlock. */
+/* Idle: icon-only pill, no border. */
 .row__lock > .row__lock-icon {
-  opacity: var(--op-soft);
+  opacity: 1;
   filter: blur(0);
 }
 .row.is-active .row__lock-icon,
@@ -1236,21 +1273,19 @@ html.is-js:not(.revealed) [data-elastic] {
   filter: blur(4px);
 }
 
-/* Row hovered (and still locked): the "Unlock on request" pill. */
-.row__lock-pill {
-  padding: 0 10px;
-  border-radius: 999px;
-  background: var(--hover-bg);
+/* Row hovered (and still locked): "Unlock" + lock, hairline border. */
+.row__lock-pill,
+.row__lock-open {
   box-shadow: inset 0 0 0 0.5px var(--rule);
 }
 .row.is-active:not(.is-unlocked) .row__lock-pill {
-  opacity: var(--op-strong);
+  opacity: 1;
   filter: blur(0);
 }
 
-/* Unlocked for the session: open padlock + label, hover or not. */
+/* Unlocked for the session: open padlock, hover or not. */
 .row.is-unlocked .row__lock-open {
-  opacity: var(--op-soft);
+  opacity: 1;
   filter: blur(0);
 }
 
@@ -1310,7 +1345,7 @@ dialog.unlock.is-closing::backdrop {
 
 .unlock__kicker {
   margin: 0 0 12px;
-  font-size: var(--fs-meta);
+  font-size: var(--fs-subline);
   letter-spacing: 0.2px;
   opacity: var(--op-soft);
 }
@@ -1348,7 +1383,7 @@ dialog.unlock.is-closing::backdrop {
 
 .unlock__error {
   margin: 8px 0 0;
-  font-size: var(--fs-meta);
+  font-size: var(--fs-subline);
   font-weight: 600;
 }
 
@@ -1366,7 +1401,7 @@ dialog.unlock.is-closing::backdrop {
   background: var(--text-primary);
   color: var(--bg);
   font-family: inherit;
-  font-size: var(--fs-meta);
+  font-size: var(--fs-subline);
   letter-spacing: 0.04em;
   cursor: pointer;
   opacity: 0.9;
@@ -1375,7 +1410,7 @@ dialog.unlock.is-closing::backdrop {
 .unlock__submit:hover { opacity: 1; }
 
 .unlock__request {
-  font-size: var(--fs-meta);
+  font-size: var(--fs-subline);
   color: var(--text-primary);
   text-decoration: none;
   opacity: var(--op-soft);
