@@ -825,6 +825,14 @@ const inlineEntries = await Promise.all(
         }
       });
 
+      // The browser's automatic scroll restoration yanks the page to the
+      // previous entry's scroll offset the instant popstate fires — while
+      // the case study is still on screen and scrolled, so the whole page
+      // (hero included) visibly jumps before the close fade even starts.
+      // Take manual control: the choreography owns every scroll change
+      // (open() and restore() both scrollTo(0) at the right moments).
+      if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+
       window.addEventListener('popstate', () => {
         if (openDetail) close();
       });

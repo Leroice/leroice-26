@@ -211,9 +211,10 @@ img, video { max-width: 100%; height: auto; display: block; }
 }
 
 .nav__links a {
-  font-size: var(--fs-subline);
-  font-weight: 450;
-  letter-spacing: var(--tracking-tight);
+  /* Figma Link — 14 · Regular · -0.2 */
+  font-size: var(--fs-link);
+  font-weight: 400;
+  letter-spacing: var(--tracking-meta);
   color: var(--text-primary);
   opacity: var(--op-strong);
   text-decoration: none;
@@ -335,9 +336,10 @@ img, video { max-width: 100%; height: auto; display: block; }
    Gaps per Figma: year → title 10px (4 + 6 cap-trim pad), title → meta 7px. */
 .row__year {
   font-family: var(--font-sans);
+  /* Subline style — 11 · Regular · ls 0 */
   font-size: var(--fs-subline);
-  font-weight: 450;
-  letter-spacing: var(--tracking-tight);
+  font-weight: 400;
+  letter-spacing: 0;
   color: var(--text-primary);
   opacity: var(--op-secondary);
   line-height: normal;
@@ -520,7 +522,10 @@ body:has(.detail__subnav) .nav {
   justify-content: center;
   flex-shrink: 0;
   width: 26px;
-  height: 32px;
+  /* Figma 198:1019: badge fills the title block's height (38px there) */
+  align-self: stretch;
+  height: auto;
+  min-height: 32px;
   border-radius: 12px 2px 2px 12px; /* TL/TR/BR/BL — matches Figma's tl-12 tr-2 br-2 bl-12 */
   background: color-mix(in srgb, var(--text-primary) 5%, transparent);
   color: var(--text-primary);
