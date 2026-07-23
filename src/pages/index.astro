@@ -349,8 +349,13 @@ const inlineEntries = await Promise.all(
           outgoingSlug = null;
           incomingSlug = null;
         }
+        // Pill physically at rest on the active row — let dependent UI
+        // (the locked pill's label expansion) play now, not during travel.
+        if (activeRow) activeRow.classList.add('is-pill-rested');
         return false;
       }
+      // Still moving: no row counts as rested.
+      if (activeRow) activeRow.classList.remove('is-pill-rested');
       return true;
     };
 
@@ -375,8 +380,12 @@ const inlineEntries = await Promise.all(
     const setActive = (row: HTMLElement) => {
       if (row === activeRow) return;
 
-      // Toggle .is-active on rows for the inactive-dim styling
-      rows.forEach((r) => r.classList.toggle('is-active', r === row));
+      // Toggle .is-active on rows for the inactive-dim styling. The pill is
+      // about to travel, so nothing is rested until the spring settles again.
+      rows.forEach((r) => {
+        r.classList.toggle('is-active', r === row);
+        r.classList.remove('is-pill-rested');
+      });
 
       const newSlug = row.dataset.slug || null;
 
