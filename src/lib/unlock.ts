@@ -53,6 +53,7 @@ export function promptUnlock({ slug, title, hash }: UnlockRequest): Promise<bool
   const error = dialog.querySelector<HTMLElement>('[data-unlock-error]')!;
   const titleEl = dialog.querySelector<HTMLElement>('[data-unlock-title]');
   const request = dialog.querySelector<HTMLAnchorElement>('[data-unlock-request]');
+  const closeBtn = dialog.querySelector<HTMLButtonElement>('[data-unlock-close]');
 
   if (titleEl) titleEl.textContent = title;
   if (request) {
@@ -74,6 +75,7 @@ export function promptUnlock({ slug, title, hash }: UnlockRequest): Promise<bool
       form.removeEventListener('submit', onSubmit);
       dialog.removeEventListener('cancel', onCancel);
       dialog.removeEventListener('click', onBackdrop);
+      closeBtn?.removeEventListener('click', onClose);
       dialog.classList.add('is-closing');
       window.setTimeout(() => {
         dialog.classList.remove('is-closing');
@@ -103,9 +105,12 @@ export function promptUnlock({ slug, title, hash }: UnlockRequest): Promise<bool
       if (e.target === dialog) settle(false);
     };
 
+    const onClose = () => settle(false);
+
     form.addEventListener('submit', onSubmit);
     dialog.addEventListener('cancel', onCancel);
     dialog.addEventListener('click', onBackdrop);
+    closeBtn?.addEventListener('click', onClose);
 
     dialog.showModal();
     input.focus();

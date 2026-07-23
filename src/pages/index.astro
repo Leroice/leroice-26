@@ -82,10 +82,12 @@ const inlineEntries = await Promise.all(
           >
             {entry.data.locked && (
               <span class="row__lock" aria-hidden="true">
-                <span class="row__lock-icon"><Fragment set:html={lockClosed} /></span>
                 <span class="row__lock-pill">
-                  <span class="row__lock-label">Unlock</span>
-                  <Fragment set:html={lockClosedSolid} />
+                  <span class="row__lock-labelwrap"><span class="row__lock-label">Unlock</span></span>
+                  <span class="row__lock-glyphs">
+                    <Fragment set:html={lockClosed} />
+                    <Fragment set:html={lockClosedSolid} />
+                  </span>
                 </span>
                 <span class="row__lock-open"><Fragment set:html={lockOpen} /></span>
               </span>

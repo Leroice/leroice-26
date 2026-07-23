@@ -298,7 +298,13 @@ const skills = [
             <section class="list" style="padding: var(--sp-base);">
               <div class="row" data-locked="true" style="cursor:default;">
                 <span class="row__lock" aria-hidden="true">
-                  <span class="row__lock-icon"><Fragment set:html={lockClosed} /></span>
+                  <span class="row__lock-pill">
+                    <span class="row__lock-labelwrap"><span class="row__lock-label">Unlock</span></span>
+                    <span class="row__lock-glyphs">
+                      <Fragment set:html={lockClosed} />
+                      <Fragment set:html={lockClosedSolid} />
+                    </span>
+                  </span>
                 </span>
                 <div class="row__inner">
                   <div class="row__year">2026</div>
@@ -309,8 +315,11 @@ const skills = [
               <div class="row is-active" data-locked="true" style="cursor:default; background: var(--hover-bg); border-radius: var(--radius-md);">
                 <span class="row__lock" aria-hidden="true">
                   <span class="row__lock-pill">
-                    <span class="row__lock-label">Unlock</span>
-                    <Fragment set:html={lockClosedSolid} />
+                    <span class="row__lock-labelwrap"><span class="row__lock-label">Unlock</span></span>
+                    <span class="row__lock-glyphs">
+                      <Fragment set:html={lockClosed} />
+                      <Fragment set:html={lockClosedSolid} />
+                    </span>
                   </span>
                 </span>
                 <div class="row__inner">
