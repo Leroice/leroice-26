@@ -637,12 +637,18 @@ const inlineEntries = await Promise.all(
             return;
           }
 
-          // The case-study content loads IN in sequence (fade + blur), behind
-          // the image as it settles — nothing just appears.
+          // The case-study body is a SECOND beat, not part of the
+          // list→detail move: it stays hidden while the hero flip and the
+          // subnav elastic play, and only cascades in once both have
+          // finished. (Held in the same fade-from-blur hidden state
+          // staggerIn animates from, so nothing flashes in between.)
           const bodyEls = [
             ...(bodyText ? (Array.from(bodyText.children) as HTMLElement[]) : []),
           ].filter(Boolean) as HTMLElement[];
-          staggerIn(bodyEls, { baseDelay: 160, step: CHOREO.stagger.step, blur: CHOREO.stagger.blur });
+          for (const el of bodyEls) {
+            el.style.opacity = '0';
+            el.style.filter = `blur(${CHOREO.stagger.blur}px)`;
+          }
 
           // The image FLIPs in from the preview pane. DetailSubnav appears on
           // its own beat, right after the cascade — its entrance is entirely
@@ -652,18 +658,30 @@ const inlineEntries = await Promise.all(
           activeAnims = [
             arcFlip(hero!, imageFirst!, { ...CHOREO.image, easing: easingFor() }),
           ];
+          let subnavDone: Promise<void> = Promise.resolve();
           if (subnavRoot) {
             subnavElasticEnter(detail, {
               duration: SUBNAV_ELASTIC_DURATION * CHOREO.subnav.durationScale,
               delay: CHOREO.subnav.delay,
             });
+            // subnavElasticEnter is fire-and-forget — wait out its clock.
+            const subnavMs =
+              CHOREO.subnav.delay +
+              SUBNAV_ELASTIC_DURATION * CHOREO.subnav.durationScale;
+            subnavDone = new Promise((r) => window.setTimeout(r, subnavMs));
           }
 
-          concert(activeAnims).then(() => {
+          Promise.all([concert(activeAnims), subnavDone]).then(() => {
             if (myToken !== token) return; // a close/open superseded us
             activeAnims = [];
             list.style.pointerEvents = ''; // restore hover only after the motion
-            busy = false;
+            // Transition finished — now the body content cascades in.
+            staggerIn(bodyEls, {
+              step: CHOREO.stagger.step,
+              blur: CHOREO.stagger.blur,
+            }).then(() => {
+              if (myToken === token) busy = false;
+            });
           });
         };
 

@@ -344,10 +344,16 @@ img, video { max-width: 100%; height: auto; display: block; }
   opacity: var(--op-secondary);
   line-height: normal;
   white-space: nowrap;
-  margin-bottom: 10px;
+  margin-bottom: 4px;
 }
 
-.row__title {
+/* ── List Title + Meta lockup — Figma component 196:335 ──
+   ONE typographic lockup, shared verbatim by the home rows and the
+   detail subnav: 6px cap-trim inset above, Title 17 Medium Primary,
+   7px gap, Meta 13 · 115% · -0.2 @ Tertiary. Identical everywhere by
+   construction — change it here, it changes in both places. */
+.row__title,
+.detail__subnav-name {
   font-family: var(--font-sans);
   font-size: var(--fs-title);
   font-weight: 450;
@@ -355,11 +361,13 @@ img, video { max-width: 100%; height: auto; display: block; }
   color: var(--text-primary);
   opacity: var(--op-primary);
   line-height: 1;
+  text-box: trim-both cap alphabetic;
   white-space: nowrap;
-  margin-bottom: 7px;
+  margin: 6px 0 7px;
 }
 
-.row__desc {
+.row__desc,
+.detail__subnav-meta {
   font-family: var(--font-sans);
   font-size: var(--fs-meta);
   font-weight: 400;
@@ -368,6 +376,7 @@ img, video { max-width: 100%; height: auto; display: block; }
   opacity: var(--op-tertiary);
   line-height: var(--lh-meta);
   white-space: nowrap;
+  margin: 0;
 }
 
 /* ── Preview pane ───────────────────────────────────────── */
@@ -538,31 +547,11 @@ body:has(.detail__subnav) .nav {
 .detail__subnav-title-text {
   display: inline-flex;
   flex-direction: column;
-  gap: 2px;
+  /* No gap/padding of its own — the shared Title + Meta lockup rules
+     (see .row__title / .row__desc grouping) own all spacing, so the
+     subnav lockup is pixel-identical to the home rows. */
+  gap: 0;
   min-width: 0;
-}
-/* Sizes below are literal, not var(--fs-subline)/var(--fs-*), because they're
-   scoped to this one node ("title + credits · elastic", Figma node
-   169:1155) — --fs-meta etc. are shared across the whole site and this
-   component's type ramp (14px / 11px) doesn't match any of them.
-   Title = Figma's "Label" style, subtitle + tabs = "Subline" style. */
-/* Subnav text — Figma detail__subnav (194:4): title/meta reuse the same
-   List Title + Meta component as the home rows (Title + Meta styles); the
-   only difference is the meta opacity — Subtle here vs Tertiary in rows. */
-.detail__subnav-name {
-  font-family: var(--font-sans);
-  font-size: var(--fs-title);
-  font-weight: 450;
-  letter-spacing: var(--tracking-tight);
-  line-height: 1;
-}
-.detail__subnav-meta {
-  font-family: var(--font-sans);
-  font-size: var(--fs-meta);
-  font-weight: 400;
-  letter-spacing: var(--tracking-meta);
-  line-height: var(--lh-meta);
-  opacity: var(--op-subtle);
 }
 .detail__subnav-tabs {
   display: flex;
