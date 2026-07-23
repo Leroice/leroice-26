@@ -7,6 +7,9 @@ order: 2
 detail: true
 cover: "/images/work/meddle.jpg"
 coverAlt: "Meddle — intelligent OS for healthcare"
+locked: true
+# Access code (placeholder — change me): leroice26
+lockHash: "6d666b34ddeb035e8ca02408984c9f5913e28923ac0a7cf687e50c384df59327"
 ---
 
 Meddle is an intelligent operating system for healthcare. I led design across brand and product foundations — defining the visual language, building the design system, and shaping how the product behaves at the surface and the structural levels.

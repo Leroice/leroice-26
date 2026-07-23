@@ -13,6 +13,12 @@ const work = defineCollection({
     external: z.string().url().optional(), // optional external link instead of detail page
     cover: z.string().optional(), // path to /public image for the index
     coverAlt: z.string().optional(),
+    // Gated case studies: locked rows show a padlock + "Unlock on request"
+    // pill and open a code-entry dialog instead of the detail transition.
+    // lockHash is the SHA-256 hex of the access code (input is trimmed
+    // before hashing):  printf '<code>' | shasum -a 256
+    locked: z.boolean().default(false),
+    lockHash: z.string().optional(),
   }),
 });
 

@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import DetailSubnav from '../components/DetailSubnav.astro';
+import UnlockDialog from '../components/UnlockDialog.astro';
 import { getCollection, render } from 'astro:content';
 
 const entries = (await getCollection('work')).sort(
@@ -53,7 +54,16 @@ const inlineEntries = await Promise.all(
               'data-inline': 'true',
               role: 'button',
               tabindex: '0',
-              'aria-label': `Open ${entry.data.title} case study`,
+              'aria-label': entry.data.locked
+                ? `Open ${entry.data.title} case study (locked — access code required)`
+                : `Open ${entry.data.title} case study`,
+            }
+          : {};
+        const lockAttrs = entry.data.locked
+          ? {
+              'data-locked': 'true',
+              'data-lock-hash': entry.data.lockHash,
+              'data-title': entry.data.title,
             }
           : {};
 
@@ -66,7 +76,32 @@ const inlineEntries = await Promise.all(
             data-index={i}
             {...extra}
             {...inlineAttrs}
+            {...lockAttrs}
           >
+            {entry.data.locked && (
+              <span class="row__lock" aria-hidden="true">
+                <span class="row__lock-icon">
+                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="1.8" y="4.8" width="7.4" height="5" rx="1.4" stroke="currentColor" stroke-width="1.1" />
+                    <path d="M3.5 4.8V3.2a2 2 0 0 1 4 0v1.6" stroke="currentColor" stroke-width="1.1" />
+                  </svg>
+                </span>
+                <span class="row__lock-pill">
+                  Unlock on request
+                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="1.8" y="4.8" width="7.4" height="5" rx="1.4" stroke="currentColor" stroke-width="1.1" />
+                    <path d="M3.5 4.8V3.2a2 2 0 0 1 4 0v1.6" stroke="currentColor" stroke-width="1.1" />
+                  </svg>
+                </span>
+                <span class="row__lock-open">
+                  Unlocked
+                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="1.8" y="4.8" width="7.4" height="5" rx="1.4" stroke="currentColor" stroke-width="1.1" />
+                    <path d="M3.5 4.8V3.2a2 2 0 0 1 3.9-.7" stroke="currentColor" stroke-width="1.1" />
+                  </svg>
+                </span>
+              </span>
+            )}
             <div class="row__inner">
               <div class="row__year">{entry.data.year}</div>
               <div class="row__title">{entry.data.title}</div>
@@ -121,9 +156,12 @@ const inlineEntries = await Promise.all(
     </aside>
   </main>
 
+  <UnlockDialog />
+
   {/* TUNING — live design tool for the list→detail choreography.
-      Sandbox-only: gate or remove before promoting to the real domain. */}
-  <button class="tuner-toggle" type="button" data-tuner-toggle aria-expanded="false">TUNING</button>
+      Runtime-gated to localhost + 26.leroice.com (see TUNING_ENABLED in the
+      script below); on any other host both elements are removed on load. */}
+  <button class="tuner-toggle" type="button" data-tuner-toggle aria-expanded="false" hidden>TUNING</button>
   <aside class="tuner" data-tuner hidden aria-label="Transition tuning">
     <header class="tuner__head">
       <span>transition tuning</span>
@@ -155,6 +193,9 @@ const inlineEntries = await Promise.all(
       <button type="button" data-tune-replay>Replay</button>
       <button type="button" data-tune-copy>Copy</button>
       <button type="button" data-tune-reset>Reset</button>
+    </div>
+    <div class="tuner__actions">
+      <a href="/styleguide">Styleguide — components &amp; tokens</a>
     </div>
   </aside>
 </Base>
@@ -439,6 +480,7 @@ const inlineEntries = await Promise.all(
   import { arcFlip, concert, easings, makeSpring } from '../lib/arc-flip';
   import { staggerOut, staggerIn } from '../lib/reveal';
   import { subnavElasticEnter, clearSubnavElastic } from '../lib/subnav-elastic';
+  import { isUnlocked, promptUnlock } from '../lib/unlock';
 
   // Figma's verbatim cohort duration for "title + credits · elastic"
   // (node 169:1155) — subnav-elastic.ts's own default, kept in sync here
@@ -451,6 +493,14 @@ const inlineEntries = await Promise.all(
   // subnav-elastic entrance underneath. Default easing is the organic SPRING
   // from the menu rollover (tokens 410/84/3). Live-editable via the TUNING
   // panel below.
+  // The TUNING panel (and its saved localStorage overrides) only exist on
+  // dev hosts — everywhere else the panel is removed and the baked defaults
+  // below always play.
+  const TUNING_ENABLED =
+    location.hostname === 'localhost' ||
+    location.hostname === '127.0.0.1' ||
+    location.hostname === '26.leroice.com';
+
   const CHOREO_KEY = 'leroice-choreo';
   const DEFAULT_CHOREO = {
     leadIn: 0,          // ms: delay before the proximity cascade begins
@@ -470,7 +520,9 @@ const inlineEntries = await Promise.all(
   // Mutable runtime config — the TUNING panel writes here + to localStorage.
   const CHOREO = (() => {
     try {
-      const saved = JSON.parse(localStorage.getItem(CHOREO_KEY) || 'null');
+      const saved = TUNING_ENABLED
+        ? JSON.parse(localStorage.getItem(CHOREO_KEY) || 'null')
+        : null;
       if (saved) {
         return {
           leadIn: saved.leadIn ?? DEFAULT_CHOREO.leadIn,
@@ -729,10 +781,29 @@ const inlineEntries = await Promise.all(
       (window as any).__leroiceBusy = () => busy || closing;
 
       // ── listeners ──
-      const tryOpen = (row: HTMLElement | null) => {
+      // Rows unlocked earlier this session keep their "Unlocked" state.
+      for (const r of rows) {
+        if (r.dataset.locked === 'true' && r.dataset.slug && isUnlocked(r.dataset.slug)) {
+          r.classList.add('is-unlocked');
+        }
+      }
+
+      const tryOpen = async (row: HTMLElement | null) => {
         if (!row) return;
         const s = row.dataset.slug;
-        if (s && document.querySelector(`.list__detail[data-detail-slug="${s}"]`)) open(row);
+        if (!s || !document.querySelector(`.list__detail[data-detail-slug="${s}"]`)) return;
+        // Gated case studies: the code-entry dialog stands in for the
+        // transition until the right code is in (per session).
+        if (row.dataset.locked === 'true' && !isUnlocked(s)) {
+          const ok = await promptUnlock({
+            slug: s,
+            title: row.dataset.title || 'this case study',
+            hash: row.dataset.lockHash || '',
+          });
+          if (!ok) return;
+          row.classList.add('is-unlocked');
+        }
+        open(row);
       };
 
       list.addEventListener('click', (e) => {
@@ -767,7 +838,11 @@ const inlineEntries = await Promise.all(
       // ── TUNING panel ──────────────────────────────────────
       const tuner = document.querySelector('[data-tuner]') as HTMLElement | null;
       const tunerToggle = document.querySelector('[data-tuner-toggle]') as HTMLElement | null;
-      if (tuner && tunerToggle) {
+      if (!TUNING_ENABLED) {
+        tuner?.remove();
+        tunerToggle?.remove();
+      } else if (tuner && tunerToggle) {
+        tunerToggle.hidden = false;
         const cacna = rows.find((r) => r.dataset.slug === 'cacna-1a') || null;
 
         const fields = [
@@ -975,7 +1050,9 @@ const inlineEntries = await Promise.all(
   }
 
   .tuner__actions { display: flex; gap: 8px; margin-top: 16px; }
-  .tuner__actions button {
+  .tuner__actions + .tuner__actions { margin-top: 8px; }
+  .tuner__actions button,
+  .tuner__actions a {
     flex: 1;
     font-family: inherit;
     font-size: 11px;
@@ -987,8 +1064,11 @@ const inlineEntries = await Promise.all(
     cursor: pointer;
     opacity: 0.85;
     transition: opacity 160ms ease, background 160ms ease;
+    text-align: center;
+    text-decoration: none;
   }
-  .tuner__actions button:hover { opacity: 1; background: var(--hover-bg); }
+  .tuner__actions button:hover,
+  .tuner__actions a:hover { opacity: 1; background: var(--hover-bg); }
 
   @media (prefers-reduced-motion: reduce) {
     .tuner-toggle { transition: none; }

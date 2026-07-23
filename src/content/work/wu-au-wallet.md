@@ -7,6 +7,9 @@ order: 1
 detail: true
 cover: "/images/work/wu-au-wallet.svg"
 coverAlt: "Western Union AU wallet — send money flow"
+locked: true
+# Access code (placeholder — change me): leroice26
+lockHash: "6d666b34ddeb035e8ca02408984c9f5913e28923ac0a7cf687e50c384df59327"
 ---
 
 More detail to come. The work is in flight and partially under wraps until App Store launch.

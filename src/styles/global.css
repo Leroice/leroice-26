@@ -1179,3 +1179,229 @@ html.is-js:not(.revealed) [data-elastic] {
     gap: 0.75rem 1.25rem;
   }
 }
+
+/* ───────────────────────────────────────────────────────────
+   Gated case studies — lock affordance on list rows + the
+   code-entry dialog (Figma "✅ Components": Nav-Item states +
+   unlock set). The gooey pill stays the hover treatment; the
+   lock lives on the row's top line, right-aligned, and swaps
+   between three states with the site's fade-from-blur rule:
+   padlock (idle) → "Unlock on request" pill (row hovered) →
+   "Unlocked" (code accepted, for the session).
+   ─────────────────────────────────────────────────────────── */
+
+.row__lock {
+  position: absolute;
+  top: calc(var(--sp-base) - 5px);
+  right: var(--sp-base);
+  height: 22px;
+  pointer-events: none;
+  font-family: var(--font-sans);
+  font-size: var(--fs-meta);
+  font-weight: 400;
+  letter-spacing: 0.2px;
+  color: var(--text-primary);
+  z-index: 2;
+}
+
+.row__lock > span {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  opacity: 0;
+  filter: blur(4px);
+  transition:
+    opacity 240ms var(--image-ease),
+    filter 240ms var(--image-ease);
+}
+
+.row__lock svg {
+  display: block;
+  flex: none;
+}
+
+/* Idle: just the padlock. */
+.row__lock > .row__lock-icon {
+  opacity: var(--op-soft);
+  filter: blur(0);
+}
+.row.is-active .row__lock-icon,
+.row.is-unlocked .row__lock-icon {
+  opacity: 0;
+  filter: blur(4px);
+}
+
+/* Row hovered (and still locked): the "Unlock on request" pill. */
+.row__lock-pill {
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--hover-bg);
+  box-shadow: inset 0 0 0 0.5px var(--rule);
+}
+.row.is-active:not(.is-unlocked) .row__lock-pill {
+  opacity: var(--op-strong);
+  filter: blur(0);
+}
+
+/* Unlocked for the session: open padlock + label, hover or not. */
+.row.is-unlocked .row__lock-open {
+  opacity: var(--op-soft);
+  filter: blur(0);
+}
+
+/* ── Unlock dialog ── */
+
+dialog.unlock {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: min(22rem, calc(100vw - 2rem));
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 24px;
+  background: var(--bg);
+  color: var(--text-primary);
+  box-shadow:
+    inset 0 0 0 1px var(--rule),
+    0 24px 64px rgba(0, 0, 0, 0.25);
+  font-family: var(--font-sans);
+}
+
+dialog.unlock::backdrop {
+  background: rgba(0, 0, 0, 0.25);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+dialog.unlock[open] {
+  animation: unlock-in 420ms var(--image-ease) both;
+}
+dialog.unlock[open]::backdrop {
+  animation: unlock-backdrop-in 420ms var(--image-ease) both;
+}
+dialog.unlock.is-closing {
+  animation: unlock-out 240ms var(--image-ease) both;
+}
+dialog.unlock.is-closing::backdrop {
+  animation: unlock-backdrop-out 240ms var(--image-ease) both;
+}
+
+@keyframes unlock-in {
+  from { opacity: 0; filter: blur(6px); }
+  to   { opacity: 1; filter: blur(0); }
+}
+@keyframes unlock-out {
+  from { opacity: 1; filter: blur(0); }
+  to   { opacity: 0; filter: blur(6px); }
+}
+@keyframes unlock-backdrop-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes unlock-backdrop-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+.unlock__kicker {
+  margin: 0 0 12px;
+  font-size: var(--fs-meta);
+  letter-spacing: 0.2px;
+  opacity: var(--op-soft);
+}
+
+.unlock__title {
+  margin: 0 0 6px;
+  font-size: var(--fs-name);
+  font-weight: 450;
+  letter-spacing: var(--tracking-tight);
+}
+
+.unlock__hint {
+  margin: 0 0 16px;
+  font-size: var(--fs-sm);
+  line-height: 1.45;
+  opacity: var(--op-strong);
+}
+
+.unlock__input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  letter-spacing: 0.1em;
+  transition: border-color 240ms var(--image-ease);
+}
+.unlock__input:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--text-primary) 40%, transparent);
+}
+
+.unlock__error {
+  margin: 8px 0 0;
+  font-size: var(--fs-meta);
+  font-weight: 600;
+}
+
+.unlock__actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.unlock__submit {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 999px;
+  background: var(--text-primary);
+  color: var(--bg);
+  font-family: inherit;
+  font-size: var(--fs-meta);
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  opacity: 0.9;
+  transition: opacity 160ms ease;
+}
+.unlock__submit:hover { opacity: 1; }
+
+.unlock__request {
+  font-size: var(--fs-meta);
+  color: var(--text-primary);
+  text-decoration: none;
+  opacity: var(--op-soft);
+  transition: opacity 160ms ease;
+}
+.unlock__request:hover { opacity: 1; }
+
+/* Deep-link gate: /work/[slug] for a locked project blurs its content
+   until the dialog resolves (the site's own fade-from-blur, held). */
+.detail.is-locked {
+  filter: blur(24px);
+  opacity: 0.3;
+  pointer-events: none;
+  user-select: none;
+}
+.detail:not(.is-locked) {
+  transition:
+    filter 600ms var(--image-ease),
+    opacity 600ms var(--image-ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row__lock > span { transition: none; }
+  dialog.unlock[open],
+  dialog.unlock.is-closing,
+  dialog.unlock[open]::backdrop,
+  dialog.unlock.is-closing::backdrop { animation: none; }
+  .detail:not(.is-locked) { transition: none; }
+}

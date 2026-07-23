@@ -1,0 +1,40 @@
+---
+/* ───────────────────────────────────────────────────────────
+   UnlockDialog — the code-entry dialog for gated case studies
+   (Figma "✅ Components": Nav-Item State=Unlock Request + unlock set).
+   One instance per page, shared by every locked project on it; the
+   opener (src/lib/unlock.ts promptUnlock) fills in the project title
+   and mailto link at open time. Native <dialog>, so focus trapping
+   and Esc come free; entrance/exit follow the site's fade-from-blur
+   rule (styles in global.css under .unlock).
+   ─────────────────────────────────────────────────────────── */
+---
+
+<dialog class="unlock" data-unlock aria-labelledby="unlock-title">
+  <form class="unlock__form" data-unlock-form novalidate>
+    <p class="unlock__kicker">Private case study</p>
+    <h2 class="unlock__title" id="unlock-title" data-unlock-title>Project</h2>
+    <p class="unlock__hint">
+      This work is under wraps. Enter the access code, or request one and
+      I&rsquo;ll send it over.
+    </p>
+    <input
+      class="unlock__input"
+      type="password"
+      name="code"
+      placeholder="Access code"
+      autocomplete="off"
+      spellcheck="false"
+      data-unlock-input
+    />
+    <p class="unlock__error" data-unlock-error hidden>
+      That code isn&rsquo;t right &mdash; check it and try again.
+    </p>
+    <div class="unlock__actions">
+      <button type="submit" class="unlock__submit">Unlock</button>
+      <a class="unlock__request" data-unlock-request href="mailto:ls@leroice.com">
+        Request a code
+      </a>
+    </div>
+  </form>
+</dialog>

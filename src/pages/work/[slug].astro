@@ -1,6 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import DetailSubnav from '../../components/DetailSubnav.astro';
+import UnlockDialog from '../../components/UnlockDialog.astro';
 import { getCollection, render } from 'astro:content';
 
 export async function getStaticPaths() {
@@ -13,12 +14,19 @@ export async function getStaticPaths() {
 
 const { entry } = Astro.props;
 const { Content } = await render(entry);
+const slug = entry.id.replace(/\.md$/, '');
 ---
 
 <Base title={`${entry.data.title} — Leigh Scholten`} description={entry.data.summary}>
   <DetailSubnav title={entry.data.title} context={entry.data.context} href="/" />
 
-  <article class="detail">
+  <article
+    class="detail"
+    data-slug={slug}
+    data-locked={entry.data.locked ? 'true' : undefined}
+    data-lock-hash={entry.data.lockHash}
+    data-title={entry.data.title}
+  >
     {entry.data.cover && (
       <img
         class="detail__hero" data-reveal
@@ -31,4 +39,25 @@ const { Content } = await render(entry);
       <Content />
     </div>
   </article>
+
+  {entry.data.locked && <UnlockDialog />}
 </Base>
+
+<script>
+  import { isUnlocked, promptUnlock } from '../../lib/unlock';
+
+  // Deep-link gate: a locked project's page holds its content blurred
+  // behind the code-entry dialog. Dismissing the dialog returns home.
+  const art = document.querySelector<HTMLElement>('article.detail[data-locked="true"]');
+  if (art && art.dataset.slug && !isUnlocked(art.dataset.slug)) {
+    art.classList.add('is-locked');
+    promptUnlock({
+      slug: art.dataset.slug,
+      title: art.dataset.title || 'this case study',
+      hash: art.dataset.lockHash || '',
+    }).then((ok) => {
+      if (ok) art.classList.remove('is-locked');
+      else location.assign('/');
+    });
+  }
+</script>
