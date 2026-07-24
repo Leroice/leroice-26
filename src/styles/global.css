@@ -90,9 +90,10 @@
   /* Horizontal content inset — aligns every page's content (left AND right)
      with the nav brand "Leigh Scholten. Designer". Site-wide alignment rule. */
   --content-pad:    calc(var(--side-pad) + var(--sp-base));
-  /* Nav height — used by the case-study subnav so it sticks below the main
-     nav when both are pinned. Tuned to the rendered .nav box on desktop. */
-  --nav-height:     7rem;
+  /* Nav height — the case-study subnav pins directly beneath the sticky
+     nav (top: var(--nav-height)). Matches the measured .nav box: 64px
+     top pad + content + 12px bottom = 120px at every width. */
+  --nav-height:     120px;
 
   /* ── Motion ──
      One signal drives everything: spring velocity from the rAF loop.
@@ -188,13 +189,15 @@ html {
   /* Belt-and-braces: nothing on the site should ever be wider than the
      viewport, but this guarantees a stray element can't turn into
      horizontal scroll/pan. Doesn't touch pinch-zoom (still fully
-     available for accessibility) — only rules out sideways drift. */
-  overflow-x: hidden;
+     available for accessibility) — only rules out sideways drift.
+     `clip` (not `hidden`): hidden creates a scroll container, which
+     silently breaks position: sticky on descendants — clip just clips. */
+  overflow-x: clip;
 }
 
 body {
   margin: 0;
-  overflow-x: hidden;
+  overflow-x: clip;
   /* Kill double-tap-to-zoom everywhere, not just on images — a double
      tap anywhere was zooming the page and stranding the reader.
      `manipulation` keeps pan and pinch-zoom (the accessible way to
@@ -230,6 +233,14 @@ img, video {
 /* ── Header — Figma node 2:15 ───────────────────────────── */
 
 .nav {
+  /* Site nav is pinned — the detail subnav (top: var(--nav-height))
+     stacks directly beneath it, same translucent-blur treatment. */
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
   max-width: var(--page-max);
   margin: 0 auto;
   /* Top padding: 64px off the page edge.
@@ -366,6 +377,14 @@ img, video {
 .nav__menu.is-open {
   animation: nav-menu-in 240ms var(--image-ease) both;
 }
+/* Links cascade in behind the panel — same fade-from-blur, 40ms steps,
+   top-down (the site's load-cascade idiom in miniature). */
+.nav__menu.is-open a {
+  animation: nav-menu-in 240ms var(--image-ease) both;
+}
+.nav__menu.is-open a:nth-child(1) { animation-delay: 60ms; }
+.nav__menu.is-open a:nth-child(2) { animation-delay: 100ms; }
+.nav__menu.is-open a:nth-child(3) { animation-delay: 140ms; }
 .nav__menu.is-closing {
   animation: nav-menu-out 200ms var(--image-ease) both;
 }
@@ -389,6 +408,7 @@ img, video {
 @media (prefers-reduced-motion: reduce) {
   .nav__toggle-bars span { transition: none; }
   .nav__menu.is-open,
+  .nav__menu.is-open a,
   .nav__menu.is-closing { animation: none; }
 }
 
@@ -719,6 +739,19 @@ body:has(.detail__subnav) .nav {
      subnav lockup is pixel-identical to the home rows. */
   gap: 0;
   min-width: 0;
+  transition:
+    opacity 320ms var(--image-ease),
+    filter 320ms var(--image-ease);
+}
+/* Once content scrolls under the pinned subnav, the title lockup blurs
+   away (DetailSubnav's script toggles .is-scrolled) — the back badge
+   stays as the only chrome. Scrolling back up brings it home. */
+.detail__subnav.is-scrolled .detail__subnav-title-text {
+  opacity: 0;
+  filter: blur(6px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .detail__subnav-title-text { transition: none; }
 }
 .detail__subnav-tabs {
   display: flex;
@@ -895,8 +928,8 @@ body:has(.detail__subnav) .nav {
   .detail__body .cs-3 { grid-template-columns: repeat(2, 1fr); }
   .detail__body .cs-2 { grid-template-columns: 1fr; }
   /* Subnav stays a single row at every width (Figma 217:222 shows
-     title left, tabs right even at 390) — no stacking. */
-  :root { --nav-height: 6rem; }
+     title left, tabs right even at 390) — no stacking. The nav box
+     measures the same 120px here, so the token needs no override. */
 }
 @media (--bp-phone) {
   /* Imagery tier (Figma 217:222): media breaks out of the 28px prose

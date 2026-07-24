@@ -72,6 +72,7 @@ export function promptUnlock({ slug, title, hash }: UnlockRequest): Promise<bool
     const settle = (ok: boolean) => {
       if (settled) return;
       settled = true;
+      document.documentElement.style.overflow = '';
       form.removeEventListener('submit', onSubmit);
       dialog.removeEventListener('cancel', onCancel);
       dialog.removeEventListener('click', onBackdrop);
@@ -113,6 +114,15 @@ export function promptUnlock({ slug, title, hash }: UnlockRequest): Promise<bool
     closeBtn?.addEventListener('click', onClose);
 
     dialog.showModal();
-    input.focus();
+    // Lock the page behind the modal — without this, focus/keyboard
+    // events can scroll the list underneath and the reader loses their
+    // place. Scrolling stays entirely user-initiated.
+    document.documentElement.style.overflow = 'hidden';
+    // Auto-focus only where a hardware pointer means no keyboard pops:
+    // on touch devices, focusing here summons the keyboard AND scrolls
+    // the page underneath the dialog. Let the user tap the field.
+    if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+      input.focus({ preventScroll: true });
+    }
   });
 }
