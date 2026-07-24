@@ -158,16 +158,23 @@
   --rule:         rgba(36, 34, 27, 0.08);
 }
 
-/* Phone column width — desktop's 32px --side-pad (48px --content-pad once
-   --sp-base is added) was carried unchanged down to phone widths, which
-   burns ~25% of a 375px screen on chrome alone (96px of padding either
-   side of a 279px column) and starves case-study images of room. Retuned
-   here rather than at each of the ~7 call sites: --content-pad's calc()
-   picks up whatever --side-pad resolves to at the element, so overriding
-   --side-pad once is enough for nav/list/detail/cv/footer to retune
-   together. 279px → 303px content width at 375px viewport. */
+/* Phone insets — Figma mobile guide (217:222): a three-tier system that
+   maximises imagery on the glass.
+     chrome  12px  nav / subnav / hamburger anchor
+     imagery 16px  media breaks out of the prose column (see the
+                   --bp-phone blocks in the case-study kit section)
+     prose   28px  text keeps a comfortable inset
+   --side-pad 12px makes --content-pad's calc() (side-pad + 16) land the
+   prose tier at 28px site-wide from one token; chrome gets the scoped
+   overrides below. Note: this deliberately decouples the desktop rule
+   that aligns the nav brand with content — on phones the brand hugs the
+   edge at 12px while prose sits at 28px, per the guide. Home rows still
+   land their text on the prose line (12px shell + 16px row padding). */
 @media (--bp-phone) {
-  :root { --side-pad: 1.25rem; }
+  :root { --side-pad: 0.75rem; }
+  /* The chrome-tier element overrides live at the END of this file
+     (see "Phone chrome tier") so they win the cascade against the base
+     rules defined between here and there. */
 }
 
 /* ── Reset ──────────────────────────────────────────────── */
@@ -759,12 +766,23 @@ body:has(.detail__subnav) .nav {
      page identity (no h1 underneath) so it earns more breathing room. */
   margin-bottom: 6rem;
 }
-/* On mobile the hero crops to a portrait tile — covers strong enough to
-   carry the page identity by themselves, no title needed underneath. */
+/* On mobile the hero goes full bleed (Figma 217:222) — edge to edge,
+   square corners, tall portrait crop. Covers are strong enough to carry
+   the page identity by themselves, no title underneath. The negative
+   margins exactly cancel the 28px prose inset in BOTH detail contexts:
+   /work/[slug] (.detail's own --content-pad) and the inline home detail
+   (12px shell + 16px .list__detail padding = the same 28px). */
 @media (--bp-phone) {
   .detail__hero {
     aspect-ratio: 390 / 630;
     object-fit: cover;
+    width: calc(100% + var(--content-pad) * 2);
+    max-width: none;
+    margin-left: calc(var(--content-pad) * -1);
+    margin-right: calc(var(--content-pad) * -1);
+    border-radius: 0;
+    /* Figma hero wrapper: 48px below (vs 96px on desktop). */
+    margin-bottom: 3rem;
   }
 }
 
@@ -870,19 +888,35 @@ body:has(.detail__subnav) .nav {
   .detail__body .cs-mocks { grid-template-columns: repeat(2, 1fr); }
   .detail__body .cs-3 { grid-template-columns: repeat(2, 1fr); }
   .detail__body .cs-2 { grid-template-columns: 1fr; }
-  /* Subnav stacks vertically on narrow viewports — title above tabs. */
-  .detail__subnav-inner {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--sp-3);
-  }
-  /* And the sticky offset matches the taller subnav stack. */
+  /* Subnav stays a single row at every width (Figma 217:222 shows
+     title left, tabs right even at 390) — no stacking. */
   :root { --nav-height: 6rem; }
 }
 @media (--bp-phone) {
+  /* Imagery tier (Figma 217:222): media breaks out of the 28px prose
+     column by 12px each side, landing at the guide's 16px viewport
+     inset — images run 358px wide on a 390px screen. */
+  .detail__body figure,
   .detail__body .cs-mocks,
   .detail__body .cs-3,
+  .detail__body .cs-2,
+  .detail__body .cs-rows {
+    margin-left: calc(var(--sp-3) * -1);
+    margin-right: calc(var(--sp-3) * -1);
+  }
+  .detail__body .cs-3,
   .detail__body .cs-2 { grid-template-columns: 1fr; }
+  /* cs-mocks are app screenshots — a square crop would cut the UI, so
+     they keep their natural ratio and go 2-up instead (dense, still
+     large). Deviation from the guide's square tiles, by intent. */
+  .detail__body .cs-mocks { grid-template-columns: repeat(2, 1fr); }
+  /* Guide crops: 3-ups read as square tiles, rows as tall portraits. */
+  .detail__body .cs-3 img {
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+  }
+  .detail__body .cs-rows img,
+  .detail__body .cs-rows video { aspect-ratio: 9 / 16; }
 }
 
 /* ── Inline detail ──────────────────────────────────────────
@@ -1652,4 +1686,31 @@ dialog.unlock.is-closing::backdrop {
   dialog.unlock[open]::backdrop,
   dialog.unlock.is-closing::backdrop { animation: none; }
   .detail:not(.is-locked) { transition: none; }
+}
+
+/* ── Phone chrome tier (Figma 217:222) ──────────────────────
+   At the end of the file so these win against the base rules above.
+   Chrome hugs the glass at 12px; prose stays at 28px (via --side-pad,
+   set in the token block up top); imagery at 16px (breakout rules in
+   the case-study kit section). */
+@media (--bp-phone) {
+  .nav {
+    padding-left: var(--side-pad);
+    padding-right: var(--side-pad);
+  }
+  /* The toggle's desktop -16px optical margin would push it past the
+     glass inside the 12px shell; -12px sits the 44px button flush to
+     the edge with its icon landing ~12px in. */
+  .nav__toggle { margin-right: calc(var(--side-pad) * -1); }
+  .nav__menu { right: var(--side-pad); }
+  .detail__subnav-inner {
+    padding-left: var(--side-pad);
+    padding-right: var(--side-pad);
+  }
+  /* Rows carry 16px internal padding, so the shell drops to 12px on the
+     right too (left already tracks --side-pad). Row text lands at 28px,
+     on the prose line. */
+  .split { padding-right: var(--side-pad); }
+  /* Figma footer: 32px all around. */
+  .foot { padding: 2rem; }
 }

@@ -11,6 +11,7 @@ const entries = (await getCollection('work')).sort(
 const slug = (id: string) => id.replace(/\.md$/, '');
 
 import { lockClosed, lockClosedSolid, lockOpen } from '../lib/lock-icons';
+import { srcsetFor, CONTENT_SIZES } from '../lib/img';
 
 // Every project with a detail page opens inline with the choreographed
 // transition (cover image flies into the header, title rises, proximity
@@ -118,6 +119,8 @@ const inlineEntries = await Promise.all(
             <img
               class="detail__hero"
               src={entry.data.cover}
+              srcset={srcsetFor(entry.data.cover)}
+              sizes={CONTENT_SIZES}
               alt={entry.data.coverAlt ?? entry.data.title}
             />
           )}
@@ -137,6 +140,8 @@ const inlineEntries = await Promise.all(
               class="preview__image"
               data-preview-image={slug(entry.id)}
               src={entry.data.cover}
+              srcset={srcsetFor(entry.data.cover)}
+              sizes="45vw"
               alt=""
               loading="eager"
             />

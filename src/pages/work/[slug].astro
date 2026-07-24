@@ -3,6 +3,7 @@ import Base from '../../layouts/Base.astro';
 import DetailSubnav from '../../components/DetailSubnav.astro';
 import UnlockDialog from '../../components/UnlockDialog.astro';
 import { getCollection, render } from 'astro:content';
+import { srcsetFor, CONTENT_SIZES } from '../../lib/img';
 
 export async function getStaticPaths() {
   const entries = await getCollection('work', ({ data }) => data.detail === true);
@@ -31,6 +32,8 @@ const slug = entry.id.replace(/\.md$/, '');
       <img
         class="detail__hero" data-reveal
         src={entry.data.cover}
+        srcset={srcsetFor(entry.data.cover)}
+        sizes={CONTENT_SIZES}
         alt={entry.data.coverAlt ?? entry.data.title}
       />
     )}

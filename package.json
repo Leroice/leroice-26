@@ -8,13 +8,16 @@
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "prebuild": "node scripts/optimize-images.mjs"
   },
   "dependencies": {
     "astro": "^5.0.0"
   },
   "devDependencies": {
     "postcss": "^8.5.0",
-    "postcss-custom-media": "^12.0.1"
+    "postcss-custom-media": "^12.0.1",
+    "sharp": "^0.35.3",
+    "unist-util-visit": "^5.1.0"
   }
 }

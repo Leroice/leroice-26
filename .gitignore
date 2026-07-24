@@ -16,3 +16,6 @@ node_modules/
 .env.production
 .vercel
 .claude/
+# Generated responsive image variants + manifest (rebuilt by prebuild)
+public/images/**/*.w*.webp
+src/generated/
