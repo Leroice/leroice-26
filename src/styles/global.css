@@ -195,6 +195,12 @@ html {
 body {
   margin: 0;
   overflow-x: hidden;
+  /* Kill double-tap-to-zoom everywhere, not just on images — a double
+     tap anywhere was zooming the page and stranding the reader.
+     `manipulation` keeps pan and pinch-zoom (the accessible way to
+     magnify) fully available; ancestors restrict descendants, so one
+     declaration here covers all content. */
+  touch-action: manipulation;
   background: var(--bg);
   color: var(--text-primary);
   font-family: var(--font-sans);
@@ -1614,7 +1620,11 @@ dialog.unlock.is-closing::backdrop {
   background: transparent;
   color: var(--text-primary);
   font-family: inherit;
-  font-size: var(--fs-body);
+  /* 16px minimum, NOT the 14px body size: iOS Safari auto-zooms the
+     whole page when a focused input's text is under 16px — the reader
+     loses their place and the layout "blows out". 16px exactly opts
+     out of that behaviour. */
+  font-size: max(16px, var(--fs-body));
   letter-spacing: var(--tracking-body);
   transition: border-color 240ms var(--image-ease);
 }

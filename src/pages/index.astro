@@ -633,6 +633,15 @@ const inlineEntries = await Promise.all(
             detail.style.opacity = '0';
             detail.style.transition = 'opacity 320ms ease';
             requestAnimationFrame(() => { detail.style.opacity = '1'; });
+            // The DetailSubnav plays the same elastic entrance as desktop
+            // (badge → title → subtitle → credits) inside the page fade —
+            // one motion language at every width.
+            if (subnavRoot) {
+              subnavElasticEnter(detail, {
+                duration: SUBNAV_ELASTIC_DURATION * CHOREO.subnav.durationScale,
+                delay: CHOREO.subnav.delay,
+              });
+            }
             const onEnd = () => {
               detail.style.transition = '';
               detail.style.opacity = '';
