@@ -44,32 +44,3 @@ const { title, context, href = '/' } = Astro.props as Props;
     </nav>
   </div>
 </section>
-
-<script>
-  // Scroll past the hero and the title lockup blurs out of the pinned
-  // subnav (back badge stays); scroll home and it fades back in. Class
-  // toggle only — the motion lives in CSS next to the subnav rules.
-  // Astro dedupes this script even when several inline subnavs render.
-  {
-    const THRESHOLD = 280;
-    let ticking = false;
-    const update = () => {
-      ticking = false;
-      const past = window.scrollY > THRESHOLD;
-      for (const nav of document.querySelectorAll('.detail__subnav')) {
-        nav.classList.toggle('is-scrolled', past);
-      }
-    };
-    window.addEventListener(
-      'scroll',
-      () => {
-        if (!ticking) {
-          ticking = true;
-          requestAnimationFrame(update);
-        }
-      },
-      { passive: true }
-    );
-    update();
-  }
-</script>

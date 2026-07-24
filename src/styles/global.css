@@ -676,17 +676,13 @@ img, video {
 /* ── Detail pages ───────────────────────────────────────── */
 
 /* ── Case-study subnav ─────────────────────────────────────
-   Project breadcrumb + in-page tabs. On case-study pages the main
-   .nav also goes sticky (via the :has() rule below) so the two
-   stack as a single nav rail under scroll. */
-body:has(.detail__subnav) .nav {
-  position: sticky;
-  top: 0;
-  z-index: 11;
-  background: color-mix(in srgb, var(--bg) 88%, transparent);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-}
+   Project breadcrumb + in-page tabs. The main .nav is sticky
+   site-wide now (its own base rule), so the two stack as a single
+   nav rail under scroll — except on phones, where the nav scrolls
+   away and only this subnav pins (see the phone chrome tier).
+   NOTE: the old `body:has(.detail__subnav) .nav` sticky rule lived
+   here — its :has() specificity silently beat every single-class
+   phone override. Don't reintroduce it. */
 .detail__subnav {
   position: sticky;
   top: var(--nav-height);
@@ -739,19 +735,6 @@ body:has(.detail__subnav) .nav {
      subnav lockup is pixel-identical to the home rows. */
   gap: 0;
   min-width: 0;
-  transition:
-    opacity 320ms var(--image-ease),
-    filter 320ms var(--image-ease);
-}
-/* Once content scrolls under the pinned subnav, the title lockup blurs
-   away (DetailSubnav's script toggles .is-scrolled) — the back badge
-   stays as the only chrome. Scrolling back up brings it home. */
-.detail__subnav.is-scrolled .detail__subnav-title-text {
-  opacity: 0;
-  filter: blur(6px);
-}
-@media (prefers-reduced-motion: reduce) {
-  .detail__subnav-title-text { transition: none; }
 }
 .detail__subnav-tabs {
   display: flex;
@@ -1017,11 +1000,17 @@ body:has(.detail__subnav) .nav {
     border-radius: 0;
   }
   /* Same story for the subnav: inline it inherits the 28px container
-     inset (its own padding is zeroed above), but the chrome tier puts
-     the standalone subnav at 12px. Pull it out to match. */
+     inset (its own padding is zeroed above), but the standalone subnav
+     spans the full viewport with a 12px inner inset. Bleed all the way
+     out and restore the inner padding so both paths are identical —
+     and the sticky bar's blur backdrop runs edge to edge. */
   .list__detail .detail__subnav {
-    margin-left: calc(var(--sp-base) * -1);
-    margin-right: calc(var(--sp-base) * -1);
+    margin-left: calc(var(--content-pad) * -1);
+    margin-right: calc(var(--content-pad) * -1);
+  }
+  .list__detail .detail__subnav-inner {
+    padding-left: var(--side-pad);
+    padding-right: var(--side-pad);
   }
 }
 
@@ -1761,12 +1750,17 @@ dialog.unlock.is-closing::backdrop {
   .nav {
     padding-left: var(--side-pad);
     padding-right: var(--side-pad);
+    /* On phones the primary nav scrolls away with the page — only the
+       detail subnav pins (top: 0 below). Chrome stays minimal. */
+    position: static;
   }
   /* The toggle's desktop -16px optical margin would push it past the
      glass inside the 12px shell; -12px sits the 44px button flush to
      the edge with its icon landing ~12px in. */
   .nav__toggle { margin-right: calc(var(--side-pad) * -1); }
   .nav__menu { right: var(--side-pad); }
+  /* Subnav pins to the very top of the screen and spans it fully. */
+  .detail__subnav { top: 0; }
   .detail__subnav-inner {
     padding-left: var(--side-pad);
     padding-right: var(--side-pad);

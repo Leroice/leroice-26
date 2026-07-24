@@ -150,35 +150,51 @@ export function subnavElasticEnter(
     const el = section.querySelector<HTMLElement>(`[data-elastic="${key}"]`);
     if (!el) continue;
 
-    // The Figma tracks end at opacity 1, but an element's resting opacity
-    // belongs to the stylesheet (e.g. the shared Title + Meta lockup rests
-    // its meta at Tertiary). Scale the whole opacity track by the CSS rest
-    // value so the entrance lands exactly on it — and cancel (not fill) at
-    // the end so the stylesheet owns the element again. Without this, the
-    // forwards fill pins opacity at 1 forever, silently overriding CSS.
-    // (Read the rest value with the pre-reveal gate bypassed — the
-    // synchronous class flip never paints.)
+    // The Figma tracks end at opacity 1 / gap 16, but an element's resting
+    // values belong to the stylesheet (the lockup meta rests at Tertiary,
+    // the tabs at a 12px gap). Scale the opacity track and shift the gap
+    // track so the entrance lands EXACTLY on the stylesheet values — any
+    // mismatch here shows up as a snap/flicker the instant the fill is
+    // dropped at the end. (Rest values are read with the pre-reveal gate
+    // bypassed — the synchronous class flip never paints.)
     const html = document.documentElement;
     const hadRevealed = html.classList.contains('revealed');
     if (!hadRevealed) html.classList.add('revealed');
-    const restOpacity = parseFloat(getComputedStyle(el).opacity) || 1;
+    const rest = getComputedStyle(el);
+    const restOpacity = parseFloat(rest.opacity) || 1;
+    const restGap = parseFloat(rest.columnGap);
     if (!hadRevealed) html.classList.remove('revealed');
 
-    const frames = buildFrames(tracks).map((f) =>
-      typeof f.opacity === 'number' ? { ...f, opacity: f.opacity * restOpacity } : f
-    );
+    const raw = buildFrames(tracks);
+    const lastGap = raw[raw.length - 1].columnGap;
+    const gapDelta =
+      typeof lastGap === 'string' && !Number.isNaN(restGap)
+        ? restGap - parseFloat(lastGap)
+        : 0;
+    const frames = raw.map((f) => {
+      const kf = { ...f };
+      if (typeof kf.opacity === 'number') kf.opacity = kf.opacity * restOpacity;
+      if (typeof kf.columnGap === 'string' && gapDelta !== 0) {
+        kf.columnGap = `${(parseFloat(kf.columnGap) + gapDelta).toFixed(3)}px`;
+      }
+      return kf;
+    });
     el.style.willChange = 'transform, opacity';
     const first = frames[0];
     if (first.opacity !== undefined) el.style.opacity = String(first.opacity);
     if (first.transform) el.style.transform = first.transform as string;
     const anim = el.animate(frames, { duration, delay, easing: 'linear', fill: 'forwards' });
     anim.finished.then(() => {
-      // Final frame === CSS rest value, so dropping the fill is seamless.
-      anim.cancel();
+      // Clear the inline first-frame styles FIRST — the forwards fill is
+      // still overriding, so this is invisible — THEN cancel. The element
+      // falls from the fill's final frame straight to identical stylesheet
+      // values, with no ordering window where the inline opacity:0 could
+      // paint. (Clearing after cancel risks exactly that one-frame flash.)
       el.style.willChange = '';
       el.style.transform = '';
       el.style.opacity = '';
       el.style.removeProperty('column-gap');
+      anim.cancel();
     }).catch(() => {});
   }
 }
