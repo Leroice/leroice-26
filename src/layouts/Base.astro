@@ -88,6 +88,26 @@ const {
         <a href="/connect">Connect</a>
         <a href="/cv">CV</a>
       </nav>
+
+      {/* Below --bp-tablet the inline links are hidden and this takes over.
+          Rendered at every width (CSS hides it on desktop) so there's no
+          layout shift and no JS needed to insert it. */}
+      <button
+        class="nav__toggle"
+        type="button"
+        aria-label="Menu"
+        aria-expanded="false"
+        aria-controls="nav-menu"
+        data-nav-toggle
+      >
+        <span class="nav__toggle-bars" aria-hidden="true"><span></span><span></span></span>
+      </button>
+
+      <nav class="nav__menu" id="nav-menu" data-nav-menu hidden>
+        <a href="/about">About</a>
+        <a href="/connect">Connect</a>
+        <a href="/cv">CV</a>
+      </nav>
     </header>
 
     <slot />
@@ -116,6 +136,73 @@ const {
         document.documentElement.setAttribute('data-theme', next);
         localStorage.setItem('theme', next);
       });
+    </script>
+
+    <script>
+      // Mobile nav. The panel is [hidden] when closed (so it's out of the
+      // a11y tree and invisible at every width); CSS only reveals it below
+      // the tablet breakpoint. Closing plays the fade-out first, then hides.
+      {
+        const toggle = document.querySelector<HTMLButtonElement>('[data-nav-toggle]');
+        const menu = document.querySelector<HTMLElement>('[data-nav-menu]');
+        const reduced = () =>
+          window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        if (toggle && menu) {
+          let closeTimer = 0;
+
+          const open = () => {
+            window.clearTimeout(closeTimer);
+            menu.classList.remove('is-closing');
+            menu.hidden = false;
+            menu.classList.add('is-open');
+            toggle.setAttribute('aria-expanded', 'true');
+          };
+
+          const close = (returnFocus = false) => {
+            if (menu.hidden) return;
+            window.clearTimeout(closeTimer);
+            toggle.setAttribute('aria-expanded', 'false');
+            menu.classList.remove('is-open');
+            const finish = () => {
+              menu.classList.remove('is-closing');
+              menu.hidden = true;
+              if (returnFocus) toggle.focus();
+            };
+            if (reduced()) { finish(); return; }
+            menu.classList.add('is-closing');
+            closeTimer = window.setTimeout(finish, 200);
+          };
+
+          toggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (menu.hidden) open(); else close();
+          });
+
+          // Tapping a link closes the panel; the link's own navigation
+          // (and the site-wide page-exit cascade) still runs.
+          for (const link of menu.querySelectorAll('a')) {
+            link.addEventListener('click', () => close());
+          }
+
+          // Tap outside.
+          document.addEventListener('click', (e) => {
+            if (menu.hidden) return;
+            const t = e.target as Node;
+            if (!menu.contains(t) && t !== toggle) close();
+          });
+
+          document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !menu.hidden) close(true);
+          });
+
+          // Returning to desktop width with the panel open would leave it
+          // orphaned — CSS hides it, but [hidden]/aria state must agree.
+          window.matchMedia('(max-width: 880px)').addEventListener('change', (e) => {
+            if (!e.matches) close();
+          });
+        }
+      }
     </script>
 
     <script>

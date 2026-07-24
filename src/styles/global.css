@@ -4,6 +4,18 @@
    Pill is permanent, physics-driven (JS-controlled, not CSS).
    ───────────────────────────────────────────────────────── */
 
+/* ── Breakpoints ──
+   Single source of truth for the site's three widths — compiled back to
+   real @media (max-width: …) rules at build time by postcss-custom-media
+   (see postcss.config.mjs). Change the value here, not at any call site.
+   --bp-tablet  880px — .split/.detail__body/.cv-section/.sg collapse to
+                        one column; nav switches to the hamburger menu.
+   --bp-phone   520px — hero crops to portrait, case-study grids go 1-up.
+   --bp-phone-sm 480px — smallest phones (CV stat grid's last collapse). */
+@custom-media --bp-tablet (max-width: 880px);
+@custom-media --bp-phone (max-width: 520px);
+@custom-media --bp-phone-sm (max-width: 480px);
+
 @font-face {
   font-family: 'Geist';
   src: url('/fonts/Geist-Regular.woff2') format('woff2');
@@ -223,6 +235,118 @@ img, video { max-width: 100%; height: auto; display: block; }
 }
 .nav__links a:hover {
   opacity: 1;
+}
+
+/* ── Mobile nav — hamburger (below --bp-tablet) ──
+   The toggle and panel exist in the DOM at every width; desktop hides
+   them outright, so ≥880px is pixel-identical to before. The panel opens
+   below the nav (page stays visible underneath) with the site's
+   fade-from-blur idiom, same as dialog.unlock. */
+
+.nav__toggle {
+  display: none;
+  width: 44px;
+  height: 44px;
+  margin-right: calc(var(--sp-base) * -1);
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  place-items: center;
+}
+
+/* Two bars that cross into an ✕ when the panel is open. */
+.nav__toggle-bars {
+  position: relative;
+  display: block;
+  width: 18px;
+  height: 12px;
+}
+.nav__toggle-bars span {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 1.5px;
+  border-radius: 1px;
+  background: currentColor;
+  opacity: var(--op-strong);
+  transition:
+    transform 240ms var(--image-ease),
+    opacity 240ms var(--image-ease);
+}
+.nav__toggle-bars span:first-child { top: 2px; }
+.nav__toggle-bars span:last-child  { top: 8px; }
+.nav__toggle[aria-expanded="true"] .nav__toggle-bars span {
+  opacity: 1;
+}
+.nav__toggle[aria-expanded="true"] .nav__toggle-bars span:first-child {
+  transform: translateY(3px) rotate(45deg);
+}
+.nav__toggle[aria-expanded="true"] .nav__toggle-bars span:last-child {
+  transform: translateY(-3px) rotate(-45deg);
+}
+
+.nav__menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: var(--content-pad);
+  z-index: 20;
+  flex-direction: column;
+  min-width: 12rem;
+  padding: var(--sp-3) 0;
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  box-shadow:
+    inset 0 0 0 1px var(--rule),
+    0 16px 48px rgba(0, 0, 0, 0.18);
+}
+.nav__menu a {
+  /* ≥44px tap target per link, not just the 14px text line. */
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--sp-base);
+  font-size: var(--fs-link);
+  font-weight: 400;
+  letter-spacing: var(--tracking-meta);
+  color: var(--text-primary);
+  opacity: var(--op-strong);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: opacity 160ms ease;
+}
+.nav__menu a:hover,
+.nav__menu a:focus-visible { opacity: 1; }
+
+.nav__menu.is-open {
+  animation: nav-menu-in 240ms var(--image-ease) both;
+}
+.nav__menu.is-closing {
+  animation: nav-menu-out 200ms var(--image-ease) both;
+}
+@keyframes nav-menu-in {
+  from { opacity: 0; filter: blur(6px); }
+  to   { opacity: 1; filter: blur(0); }
+}
+@keyframes nav-menu-out {
+  from { opacity: 1; filter: blur(0); }
+  to   { opacity: 0; filter: blur(6px); }
+}
+
+@media (--bp-tablet) {
+  /* The panel anchors to the header box. */
+  .nav { position: relative; }
+  .nav__links { display: none; }
+  .nav__toggle { display: grid; }
+  .nav__menu:not([hidden]) { display: flex; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav__toggle-bars span { transition: none; }
+  .nav__menu.is-open,
+  .nav__menu.is-closing { animation: none; }
 }
 
 /* ── Main split layout ──────────────────────────────────── */
@@ -445,7 +569,7 @@ img, video { max-width: 100%; height: auto; display: block; }
 
 /* ── Mobile ─────────────────────────────────────────────── */
 
-@media (max-width: 880px) {
+@media (--bp-tablet) {
   /* Just the text list: same rows/text as desktop, minus the preview and the
      rollover bar (no images). */
   .split { grid-template-columns: 1fr; padding-top: 2rem; padding-bottom: 5rem; }
@@ -607,7 +731,7 @@ body:has(.detail__subnav) .nav {
 }
 /* On mobile the hero crops to a portrait tile — covers strong enough to
    carry the page identity by themselves, no title needed underneath. */
-@media (max-width: 520px) {
+@media (--bp-phone) {
   .detail__hero {
     aspect-ratio: 390 / 630;
     object-fit: cover;
@@ -705,7 +829,7 @@ body:has(.detail__subnav) .nav {
   aspect-ratio: 16 / 9;
   object-fit: cover;
 }
-@media (max-width: 880px) {
+@media (--bp-tablet) {
   /* Body collapses to a single column — prose + media share one rail. */
   .detail__body { grid-template-columns: 1fr; }
   .detail__body > p,
@@ -725,7 +849,7 @@ body:has(.detail__subnav) .nav {
   /* And the sticky offset matches the taller subnav stack. */
   :root { --nav-height: 6rem; }
 }
-@media (max-width: 520px) {
+@media (--bp-phone) {
   .detail__body .cs-mocks,
   .detail__body .cs-3,
   .detail__body .cs-2 { grid-template-columns: 1fr; }
@@ -1014,13 +1138,13 @@ html.is-js:not(.revealed) [data-elastic] {
 }
 
 /* Mobile — collapse rail, label becomes a heading above content */
-@media (max-width: 880px) {
+@media (--bp-tablet) {
   .cv-section { grid-template-columns: 1fr; row-gap: 1.25rem; }
   .cv-stats { grid-template-columns: repeat(2, 1fr); }
   .cv-edu-grid { grid-template-columns: 1fr; gap: 2.5rem; }
   .cv-role__head { flex-direction: column; gap: 4px; }
 }
-@media (max-width: 480px) {
+@media (--bp-phone-sm) {
   .cv-stats { grid-template-columns: 1fr; }
 }
 
@@ -1191,7 +1315,7 @@ html.is-js:not(.revealed) [data-elastic] {
 }
 .sg-replay:hover { opacity: 1; }
 
-@media (max-width: 880px) {
+@media (--bp-tablet) {
   .sg { grid-template-columns: 1fr; }
   .sg__nav {
     position: static;
