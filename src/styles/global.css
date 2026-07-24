@@ -1742,6 +1742,9 @@ dialog.unlock.is-closing::backdrop {
      right too (left already tracks --side-pad). Row text lands at 28px,
      on the prose line. */
   .split { padding-right: var(--side-pad); }
+  /* No Details/Credits anchor tabs on phones — back badge + title only.
+     (The subnav-elastic "credits" track just no-ops on a hidden node.) */
+  .detail__subnav-tabs { display: none; }
   /* Figma footer: 32px all around. */
   .foot { padding: 2rem; }
 }
