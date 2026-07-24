@@ -158,6 +158,18 @@
   --rule:         rgba(36, 34, 27, 0.08);
 }
 
+/* Phone column width — desktop's 32px --side-pad (48px --content-pad once
+   --sp-base is added) was carried unchanged down to phone widths, which
+   burns ~25% of a 375px screen on chrome alone (96px of padding either
+   side of a 279px column) and starves case-study images of room. Retuned
+   here rather than at each of the ~7 call sites: --content-pad's calc()
+   picks up whatever --side-pad resolves to at the element, so overriding
+   --side-pad once is enough for nav/list/detail/cv/footer to retune
+   together. 279px → 303px content width at 375px viewport. */
+@media (--bp-phone) {
+  :root { --side-pad: 1.25rem; }
+}
+
 /* ── Reset ──────────────────────────────────────────────── */
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -166,10 +178,16 @@ html {
   /* Always reserve the scrollbar gutter so centered layouts don't shift
      sideways when a vertical scrollbar appears after content loads. */
   scrollbar-gutter: stable;
+  /* Belt-and-braces: nothing on the site should ever be wider than the
+     viewport, but this guarantees a stray element can't turn into
+     horizontal scroll/pan. Doesn't touch pinch-zoom (still fully
+     available for accessibility) — only rules out sideways drift. */
+  overflow-x: hidden;
 }
 
 body {
   margin: 0;
+  overflow-x: hidden;
   background: var(--bg);
   color: var(--text-primary);
   font-family: var(--font-sans);
@@ -182,7 +200,19 @@ body {
   transition: background-color 240ms ease, color 240ms ease;
 }
 
-img, video { max-width: 100%; height: auto; display: block; }
+img, video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  /* Case-study images are exported at their full design resolution
+     (some 3000px+ wide) and shown at a fraction of that in the CSS
+     layout. Mobile Safari's double-tap-to-zoom targets the image's
+     *intrinsic* size, not its rendered box — so double-tapping a photo
+     could jump to 10x+ zoom and leave the whole page pannable in every
+     direction. `manipulation` drops just the double-tap-zoom gesture;
+     pinch-zoom (the accessible way to inspect a photo) is untouched. */
+  touch-action: manipulation;
+}
 
 /* ── Header — Figma node 2:15 ───────────────────────────── */
 
