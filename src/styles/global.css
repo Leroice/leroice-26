@@ -970,6 +970,27 @@ body:has(.detail__subnav) .nav {
   display: block;
   backface-visibility: hidden;
 }
+/* …but on phones there is no FLIP (the mobile fallback is a plain fade),
+   and this two-class selector was silently outranking the single-class
+   full-bleed rule — so projects opened FROM the home list kept the old
+   padded 16/10 card while direct loads got the new hero. Mirror the
+   full-bleed treatment here at the same strength. */
+@media (--bp-phone) {
+  .list__detail .detail__hero {
+    aspect-ratio: 390 / 630;
+    width: calc(100% + var(--content-pad) * 2);
+    max-width: none;
+    margin: 0 calc(var(--content-pad) * -1) 3rem;
+    border-radius: 0;
+  }
+  /* Same story for the subnav: inline it inherits the 28px container
+     inset (its own padding is zeroed above), but the chrome tier puts
+     the standalone subnav at 12px. Pull it out to match. */
+  .list__detail .detail__subnav {
+    margin-left: calc(var(--sp-base) * -1);
+    margin-right: calc(var(--sp-base) * -1);
+  }
+}
 
 /* Inline detail body spans the list's full width; prose inside is held to a
    readable measure by the shared .detail__body rules above. */
