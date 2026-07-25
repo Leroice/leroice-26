@@ -233,14 +233,30 @@ img, video {
 /* ── Header — Figma node 2:15 ───────────────────────────── */
 
 .nav {
-  /* Site nav is pinned — the detail subnav (top: var(--nav-height))
-     stacks directly beneath it, same translucent-blur treatment. */
+  /* The sticky shell spans the FULL viewport — bg + blur here, so
+     content scrolling under it is occluded edge to edge (a max-width
+     shell clips the blur at the page-max boundary and reads broken on
+     wide screens). Layout lives in .nav__inner. */
   position: sticky;
   top: 0;
   z-index: 30;
   background: color-mix(in srgb, var(--bg) 88%, transparent);
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
+}
+
+/* Project pages: the subnav title bar is the sticky header (top: 0) and
+   the main nav scrolls away with the page — at every width. Matches on
+   the standalone /work/[slug] article and on home while an inline
+   detail is open (NOT on the resting home list, whose hidden inline
+   subnavs would otherwise trip a plain :has(.detail__subnav)). */
+body:has(article.detail) .nav,
+body:has(.split.is-detail) .nav {
+  position: static;
+}
+
+.nav__inner {
+  position: relative; /* anchors the mobile dropdown */
   max-width: var(--page-max);
   margin: 0 auto;
   /* Top padding: 64px off the page edge.
@@ -398,8 +414,7 @@ img, video {
 }
 
 @media (--bp-tablet) {
-  /* The panel anchors to the header box. */
-  .nav { position: relative; }
+  /* (The dropdown anchors to .nav__inner's position: relative.) */
   .nav__links { display: none; }
   .nav__toggle { display: grid; }
   .nav__menu:not([hidden]) { display: flex; }
@@ -684,8 +699,11 @@ img, video {
    here — its :has() specificity silently beat every single-class
    phone override. Don't reintroduce it. */
 .detail__subnav {
+  /* THE sticky header on project pages (the main nav scrolls away —
+     see the body:has() static rule by .nav). Pins the moment the nav
+     has fully scrolled off, since its natural position is right below. */
   position: sticky;
-  top: var(--nav-height);
+  top: 0;
   z-index: 10;
   background: color-mix(in srgb, var(--bg) 88%, transparent);
   -webkit-backdrop-filter: blur(12px);
@@ -950,6 +968,13 @@ img, video {
 
 .split.is-detail {
   grid-template-columns: 1fr;
+  /* Symmetric padding in detail state (the resting list's extra right
+     inset is for the preview pane, which is gone here). Keeps the
+     inline body's right edge identical to standalone (side-pad +
+     .list__detail's 16px = content-pad both sides) AND centers the
+     subnav's 50%−50vw full-bleed exactly on the viewport. */
+  padding-left: var(--side-pad);
+  padding-right: var(--side-pad);
 }
 .split.is-detail .preview { display: none; }
 
@@ -959,20 +984,15 @@ img, video {
 .list__detail {
   padding: 0 var(--sp-base);
 }
-/* .list__detail's own padding above already lands content at content-pad
-   (--side-pad from .split + --sp-base here = --content-pad), matching the
-   nav brand and the hero/body below. .detail__subnav-inner's padding is
-   built for sitting flush against the viewport on the standalone
-   /work/[slug] page (its own --content-pad) — nested here that would
-   double up, so it's zeroed and .list__detail's padding does the job
-   instead. No bleed, no extra margin: the badge/title land exactly where
-   .nav's "Leigh Scholten." does. */
+/* Inline, the subnav escapes its padded container (.split → .list__detail,
+   28px of nesting AND the page-max cap) to span the full viewport — the
+   50%−50vw trick punches through the max-width ancestor, which negative
+   padding-cancelling margins alone cannot. It then behaves exactly like
+   the standalone /work/[slug] subnav: full-bleed blur bar, inner content
+   at --content-pad, badge/title aligned with the nav brand. */
 .list__detail .detail__subnav {
-  margin: 0 0 2rem;
-}
-.list__detail .detail__subnav-inner {
-  padding-left: 0;
-  padding-right: 0;
+  width: 100vw;
+  margin: 0 calc(50% - 50vw) 2rem;
 }
 
 /* Hero shares the preview frame's 16/10 aspect so the FLIP scale is uniform
@@ -999,19 +1019,8 @@ img, video {
     margin: 0 calc(var(--content-pad) * -1) 3rem;
     border-radius: 0;
   }
-  /* Same story for the subnav: inline it inherits the 28px container
-     inset (its own padding is zeroed above), but the standalone subnav
-     spans the full viewport with a 12px inner inset. Bleed all the way
-     out and restore the inner padding so both paths are identical —
-     and the sticky bar's blur backdrop runs edge to edge. */
-  .list__detail .detail__subnav {
-    margin-left: calc(var(--content-pad) * -1);
-    margin-right: calc(var(--content-pad) * -1);
-  }
-  .list__detail .detail__subnav-inner {
-    padding-left: var(--side-pad);
-    padding-right: var(--side-pad);
-  }
+  /* (The inline subnav's full-viewport bleed is width-independent now —
+     see the 100vw rule in the inline-detail section.) */
 }
 
 /* Inline detail body spans the list's full width; prose inside is held to a
@@ -1747,20 +1756,18 @@ dialog.unlock.is-closing::backdrop {
    set in the token block up top); imagery at 16px (breakout rules in
    the case-study kit section). */
 @media (--bp-phone) {
-  .nav {
+  /* On phones the primary nav scrolls away on every page — only the
+     detail subnav pins. Chrome stays minimal. */
+  .nav { position: static; }
+  .nav__inner {
     padding-left: var(--side-pad);
     padding-right: var(--side-pad);
-    /* On phones the primary nav scrolls away with the page — only the
-       detail subnav pins (top: 0 below). Chrome stays minimal. */
-    position: static;
   }
   /* The toggle's desktop -16px optical margin would push it past the
      glass inside the 12px shell; -12px sits the 44px button flush to
      the edge with its icon landing ~12px in. */
   .nav__toggle { margin-right: calc(var(--side-pad) * -1); }
   .nav__menu { right: var(--side-pad); }
-  /* Subnav pins to the very top of the screen and spans it fully. */
-  .detail__subnav { top: 0; }
   .detail__subnav-inner {
     padding-left: var(--side-pad);
     padding-right: var(--side-pad);

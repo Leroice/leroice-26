@@ -79,35 +79,37 @@ const {
     </svg>
 
     <header class="nav">
-      <a href="/" class="nav__brand">
-        Leigh Scholten.<span class="role">Designer</span>
-      </a>
+      <div class="nav__inner">
+        <a href="/" class="nav__brand">
+          Leigh Scholten.<span class="role">Designer</span>
+        </a>
 
-      <nav class="nav__links">
-        <a href="/about">About</a>
-        <a href="/connect">Connect</a>
-        <a href="/cv">CV</a>
-      </nav>
+        <nav class="nav__links">
+          <a href="/about">About</a>
+          <a href="/connect">Connect</a>
+          <a href="/cv">CV</a>
+        </nav>
 
-      {/* Below --bp-tablet the inline links are hidden and this takes over.
-          Rendered at every width (CSS hides it on desktop) so there's no
-          layout shift and no JS needed to insert it. */}
-      <button
-        class="nav__toggle"
-        type="button"
-        aria-label="Menu"
-        aria-expanded="false"
-        aria-controls="nav-menu"
-        data-nav-toggle
-      >
-        <span class="nav__toggle-bars" aria-hidden="true"><span></span><span></span></span>
-      </button>
+        {/* Below --bp-tablet the inline links are hidden and this takes over.
+            Rendered at every width (CSS hides it on desktop) so there's no
+            layout shift and no JS needed to insert it. */}
+        <button
+          class="nav__toggle"
+          type="button"
+          aria-label="Menu"
+          aria-expanded="false"
+          aria-controls="nav-menu"
+          data-nav-toggle
+        >
+          <span class="nav__toggle-bars" aria-hidden="true"><span></span><span></span></span>
+        </button>
 
-      <nav class="nav__menu" id="nav-menu" data-nav-menu hidden>
-        <a href="/about">About</a>
-        <a href="/connect">Connect</a>
-        <a href="/cv">CV</a>
-      </nav>
+        <nav class="nav__menu" id="nav-menu" data-nav-menu hidden>
+          <a href="/about">About</a>
+          <a href="/connect">Connect</a>
+          <a href="/cv">CV</a>
+        </nav>
+      </div>
     </header>
 
     <slot />
