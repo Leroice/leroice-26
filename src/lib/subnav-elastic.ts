@@ -136,6 +136,13 @@ export function subnavElasticEnter(
 ): void {
   const section = root.querySelector<HTMLElement>('[data-elastic-nav]');
   if (!section || reduced()) return;
+  // The home page carries a hidden inline subnav per project. A blanket
+  // call (Base's startReveal) would animate the first of those instead of
+  // a real one, leaving a spent animation on an element whose genuine
+  // entrance plays later when that project opens — the two collide and
+  // can strand the title/tabs at their start offsets. Only animate a
+  // subnav that's actually on screen.
+  if (section.closest('[hidden]')) return;
 
   const { duration = DURATION, delay = 0, skip = [] } = opts;
 
