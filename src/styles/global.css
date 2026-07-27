@@ -58,9 +58,11 @@
      font-weight 450 here IS Figma's "Medium". */
   --fs-display:   32px;   /* Display · Medium · auto · -0.43px */
   --fs-title:     17px;   /* Title · Medium · auto · -0.43px */
+  --fs-title-2:   15px;   /* Title 2 · Medium · auto · -0.43px */
   --fs-link:      14px;   /* Link · Regular · auto · -0.2px */
   --fs-meta:      13px;   /* Meta · Regular · 115% · -0.2px */
-  --fs-subline:   11px;   /* Subline · Regular · auto · 0 */
+  --fs-subline:   12px;   /* Subline · Regular · 115% · -0.2px */
+  --fs-caption:   11px;   /* Caption · Regular · auto · 0 */
   --fs-body-lg:   16px;   /* Body/Large · Regular · 155% · -0.43px */
   --fs-body:      14px;   /* Body/Small · Regular · auto · -0.33px */
 
@@ -68,7 +70,7 @@
   --tracking-tight: -0.43px;
   --tracking-meta:  -0.2px;
   --tracking-body:  -0.33px;
-  --lh-meta:        1.15;
+  --lh-meta:        1.15;   /* Meta + Subline both ride 115% */
   --lh-body-lg:     1.55;
 
   /* Legacy size aliases (pre-Figma-sync names) */
@@ -539,7 +541,7 @@ body:has(.split.is-detail) .nav {
 .row__year {
   font-family: var(--font-sans);
   /* Subline style — 11 · Regular · ls 0 */
-  font-size: var(--fs-subline);
+  font-size: var(--fs-caption);
   font-weight: 400;
   letter-spacing: 0;
   color: var(--text-primary);
@@ -557,7 +559,8 @@ body:has(.split.is-detail) .nav {
 .row__title,
 .detail__subnav-name {
   font-family: var(--font-sans);
-  font-size: var(--fs-title);
+  /* Title 2 — 15 · Medium · -0.43 */
+  font-size: var(--fs-title-2);
   font-weight: 450;
   letter-spacing: var(--tracking-tight);
   color: var(--text-primary);
@@ -571,7 +574,8 @@ body:has(.split.is-detail) .nav {
 .row__desc,
 .detail__subnav-meta {
   font-family: var(--font-sans);
-  font-size: var(--fs-meta);
+  /* Subline — 12 · Regular · 115% · -0.2 */
+  font-size: var(--fs-subline);
   font-weight: 400;
   letter-spacing: var(--tracking-meta);
   color: var(--text-primary);
@@ -666,7 +670,7 @@ body:has(.split.is-detail) .nav {
   justify-content: space-between;
   align-items: center;
   font-family: var(--font-sans);
-  font-size: var(--fs-subline);
+  font-size: var(--fs-caption);
   color: var(--text-primary);
   opacity: var(--op-soft);
 }
@@ -682,7 +686,7 @@ body:has(.split.is-detail) .nav {
   background: transparent; border: none;
   color: var(--text-primary);
   opacity: var(--op-soft);
-  font-family: var(--font-sans); font-size: var(--fs-subline);
+  font-family: var(--font-sans); font-size: var(--fs-caption);
   cursor: pointer; padding: 0;
   transition: opacity 160ms ease;
 }
@@ -787,7 +791,7 @@ body:has(.split.is-detail) .nav {
   display: inline-block;
   margin-bottom: 4rem;
   font-family: var(--font-sans);
-  font-size: var(--fs-subline);
+  font-size: var(--fs-caption);
   color: var(--text-primary);
   opacity: var(--op-strong);
   text-decoration: none;
@@ -837,7 +841,7 @@ body:has(.split.is-detail) .nav {
 }
 .detail__meta {
   font-family: var(--font-sans);
-  font-size: var(--fs-subline);
+  font-size: var(--fs-caption);
   color: var(--text-primary);
   opacity: var(--op-soft);
 }
@@ -1073,7 +1077,7 @@ html.is-js:not(.revealed) [data-elastic] {
   display: inline-block;
   margin-bottom: 3rem;
   font-family: var(--font-sans);
-  font-size: var(--fs-subline);
+  font-size: var(--fs-caption);
   color: var(--text-primary);
   opacity: var(--op-strong);
   text-decoration: none;
@@ -1094,7 +1098,7 @@ html.is-js:not(.revealed) [data-elastic] {
 .cv-label {
   margin: 0;
   font-family: var(--font-sans);
-  font-size: var(--fs-subline);
+  font-size: var(--fs-caption);
   letter-spacing: 0.02em;
   color: var(--text-primary);
   opacity: var(--op-soft);
@@ -1134,7 +1138,7 @@ html.is-js:not(.revealed) [data-elastic] {
   line-height: 1.1;
 }
 .cv-stat__desc {
-  font-size: var(--fs-subline);
+  font-size: var(--fs-caption);
   line-height: 1.45;
   opacity: var(--op-soft);
 }
@@ -1157,13 +1161,13 @@ html.is-js:not(.revealed) [data-elastic] {
 }
 .cv-role__org {
   margin: 0;
-  font-size: var(--fs-subline);
+  font-size: var(--fs-caption);
   opacity: var(--op-soft);
 }
 .cv-role__date {
   flex-shrink: 0;
   font-family: var(--font-sans);
-  font-size: var(--fs-subline);
+  font-size: var(--fs-caption);
   opacity: var(--op-soft);
   white-space: nowrap;
 }
@@ -1207,7 +1211,7 @@ html.is-js:not(.revealed) [data-elastic] {
   padding: 8px 14px;
   border-radius: 999px;
   background: var(--hover-bg);
-  font-size: var(--fs-subline);
+  font-size: var(--fs-caption);
   letter-spacing: var(--tracking-tight);
   opacity: var(--op-strong);
 }
@@ -1221,7 +1225,7 @@ html.is-js:not(.revealed) [data-elastic] {
 .cv-subhead {
   margin: 0 0 1rem;
   font-family: var(--font-sans);
-  font-size: var(--fs-subline);
+  font-size: var(--fs-caption);
   opacity: var(--op-soft);
 }
 .cv-edu__degree, .cv-award__title {
@@ -1233,7 +1237,7 @@ html.is-js:not(.revealed) [data-elastic] {
 }
 .cv-edu__detail {
   margin: 0;
-  font-size: var(--fs-subline);
+  font-size: var(--fs-caption);
   line-height: 1.5;
   opacity: var(--op-soft);
   white-space: pre-line;
@@ -1241,12 +1245,12 @@ html.is-js:not(.revealed) [data-elastic] {
 .cv-awards { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1.5rem; }
 .cv-award__source {
   margin: 0 0 4px;
-  font-size: var(--fs-subline);
+  font-size: var(--fs-caption);
   opacity: var(--op-soft);
 }
 .cv-award__role {
   margin: 0;
-  font-size: var(--fs-subline);
+  font-size: var(--fs-caption);
   opacity: var(--op-soft);
 }
 
@@ -1255,7 +1259,7 @@ html.is-js:not(.revealed) [data-elastic] {
   padding-top: 2rem;
   border-top: 1px solid var(--rule);
   font-family: var(--font-sans);
-  font-size: var(--fs-subline);
+  font-size: var(--fs-caption);
   opacity: var(--op-soft);
 }
 
@@ -1292,7 +1296,7 @@ html.is-js:not(.revealed) [data-elastic] {
   flex-direction: column;
   gap: 0.6rem;
   font-family: var(--font-sans);
-  font-size: var(--fs-subline);
+  font-size: var(--fs-caption);
 }
 .sg__nav a {
   color: var(--text-primary);
@@ -1326,7 +1330,7 @@ html.is-js:not(.revealed) [data-elastic] {
 .sg-block:last-child { margin-bottom: 0; }
 .sg-block h3 {
   font-family: var(--font-sans);
-  font-size: var(--fs-subline);
+  font-size: var(--fs-caption);
   letter-spacing: 0.02em;
   text-transform: uppercase;
   opacity: var(--op-soft);
@@ -1354,7 +1358,7 @@ html.is-js:not(.revealed) [data-elastic] {
 }
 .sg-swatch__meta {
   font-family: var(--font-sans);
-  font-size: var(--fs-subline);
+  font-size: var(--fs-caption);
 }
 .sg-swatch__name { display: block; opacity: var(--op-strong); }
 .sg-swatch__value { display: block; opacity: var(--op-soft); }
@@ -1372,7 +1376,7 @@ html.is-js:not(.revealed) [data-elastic] {
 .sg-type-row__meta {
   flex-shrink: 0;
   font-family: var(--font-sans);
-  font-size: var(--fs-subline);
+  font-size: var(--fs-caption);
   opacity: var(--op-soft);
   white-space: nowrap;
 }
@@ -1391,7 +1395,7 @@ html.is-js:not(.revealed) [data-elastic] {
 }
 .sg-space-row__label {
   font-family: var(--font-sans);
-  font-size: var(--fs-subline);
+  font-size: var(--fs-caption);
   opacity: var(--op-soft);
   white-space: nowrap;
 }
@@ -1400,7 +1404,7 @@ html.is-js:not(.revealed) [data-elastic] {
   width: 100%;
   border-collapse: collapse;
   font-family: var(--font-sans);
-  font-size: var(--fs-subline);
+  font-size: var(--fs-caption);
 }
 .sg-token-table th {
   text-align: left;
@@ -1425,7 +1429,7 @@ html.is-js:not(.revealed) [data-elastic] {
   right: 0.75rem;
   z-index: 20;
   font-family: var(--font-sans);
-  font-size: var(--fs-subline);
+  font-size: var(--fs-caption);
   color: var(--text-primary);
   background: var(--hover-bg);
   border: none;
@@ -1468,7 +1472,7 @@ html.is-js:not(.revealed) [data-elastic] {
   height: 22px;
   pointer-events: none;
   font-family: var(--font-sans);
-  font-size: var(--fs-subline);
+  font-size: var(--fs-caption);
   font-weight: 400;
   letter-spacing: 0;
   color: var(--text-primary);
@@ -1642,7 +1646,7 @@ dialog.unlock.is-closing::backdrop {
 .unlock__kicker {
   /* Subline — 11 · Regular · ls 0 */
   margin: 0 0 12px;
-  font-size: var(--fs-subline);
+  font-size: var(--fs-caption);
   letter-spacing: 0;
   opacity: var(--op-subtle);
 }
@@ -1687,7 +1691,7 @@ dialog.unlock.is-closing::backdrop {
 
 .unlock__error {
   margin: 12px 0 0;
-  font-size: var(--fs-subline);
+  font-size: var(--fs-caption);
   font-weight: 600;
 }
 
