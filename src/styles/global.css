@@ -619,7 +619,10 @@ body:has(.split.is-detail) .nav {
 .preview__frame {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 10;
+  /* Square. The case-study hero stays 16:10 — arcFlip's cover-crop maths
+     (see arc-flip.ts) opens the square out into the wider crop without
+     ever distorting the image. */
+  aspect-ratio: 1 / 1;
   max-height: 100%;
   border-radius: var(--radius-md);
   overflow: hidden;

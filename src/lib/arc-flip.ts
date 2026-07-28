@@ -213,11 +213,34 @@ export function arcFlip(el: HTMLElement, from: DOMRect, opts: ArcFlipOptions = {
 
   const dx = from.left - last.left;
   const dy = from.top - last.top;
-  const sx = o.scale && last.width ? from.width / last.width : 1;
-  const sy = o.scale && last.height ? from.height / last.height : 1;
 
   // Downward yield magnitude (px). Only applies when arc > 0.
   const yieldPx = o.arc > 0 ? Math.max(o.arc * Math.abs(dy), o.minYield) : 0;
+
+  // ── Cover-crop FLIP ──
+  // The naive FLIP scales each axis independently (from.w/last.w and
+  // from.h/last.h). That's fine only while source and destination share an
+  // aspect ratio; the moment they don't — e.g. the square homepage preview
+  // handing off to the 16:10 case-study hero — the two scales diverge and
+  // the image visibly squashes for the whole flight.
+  //
+  // Instead, interpolate the element's VISIBLE BOX from `from` to `last` and,
+  // at every sample, render that box the way object-fit: cover would: scale
+  // uniformly by max(w-ratio, h-ratio) and clip the overflow away. The image
+  // is never distorted — the crop simply opens up. When the aspects DO match
+  // the insets stay 0 and the maths reduce to the original uniform scale, so
+  // existing transitions are byte-identical.
+  const W1 = from.width, H1 = from.height;
+  const W2 = last.width || 1, H2 = last.height || 1;
+  const needsCrop =
+    o.scale && W1 > 0 && H1 > 0 &&
+    Math.abs(W1 / H1 - W2 / H2) > 0.001;
+
+  // Keep the clipped region's corners as round as the element's own, in the
+  // element's local space (so it reads correctly once scaled on screen).
+  const radius = needsCrop
+    ? parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0
+    : 0;
 
   // Sample the eased path into keyframes. Easing is baked into the positions
   // (via `e`), so the WAAPI timing easing stays linear.
@@ -225,24 +248,48 @@ export function arcFlip(el: HTMLElement, from: DOMRect, opts: ArcFlipOptions = {
   for (let i = 0; i <= o.samples; i++) {
     const p = i / o.samples;          // linear time 0→1
     const e = o.easing(p);            // eased progress along the path
-    const x = dx * (1 - e);
     // The downward yield rides the EASED progress (not linear time), so the
     // dip recovers with the easing's own soft, near-zero end velocity — it
     // settles in gently instead of still moving when it stops.
-    const y = dy * (1 - e) + yieldPx * Math.sin(Math.PI * e);
-    const scaleX = sx + (1 - sx) * e;
-    const scaleY = sy + (1 - sy) * e;
-    frames.push({
+    const arcY = yieldPx * Math.sin(Math.PI * e);
+
+    if (!o.scale) {
+      frames.push({
+        offset: p,
+        transform: `translate(${(dx * (1 - e)).toFixed(2)}px, ${(dy * (1 - e) + arcY).toFixed(2)}px)`,
+      });
+      continue;
+    }
+
+    // Visible box at this instant.
+    const curW = W1 + (W2 - W1) * e;
+    const curH = H1 + (H2 - H1) * e;
+    // Uniform scale — cover the visible box, never distort.
+    const s = Math.max(curW / W2, curH / H2);
+    // Local-space overflow to clip away on each axis (one is ~0).
+    const insetX = Math.max(0, (W2 - curW / s) / 2);
+    const insetY = Math.max(0, (H2 - curH / s) / 2);
+    // Translate so the CLIPPED region's top-left lands on the travelling box.
+    const x = dx * (1 - e) - insetX * s;
+    const y = dy * (1 - e) + arcY - insetY * s;
+
+    const kf: Keyframe = {
       offset: p,
-      transform: `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) scale(${scaleX.toFixed(4)}, ${scaleY.toFixed(4)})`,
-    });
+      transform: `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) scale(${s.toFixed(4)})`,
+    };
+    if (needsCrop) {
+      const r = radius ? ` round ${(radius / s).toFixed(2)}px` : '';
+      kf.clipPath = `inset(${insetY.toFixed(2)}px ${insetX.toFixed(2)}px${r})`;
+    }
+    frames.push(kf);
   }
 
   el.style.transformOrigin = 'top left';
-  el.style.willChange = 'transform';
+  el.style.willChange = needsCrop ? 'transform, clip-path' : 'transform';
   // Apply the inverted start synchronously so there's no first-frame flash
   // at the natural position before the animation takes over.
   el.style.transform = frames[0].transform as string;
+  if (needsCrop) el.style.clipPath = frames[0].clipPath as string;
 
   const anim = el.animate(frames, {
     duration: o.duration,
@@ -255,6 +302,7 @@ export function arcFlip(el: HTMLElement, from: DOMRect, opts: ArcFlipOptions = {
     el.style.transform = '';
     el.style.transformOrigin = '';
     el.style.willChange = '';
+    el.style.clipPath = '';
   };
   // Clear inline styles whether the animation finishes OR is cancelled
   // (e.g. a close interrupts it mid-flight), so transform/will-change never leak.
