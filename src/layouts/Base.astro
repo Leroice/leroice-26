@@ -4,11 +4,18 @@ import '../styles/global.css';
 interface Props {
   title?: string;
   description?: string;
+  /** Closed page: no links off it. Drops the nav links, the hamburger and
+   *  its dropdown, and renders the brand as plain text instead of a link
+   *  home — so the page can be shared on its own without leading into the
+   *  rest of the site. Also sets `noindex` (it's a duplicate of a linked
+   *  page; this stops the two competing, it doesn't restrict access). */
+  standalone?: boolean;
 }
 
 const {
   title = 'Leigh Scholten',
   description = 'Designer based in Melbourne.',
+  standalone = false,
 } = Astro.props;
 ---
 
@@ -19,6 +26,7 @@ const {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
+    {standalone && <meta name="robots" content="noindex" />}
 
     <!-- Preload the above-the-fold weights so font-display: optional resolves
          to Geist on first paint (no fallback flash, no layout shift). -->
@@ -80,35 +88,45 @@ const {
 
     <header class="nav">
       <div class="nav__inner">
-        <a href="/" class="nav__brand">
-          Leigh Scholten.<span class="role">Designer</span>
-        </a>
+        {standalone ? (
+          <span class="nav__brand">
+            Leigh Scholten.<span class="role">Designer</span>
+          </span>
+        ) : (
+          <a href="/" class="nav__brand">
+            Leigh Scholten.<span class="role">Designer</span>
+          </a>
+        )}
 
-        <nav class="nav__links">
-          <a href="/about">About</a>
-          <a href="/connect">Connect</a>
-          <a href="/cv">CV</a>
-        </nav>
+        {!standalone && (
+          <>
+            <nav class="nav__links">
+              <a href="/about">About</a>
+              <a href="/connect">Connect</a>
+              <a href="/cv">CV</a>
+            </nav>
 
-        {/* Below --bp-tablet the inline links are hidden and this takes over.
-            Rendered at every width (CSS hides it on desktop) so there's no
-            layout shift and no JS needed to insert it. */}
-        <button
-          class="nav__toggle"
-          type="button"
-          aria-label="Menu"
-          aria-expanded="false"
-          aria-controls="nav-menu"
-          data-nav-toggle
-        >
-          <span class="nav__toggle-bars" aria-hidden="true"><span></span><span></span></span>
-        </button>
+            {/* Below --bp-tablet the inline links are hidden and this takes over.
+                Rendered at every width (CSS hides it on desktop) so there's no
+                layout shift and no JS needed to insert it. */}
+            <button
+              class="nav__toggle"
+              type="button"
+              aria-label="Menu"
+              aria-expanded="false"
+              aria-controls="nav-menu"
+              data-nav-toggle
+            >
+              <span class="nav__toggle-bars" aria-hidden="true"><span></span><span></span></span>
+            </button>
 
-        <nav class="nav__menu" id="nav-menu" data-nav-menu hidden>
-          <a href="/about">About</a>
-          <a href="/connect">Connect</a>
-          <a href="/cv">CV</a>
-        </nav>
+            <nav class="nav__menu" id="nav-menu" data-nav-menu hidden>
+              <a href="/about">About</a>
+              <a href="/connect">Connect</a>
+              <a href="/cv">CV</a>
+            </nav>
+          </>
+        )}
       </div>
     </header>
 

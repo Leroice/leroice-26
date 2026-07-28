@@ -1,0 +1,24 @@
+---
+import Base from '../layouts/Base.astro';
+import CvContent from '../components/CvContent.astro';
+
+/* Standalone, shareable CV — same content as /cv, but a closed page:
+   no nav links, no hamburger, no back link, brand rendered as plain text
+   rather than a link home. Nothing here navigates into the rest of the
+   site, so it can be sent to someone on its own.
+
+   Content comes from the shared CvContent component, so this and /cv
+   stay identical by construction. `noindex` (set by Base's standalone
+   mode) keeps it from competing with /cv as duplicate content — it
+   doesn't restrict access, the URL is still shareable. */
+---
+
+<Base
+  standalone
+  title="Leigh Scholten — CV"
+  description="Product Design Director — two decades of high-impact digital product work across fintech and financial services."
+>
+  <main class="cv">
+    <CvContent />
+  </main>
+</Base>
