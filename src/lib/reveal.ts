@@ -111,6 +111,94 @@ const clearReveal = (el: HTMLElement) => {
   el.style.filter = '';
 };
 
+/* ── Scroll-linked reveal ──────────────────────────────────
+   Case studies are long. Revealing everything on load means the
+   whole page below the fold has already appeared before you reach
+   it — you scroll through content that never moves. These helpers
+   hold below-the-fold blocks hidden and fade+blur them in as they
+   come into view, so the same motion language carries down the page
+   instead of stopping at the fold.
+
+   Grids (the case-study layout kit) reveal their images in sequence
+   rather than as one slab — the load cascade in miniature. */
+
+const GRID_SELECTOR = '.cs-mocks, .cs-3, .cs-2, .cs-rows';
+
+/** Is the element close enough to the fold to belong to the load cascade? */
+export function nearViewport(el: HTMLElement, slack = 0.9): boolean {
+  return el.getBoundingClientRect().top < window.innerHeight * slack;
+}
+
+const hide = (el: HTMLElement, blur: number) => {
+  el.style.transition = 'none';
+  el.style.opacity = '0';
+  el.style.filter = `blur(${blur}px)`;
+  el.style.willChange = 'opacity, filter';
+};
+
+const show = (el: HTMLElement, duration: number, easing: string, delay: number) => {
+  el.style.transition =
+    `opacity ${duration}ms ${easing} ${delay}ms, filter ${duration}ms ${easing} ${delay}ms`;
+  el.style.opacity = '1';
+  el.style.filter = 'blur(0px)';
+  window.setTimeout(() => clearReveal(el), delay + duration + 60);
+};
+
+/**
+ * Hold `els` hidden and fade+blur each in as it scrolls into view. Grid
+ * blocks stagger their own children. Reveals once, then stops watching.
+ * Under reduced motion (or without IntersectionObserver) everything is
+ * simply shown.
+ */
+export function revealOnScroll(els: HTMLElement[], opts: StaggerOptions = {}): () => void {
+  const noop = () => {};
+  if (!els.length) return noop;
+  const { duration = 620, step = 90, blur = 6, easing = IN_EASE } = opts;
+
+  if (reduced() || typeof IntersectionObserver === 'undefined') {
+    for (const el of els) clearReveal(el);
+    return noop;
+  }
+
+  // Hide the unit: a grid hides its children (so they can sequence),
+  // anything else hides itself.
+  const childrenOf = (el: HTMLElement) =>
+    el.matches(GRID_SELECTOR)
+      ? (Array.from(el.children) as HTMLElement[])
+      : [el];
+
+  for (const el of els) for (const part of childrenOf(el)) hide(part, blur);
+
+  const io = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        const el = entry.target as HTMLElement;
+        io.unobserve(el);
+        childrenOf(el).forEach((part, i) => show(part, duration, easing, i * step));
+      }
+    },
+    // Start the fade a little before the block's top edge arrives, so it's
+    // settling as it enters rather than animating in the middle of the screen.
+    { rootMargin: '0px 0px -12% 0px', threshold: 0.01 }
+  );
+
+  for (const el of els) io.observe(el);
+
+  /** Stop watching and return every part to its resting style. Callers that
+   *  tear the content down (the inline detail's close) MUST call this —
+   *  grid children are hidden individually, so without it they'd stay
+   *  invisible when the same detail is reopened. */
+  const cancel = () => {
+    io.disconnect();
+    for (const el of els) for (const part of childrenOf(el)) clearReveal(part);
+  };
+
+  // Failsafe: never let content stay hidden if the observer misbehaves.
+  window.setTimeout(cancel, 10000);
+  return cancel;
+}
+
 /**
  * Site-wide load-in: fade + blur every reveal item in, top-down. Items start
  * hidden via CSS (html.is-js:not(.revealed) ...) so there's no no-JS flash;
@@ -122,15 +210,28 @@ const clearReveal = (el: HTMLElement) => {
 export function revealOnLoad(opts: StaggerOptions = {}): void {
   const root = document.documentElement;
   const reveal = () => root.classList.add('revealed');
-  const els = revealItems();
-  if (!els.length) { reveal(); return; }
+  const all = revealItems();
+  if (!all.length) { reveal(); return; }
+
+  // Only what's on (or near) screen joins the load cascade. Everything
+  // below the fold is handed to the scroll observer, so a long case study
+  // keeps revealing as you move down it instead of arriving pre-revealed.
+  let els = all;
+  let deferred: HTMLElement[] = [];
 
   const finishAll = () => { reveal(); for (const el of els) clearReveal(el); };
   window.setTimeout(finishAll, 4000); // failsafe — nothing stays hidden
 
   try {
-    els.sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top);
-    if (reduced()) { finishAll(); return; }
+    all.sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top);
+    if (reduced()) { els = all; finishAll(); return; }
+
+    els = all.filter((el) => nearViewport(el));
+    deferred = all.filter((el) => !nearViewport(el));
+
+    // Hide the deferred set inline BEFORE `.revealed` drops the CSS gate,
+    // otherwise they'd flash visible for a frame on the way past.
+    revealOnScroll(deferred, opts);
 
     const { duration = 520, step = 60, baseDelay = 40, blur = 6, easing = IN_EASE } = opts;
     els.forEach((el, i) => {
@@ -143,6 +244,7 @@ export function revealOnLoad(opts: StaggerOptions = {}): void {
     }));
     window.setTimeout(finishAll, baseDelay + (els.length - 1) * step + duration + 60);
   } catch {
+    els = all;
     finishAll();
   }
 }

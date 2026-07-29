@@ -479,7 +479,7 @@ const inlineEntries = await Promise.all(
   // Inline transition: list → detail (same page, no navigation)
   // ─────────────────────────────────────────────────────────
   import { arcFlip, concert, easings, makeSpring } from '../lib/arc-flip';
-  import { staggerOut, staggerIn } from '../lib/reveal';
+  import { staggerOut, staggerIn, revealOnScroll, nearViewport } from '../lib/reveal';
   import { subnavElasticEnter, clearSubnavElastic } from '../lib/subnav-elastic';
   import { isUnlocked, promptUnlock } from '../lib/unlock';
 
@@ -561,6 +561,8 @@ const inlineEntries = await Promise.all(
       let closing = false;          // a close is in progress (guards re-entrancy)
       let openRow: HTMLElement | null = null;
       let openDetail: HTMLElement | null = null;
+      // Tears down the open detail's scroll-reveal observer (see restore()).
+      let cancelScrollReveal: (() => void) | null = null;
       let activeAnims: Animation[] = [];
       // Token invalidates stale async callbacks (a close/new-open supersedes a
       // pending open finalize), so a late .then() can't clobber fresh state.
@@ -693,8 +695,17 @@ const inlineEntries = await Promise.all(
             if (myToken !== token) return; // a close/open superseded us
             activeAnims = [];
             list.style.pointerEvents = ''; // restore hover only after the motion
-            // Transition finished — now the body content cascades in.
-            staggerIn(bodyEls, {
+            // Transition finished — the body cascades in, but only the part
+            // you can actually see. The rest is handed to the scroll
+            // observer so it reveals as you move down the case study,
+            // matching the standalone /work/[slug] page exactly.
+            const visible = bodyEls.filter((el) => nearViewport(el));
+            cancelScrollReveal?.();
+            cancelScrollReveal = revealOnScroll(
+              bodyEls.filter((el) => !nearViewport(el)),
+              { blur: CHOREO.stagger.blur }
+            );
+            staggerIn(visible, {
               step: CHOREO.stagger.step,
               blur: CHOREO.stagger.blur,
             }).then(() => {
@@ -753,6 +764,11 @@ const inlineEntries = await Promise.all(
         const restore = () => {
           if (myToken !== token) return; // superseded
           detail.hidden = true;
+          // Stop the scroll observer and un-hide anything it was still
+          // holding — grid children are hidden individually, so skipping
+          // this would leave them invisible when this detail reopens.
+          cancelScrollReveal?.();
+          cancelScrollReveal = null;
           for (const el of outEls) {
             el.style.transition = ''; el.style.opacity = ''; el.style.filter = ''; el.style.willChange = '';
           }
@@ -1001,27 +1017,22 @@ const inlineEntries = await Promise.all(
           flash('reset');
         });
 
-        // Theme — system-driven by default (no data-theme attribute, the
-        // prefers-color-scheme media query decides). Light/Dark force an
-        // override; System clears it. Shares the 'theme' localStorage key
-        // with the footer toggle.
+        // Theme — the site always follows the OS setting; this is a
+        // preview control for checking both palettes without changing
+        // system preferences. Deliberately NOT persisted: it sets
+        // data-theme for this page view only, so a reload returns to the
+        // system setting and no visitor can end up pinned to a palette.
         const themeBtns = Array.from(tuner.querySelectorAll<HTMLButtonElement>('[data-tune-theme]'));
         const syncThemeButtons = () => {
-          let stored: string | null = null;
-          try { stored = localStorage.getItem('theme'); } catch { /* ignore */ }
-          const active = stored === 'light' || stored === 'dark' ? stored : 'system';
+          const attr = document.documentElement.getAttribute('data-theme');
+          const active = attr === 'light' || attr === 'dark' ? attr : 'system';
           for (const b of themeBtns) b.classList.toggle('is-active', b.dataset.tuneTheme === active);
         };
         for (const b of themeBtns) {
           b.addEventListener('click', () => {
             const mode = b.dataset.tuneTheme;
-            if (mode === 'system') {
-              try { localStorage.removeItem('theme'); } catch { /* ignore */ }
-              document.documentElement.removeAttribute('data-theme');
-            } else if (mode) {
-              try { localStorage.setItem('theme', mode); } catch { /* ignore */ }
-              document.documentElement.setAttribute('data-theme', mode);
-            }
+            if (mode === 'system') document.documentElement.removeAttribute('data-theme');
+            else if (mode) document.documentElement.setAttribute('data-theme', mode);
             syncThemeButtons();
             flash(`theme: ${mode}`);
           });

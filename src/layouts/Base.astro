@@ -59,10 +59,11 @@ const {
 
     <script is:inline>
       (() => {
-        const stored = localStorage.getItem('theme');
-        if (stored === 'light' || stored === 'dark') {
-          document.documentElement.setAttribute('data-theme', stored);
-        }
+        // Theme follows the OS setting — prefers-color-scheme in global.css
+        // decides, with no attribute set here. A stale `theme` key from the
+        // old footer toggle would otherwise pin a returning visitor to a
+        // choice they can no longer change, so clear it once.
+        try { localStorage.removeItem('theme'); } catch { /* private mode */ }
         // Mark JS available so [data-reveal] content can start hidden (and
         // fade+blur in) without ever flashing for no-JS users. Failsafe: drop
         // the flag after 4s so content can't stay hidden if the reveal stalls.
@@ -134,29 +135,7 @@ const {
 
     <footer class="foot">
       <span>© {new Date().getFullYear()} Leigh Scholten</span>
-      <button
-        class="theme-toggle"
-        type="button"
-        aria-label="Toggle theme"
-        data-theme-toggle
-      >
-        theme
-      </button>
     </footer>
-
-    <script>
-      const btn = document.querySelector('[data-theme-toggle]');
-      btn?.addEventListener('click', () => {
-        const current = document.documentElement.getAttribute('data-theme');
-        const prefers = window.matchMedia('(prefers-color-scheme: dark)').matches
-          ? 'dark'
-          : 'light';
-        const resolved = current || prefers;
-        const next = resolved === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', next);
-        localStorage.setItem('theme', next);
-      });
-    </script>
 
     <script>
       // Mobile nav. The panel is [hidden] when closed (so it's out of the
