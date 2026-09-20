@@ -254,7 +254,12 @@ img, video {
    subnavs would otherwise trip a plain :has(.detail__subnav)). */
 body:has(article.detail) .nav,
 body:has(.split.is-detail) .nav {
-  position: static;
+  /* relative, NOT static. Laid out identically (no offsets), but .nav's
+     backdrop-filter creates a stacking context, and on a static element
+     its z-index is ignored — the whole nav group then collapses to 0 and
+     .row (z-index: 1) paints over the open dropdown, so taps on the menu
+     land on the list row beneath it. */
+  position: relative;
 }
 
 .nav__inner {
@@ -391,6 +396,20 @@ body:has(.split.is-detail) .nav {
 }
 .nav__menu a:hover,
 .nav__menu a:focus-visible { opacity: 1; }
+
+/* No tap flash and no focus ring on the hamburger or its links. Safari and
+   Chrome on Android paint a blue box on tap; :focus-visible is meant to
+   spare pointer input but both still show it on a touched <button>.
+   Keyboard focus is untouched — :focus-visible above still lifts opacity,
+   so tabbing through is still legible. */
+.nav__toggle,
+.nav__menu a {
+  -webkit-tap-highlight-color: transparent;
+}
+.nav__toggle:focus:not(:focus-visible),
+.nav__menu a:focus:not(:focus-visible) {
+  outline: none;
+}
 
 .nav__menu.is-open {
   animation: nav-menu-in 240ms var(--image-ease) both;
@@ -1865,8 +1884,10 @@ dialog.unlock.is-closing::backdrop {
    the case-study kit section). */
 @media (--bp-phone) {
   /* On phones the primary nav scrolls away on every page — only the
-     detail subnav pins. Chrome stays minimal. */
-  .nav { position: static; }
+     detail subnav pins. Chrome stays minimal.
+     relative, not static: see the note on the detail-page rule above —
+     static would sink the dropdown beneath the list rows. */
+  .nav { position: relative; }
   .nav__inner {
     padding-left: var(--side-pad);
     padding-right: var(--side-pad);
