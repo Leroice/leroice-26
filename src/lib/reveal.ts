@@ -249,6 +249,163 @@ export function revealOnLoad(opts: StaggerOptions = {}): void {
   }
 }
 
+/* ── Wipe reveal ───────────────────────────────────────────
+   A soft left-to-right gradient wipe for the case-study body, played as
+   one cohesive group once the hero has finished transitioning.
+
+   Unlike everything else in this file it moves no pixels and touches no
+   opacity on the content itself: the mask does all the work, so the text
+   is stationary and unblurred throughout. The geometry is set up in
+   global.css (see --wipe); this only drives the value and cleans up.
+
+   Why a custom property rather than animating mask-position directly:
+   `mask-position` needs a -webkit- duplicate for Safari, and animating
+   both in lockstep is fragile. Registering --wipe means one animatable
+   value feeds both declarations — the same trick .list__pill-wrap already
+   uses with --pill-visible. */
+
+const WIPE_MS = 400;
+
+/**
+ * Run the wipe on `el`, resolving when it lands. The mask is removed on
+ * completion: leaving one on a long scrolling container keeps it
+ * composited for the life of the page for no benefit, and a lingering
+ * mask would clip any sticky descendant added later.
+ *
+ * Reduced motion resolves immediately with the content simply shown.
+ * Safe to call on an element that was never armed — it just unmasks.
+ */
+export function wipeReveal(el: HTMLElement): Promise<void> {
+  const done = () => {
+    el.classList.remove('is-wiping', 'is-armed');
+    el.classList.add('is-wiped'); // drops the mask entirely
+  };
+  // Arming here as well as in armWipe() means a caller can just call
+  // wipeReveal() on a fresh element (the standalone page does) without
+  // depending on the html.is-js gate still being present.
+  el.classList.add('is-armed');
+
+  if (reduced()) { done(); return Promise.resolve(); }
+
+  return new Promise<void>((resolve) => {
+    let settled = false;
+    let failsafe = 0;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      el.removeEventListener('transitionend', onEnd);
+      window.clearTimeout(failsafe);
+      window.clearTimeout(longStop);
+      done();
+      resolve();
+    };
+    // Custom-property transitions do fire transitionend, with
+    // propertyName set to the property's name.
+    const onEnd = (e: TransitionEvent) => {
+      if (e.propertyName === '--wipe') finish();
+    };
+    el.addEventListener('transitionend', onEnd);
+
+    // Backstop for the case where the frames below never arrive at all —
+    // rAF is paused while the tab is in the background, so without this
+    // the promise would hang and the inline detail would stay `busy`.
+    const longStop = window.setTimeout(finish, WIPE_MS + 2000);
+
+    // Two frames: one for the armed state to be committed, one for the
+    // transition to have a start value to interpolate from. A single rAF
+    // gets coalesced and the wipe snaps.
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      // These frames can land long after the fact — a backgrounded tab
+      // parks rAF, so a backstop or a close() may already have finished
+      // this wipe. Adding the class now would re-arm a transition on
+      // content that is already settled and visible.
+      if (settled) return;
+      el.classList.add('is-wiping');
+      // Start the completion timer only once the animation is genuinely
+      // under way. Timing it from the call instead would let a delayed
+      // first frame eat the whole budget and skip the wipe entirely.
+      failsafe = window.setTimeout(finish, WIPE_MS + 250);
+    }));
+  });
+}
+
+/**
+ * Put `el` back in the pre-wipe (fully masked) state so it can play again.
+ * The inline detail reopens the same element, and must call this BEFORE
+ * the hero starts moving — arming late would show the body for a frame.
+ *
+ * Adds .is-armed rather than leaning on html.is-js, which expires 4s after
+ * load and so cannot cover a row opened later in the session.
+ */
+export function armWipe(el: HTMLElement): void {
+  el.classList.remove('is-wiping', 'is-wiped');
+  el.classList.add('is-armed');
+}
+
+/** Drop the mask and any wipe state — for teardown paths that want the
+ *  content simply visible (the inline close, before the detail is hidden). */
+export function clearWipe(el: HTMLElement): void {
+  el.classList.remove('is-wiping', 'is-armed');
+  el.classList.add('is-wiped');
+}
+
+/**
+ * Wipe the blocks of `container` that are actually on screen, together.
+ *
+ * The container itself carries [data-wipe] purely as the pre-paint gate —
+ * masking it is what stops a flash before JS runs. It must NOT be what
+ * animates: it spans the whole case study, so wiping it drags every image
+ * down the page through the same sweep. Only the blocks in view should
+ * move; everything below belongs to the scroll observer.
+ *
+ * The hand-off (arm the blocks, unmask the container) happens in one
+ * synchronous step so there is no frame where either is visible early.
+ */
+export function wipeRevealVisible(
+  container: HTMLElement,
+  blocks: HTMLElement[]
+): () => void {
+  // Hand off from the container gate to the individual blocks in one step,
+  // so there is no frame where anything is unmasked early.
+  for (const el of blocks) {
+    el.setAttribute('data-wipe', '');
+    armWipe(el);
+  }
+  clearWipe(container);
+
+  const onScreen = blocks.filter((el) => nearViewport(el));
+  for (const el of onScreen) wipeReveal(el);
+
+  const rest = blocks.filter((el) => !nearViewport(el));
+  if (!rest.length || reduced() || typeof IntersectionObserver === 'undefined') {
+    for (const el of rest) clearWipe(el);
+    return () => {};
+  }
+
+  // Everything below the fold wipes as it arrives. A tall hero means the
+  // body is usually entirely off-screen when the hero lands, so without
+  // this almost nothing would ever wipe — and masking the whole body
+  // instead just drags every image down the page through one sweep.
+  const io = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        io.unobserve(entry.target);
+        wipeReveal(entry.target as HTMLElement);
+      }
+    },
+    { rootMargin: '0px 0px -12% 0px', threshold: 0.01 }
+  );
+  for (const el of rest) io.observe(el);
+
+  const cancel = () => {
+    io.disconnect();
+    for (const el of blocks) clearWipe(el);
+  };
+  window.setTimeout(cancel, 20000); // never strand content behind a mask
+  return cancel;
+}
+
 /**
  * Site-wide exit: fade + blur the page's content out (rippling from `origin`),
  * then navigate to `href`. Honours reduced motion and always navigates even if

@@ -1050,6 +1050,105 @@ html.is-js:not(.revealed) [data-reveal-children] > * {
   html.is-js [data-reveal-children] > * { opacity: 1; filter: none; }
 }
 
+/* ── Wipe reveal (case-study body) ──────────────────────────
+   A soft left-to-right gradient wipe, played once the hero has finished
+   transitioning. Driven by wipeReveal() in reveal.ts.
+
+   GEOMETRY. The mask layer is 300% of the container wide and holds three
+   equal bands: solid | feather | clear. Making each band one container
+   wide is what gives the feather a width of exactly 100% of the content
+   container, so the fade spans the whole thing rather than travelling as
+   a narrow edge — that softness is the entire effect.
+
+     layer:  [ opaque W ][ feather W ][ transparent W ]
+
+   Percentage mask-position aligns proportionally, so with a 3W layer in a
+   1W box the offset runs (1W - 3W) x P = -2W x P:
+     --wipe: 100%  ->  layer sits at -2W, box reads the transparent band
+     --wipe: 0%    ->  layer sits at 0,   box reads the opaque band
+
+   So the value runs 100% -> 0% and the soft edge sweeps left to right.
+
+   --wipe has to be registered: unregistered custom properties are not
+   animatable, so a transition on one is silently ignored. Registering it
+   also lets ONE animatable value feed both the standard and -webkit-
+   mask-position declarations, which is the reason for doing it this way
+   rather than animating mask-position directly. */
+@property --wipe {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 100%;
+}
+
+/* TWO arming routes, deliberately.
+
+   html.is-js covers the initial page load: it is set before first paint,
+   so the body is masked from the very first frame and never flashes. But
+   that class is a LOAD-TIME gate — Base.astro's bootstrap drops it after
+   4s as an escape hatch — so it cannot be the only route, or a row opened
+   on the home list more than 4s after load would mask nothing and the
+   body would simply appear.
+
+   .is-armed is the explicit route, added by armWipe() whenever a wipe is
+   about to be staged. It has no expiry, so the inline detail wipes
+   correctly however long the page has been sitting there.
+
+   Without JS neither applies, the mask is never installed, and the
+   content is plainly visible — same contract as [data-reveal] above. */
+html.is-js [data-wipe],
+[data-wipe].is-armed {
+  --wipe: 100%;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    #000 0%, #000 33.333%, transparent 66.666%, transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    #000 0%, #000 33.333%, transparent 66.666%, transparent 100%
+  );
+  -webkit-mask-size: 300% 100%;
+  mask-size: 300% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: var(--wipe) 0;
+  mask-position: var(--wipe) 0;
+}
+
+html.is-js [data-wipe].is-wiping,
+[data-wipe].is-armed.is-wiping {
+  transition: --wipe 400ms cubic-bezier(0.27, 0, 0.51, 1);
+  --wipe: 0%;
+}
+
+/* Once played, drop the mask outright. Keeping one on a long scrolling
+   container pins it to its own composited layer for the life of the page,
+   and would clip any sticky descendant added here later. */
+/* Both selectors are needed: html.is-js [data-wipe] scores (0,2,1), so a
+   bare [data-wipe].is-wiped at (0,2,0) would lose to it and the mask
+   would stay installed after the wipe had finished. */
+html.is-js [data-wipe].is-wiped,
+[data-wipe].is-wiped {
+  -webkit-mask-image: none;
+  mask-image: none;
+  /* Belt and braces. Dropping .is-wiping reverts --wipe to its 100%
+     initial value, so the settled state relies on this rule landing in
+     the same frame. Pinning --wipe to 0% as well means that even if the
+     mask-image reset were ever outranked, the mask would be fully open
+     rather than hiding the body outright. */
+  --wipe: 0%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* No wipe at all — the content is just there. */
+  html.is-js [data-wipe],
+  [data-wipe].is-armed,
+  [data-wipe].is-wiping {
+    -webkit-mask-image: none;
+    mask-image: none;
+    transition: none;
+  }
+}
+
 /* Detail subnav — elastic entrance (springs in once on page load, driven by
    subnav-elastic.ts). Pure opacity here; the JS sets the starting transform
    inline before first paint so there's no flash of the resting position. */

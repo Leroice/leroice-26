@@ -124,7 +124,9 @@ const inlineEntries = await Promise.all(
               alt={entry.data.coverAlt ?? entry.data.title}
             />
           )}
-          <div class="detail__body">
+          {/* Wipes in as one group once the hero FLIP lands — see the
+              open() choreography below. */}
+          <div class="detail__body" data-wipe>
             <Content />
           </div>
         </div>
@@ -480,7 +482,14 @@ const inlineEntries = await Promise.all(
   // Inline transition: list → detail (same page, no navigation)
   // ─────────────────────────────────────────────────────────
   import { arcFlip, concert, easings, makeSpring } from '../lib/arc-flip';
-  import { staggerOut, staggerIn, revealOnScroll, nearViewport } from '../lib/reveal';
+  import {
+    staggerOut,
+    staggerIn,
+    revealOnScroll,
+    nearViewport,
+    wipeRevealVisible,
+    armWipe,
+  } from '../lib/reveal';
   import { subnavElasticEnter, clearSubnavElastic } from '../lib/subnav-elastic';
   import { isUnlocked, promptUnlock } from '../lib/unlock';
 
@@ -666,16 +675,16 @@ const inlineEntries = await Promise.all(
 
           // The case-study body is a SECOND beat, not part of the
           // list→detail move: it stays hidden while the hero flip and the
-          // subnav elastic play, and only cascades in once both have
-          // finished. (Held in the same fade-from-blur hidden state
-          // staggerIn animates from, so nothing flashes in between.)
+          // subnav elastic play, and only wipes in once both have finished.
+          //
+          // The hiding is the [data-wipe] mask, not per-child opacity — the
+          // group reveals as one cohesive wipe, so the children must NOT be
+          // individually faded or they'd read as a second, competing
+          // animation underneath the mask.
           const bodyEls = [
             ...(bodyText ? (Array.from(bodyText.children) as HTMLElement[]) : []),
           ].filter(Boolean) as HTMLElement[];
-          for (const el of bodyEls) {
-            el.style.opacity = '0';
-            el.style.filter = `blur(${CHOREO.stagger.blur}px)`;
-          }
+          if (bodyText) armWipe(bodyText);
 
           // The image FLIPs in from the preview pane. DetailSubnav appears on
           // its own beat, right after the cascade — its entrance is entirely
@@ -702,22 +711,15 @@ const inlineEntries = await Promise.all(
             if (myToken !== token) return; // a close/open superseded us
             activeAnims = [];
             list.style.pointerEvents = ''; // restore hover only after the motion
-            // Transition finished — the body cascades in, but only the part
-            // you can actually see. The rest is handed to the scroll
-            // observer so it reveals as you move down the case study,
-            // matching the standalone /work/[slug] page exactly.
-            const visible = bodyEls.filter((el) => nearViewport(el));
+            // Hero flip + subnav have both landed — this IS the completion
+            // cue for the wipe, rather than a duration copied from them.
+            // Below-fold blocks still get the scroll observer so they
+            // reveal as you move down, matching /work/[slug] exactly.
             cancelScrollReveal?.();
-            cancelScrollReveal = revealOnScroll(
-              bodyEls.filter((el) => !nearViewport(el)),
-              { blur: CHOREO.stagger.blur }
-            );
-            staggerIn(visible, {
-              step: CHOREO.stagger.step,
-              blur: CHOREO.stagger.blur,
-            }).then(() => {
-              if (myToken === token) busy = false;
-            });
+            cancelScrollReveal = bodyText
+              ? wipeRevealVisible(bodyText, bodyEls)
+              : null;
+            if (myToken === token) busy = false;
           });
         };
 
@@ -782,6 +784,19 @@ const inlineEntries = await Promise.all(
           // Clear subnav-elastic's own inline styles too (transform,
           // column-gap) — outEls above only covers staggerOut's properties.
           clearSubnavElastic(detail);
+          // Re-arm the wipe. This element is reused on every reopen, so
+          // leaving it in the .is-wiped state would mean the body was
+          // already unmasked and simply appeared next time. Strip the
+          // per-block markers too — wipeRevealVisible re-picks which
+          // blocks are on screen each time, and the scroll position may
+          // differ on the next open.
+          if (bodyText) {
+            for (const el of Array.from(bodyText.children) as HTMLElement[]) {
+              el.removeAttribute('data-wipe');
+              el.classList.remove('is-armed', 'is-wiping', 'is-wiped');
+            }
+            armWipe(bodyText);
+          }
 
           split.classList.remove('is-detail');
           row.style.cssText = '';

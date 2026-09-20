@@ -38,7 +38,10 @@ const slug = entry.id.replace(/\.md$/, '');
       />
     )}
 
-    <div class="detail__body" id="details" data-reveal-children>
+    {/* data-wipe, not data-reveal-children: the body reveals as ONE group
+        via the gradient wipe rather than per-child. Both are gated on
+        html.is-js, so no-JS still renders it plainly visible. */}
+    <div class="detail__body" id="details" data-wipe>
       <Content />
     </div>
   </article>
@@ -47,7 +50,58 @@ const slug = entry.id.replace(/\.md$/, '');
 </Base>
 
 <script>
+  /* One script block, not two. Astro compiles each <script> separately and
+     reorders them; split across two blocks the import below was dropped
+     from the emitted module and the wipe threw ReferenceError at runtime. */
   import { isUnlocked, promptUnlock } from '../../lib/unlock';
+  import { wipeRevealVisible } from '../../lib/reveal';
+
+  /* Hero → body choreography (standalone case-study page).
+
+     The body wipes in once the hero has finished its own reveal. The cue
+     is the hero's transitionend, i.e. the existing animation's lifecycle
+     — not a duplicated duration that would drift the moment anyone
+     retimes revealOnLoad. */
+  {
+    const body = document.querySelector<HTMLElement>('.detail__body[data-wipe]');
+    if (body) {
+      const hero = document.querySelector<HTMLElement>('.detail__hero');
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      let started = false;
+      let failsafe = 0;
+      const start = () => {
+        if (started) return;
+        started = true;
+        window.clearTimeout(failsafe);
+        hero?.removeEventListener('transitionend', onHeroEnd);
+
+        // Each block wipes on its own — the ones already in view now, the
+        // rest as they scroll up. One mask over the whole body would sweep
+        // every image on the page at once.
+        const blocks = Array.from(body.children) as HTMLElement[];
+        wipeRevealVisible(body, blocks);
+      };
+
+      // The hero transitions both opacity and filter; only take the first.
+      const onHeroEnd = (e: TransitionEvent) => {
+        if (e.propertyName === 'opacity') start();
+      };
+
+      // No hero (a case study without a cover), or reduced motion where
+      // revealOnLoad resolves instantly and never fires a transition.
+      if (!hero || reduce) {
+        start();
+      } else {
+        hero.addEventListener('transitionend', onHeroEnd);
+      }
+
+      // Failsafe: the hero can be revealed without transitioning (the
+      // 4s is-js escape hatch, a cached instant paint). Never strand the
+      // body behind a mask waiting for an event that isn't coming.
+      failsafe = window.setTimeout(start, 2200);
+    }
+  }
 
   // Deep-link gate: a locked project's page holds its content blurred
   // behind the code-entry dialog. Dismissing the dialog returns home.
