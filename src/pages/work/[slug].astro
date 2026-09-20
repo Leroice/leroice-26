@@ -38,13 +38,69 @@ const slug = entry.id.replace(/\.md$/, '');
       />
     )}
 
-    <div class="detail__body" id="details" data-reveal-children>
+    {/* data-wipe, not data-reveal-children: the body reveals as ONE group
+        via the gradient wipe rather than per-child. Both are gated on
+        html.is-js, so no-JS still renders it plainly visible. */}
+    <div class="detail__body" id="details" data-wipe>
       <Content />
     </div>
   </article>
 
   {entry.data.locked && <UnlockDialog />}
 </Base>
+
+<script>
+  /* Hero → body choreography (standalone case-study page).
+
+     The body wipes in once the hero has finished its own reveal. The cue
+     is the hero's transitionend, i.e. the existing animation's lifecycle
+     — not a duplicated duration that would drift the moment anyone
+     retimes revealOnLoad. */
+  import { wipeReveal, revealOnScroll, nearViewport } from '../../lib/reveal';
+
+  {
+    const body = document.querySelector<HTMLElement>('.detail__body[data-wipe]');
+    if (body) {
+      const hero = document.querySelector<HTMLElement>('.detail__hero');
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      let started = false;
+      let failsafe = 0;
+      const start = () => {
+        if (started) return;
+        started = true;
+        window.clearTimeout(failsafe);
+        hero?.removeEventListener('transitionend', onHeroEnd);
+
+        // Below-the-fold blocks keep their own scroll choreography. They sit
+        // inside the wiping group but are off-screen while it plays, so the
+        // two never overlap visually.
+        const blocks = Array.from(body.children) as HTMLElement[];
+        revealOnScroll(blocks.filter((el) => !nearViewport(el)));
+
+        wipeReveal(body);
+      };
+
+      // The hero transitions both opacity and filter; only take the first.
+      const onHeroEnd = (e: TransitionEvent) => {
+        if (e.propertyName === 'opacity') start();
+      };
+
+      // No hero (a case study without a cover), or reduced motion where
+      // revealOnLoad resolves instantly and never fires a transition.
+      if (!hero || reduce) {
+        start();
+      } else {
+        hero.addEventListener('transitionend', onHeroEnd);
+      }
+
+      // Failsafe: the hero can be revealed without transitioning (the
+      // 4s is-js escape hatch, a cached instant paint). Never strand the
+      // body behind a mask waiting for an event that isn't coming.
+      failsafe = window.setTimeout(start, 2200);
+    }
+  }
+</script>
 
 <script>
   import { isUnlocked, promptUnlock } from '../../lib/unlock';
