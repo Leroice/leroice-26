@@ -1,6 +1,6 @@
 # Handoff — leroice.com
 
-Written for whoever (Claude Code or otherwise) picks this up next. Covers where the code stands, an active deployment blocker, and standing preferences worth knowing before touching anything.
+Written for whoever (Claude Code or otherwise) picks this up next. Covers where the code stands, how deployment works, and standing preferences worth knowing before touching anything.
 
 ## Project basics
 
@@ -10,20 +10,25 @@ Written for whoever (Claude Code or otherwise) picks this up next. Covers where 
 - `npm run dev` / `npm run build` / `npm run preview` — standard Astro scripts, nothing custom.
 - Content model: `src/content/work/*.md` (Astro content collection `work`), rendered by `src/pages/index.astro` (home list + inline case-study transition) and `src/pages/work/[slug].astro` (deep-link case-study page).
 
-## Active blocker: Vercel isn't deploying
+## Deployment — auto-deploy from `main` (resolved 2026-09-20)
 
-Local `main` and `origin/main` are both at commit `6923a2d` — the push succeeded, GitHub has the latest code. **Vercel's Production Deployment is still on an old commit (`5caa8dc`, Jun 24)** because the GitHub repo was never connected to this Vercel project.
+**Push to `main` and the site deploys itself.** The GitHub repo is connected to the Vercel project; production branch is `main`, fork protection on. No manual step is required, and `vercel --prod` should no longer be part of anyone's routine — reaching for it by habit is how the live site silently drifted behind `main` before.
 
-What's been established:
-- The Vercel account's linked GitHub identity is `leroice-meddle`. Its repo list (MeDS, leroice, design-system, MEDDLE-DS, meddle-design-system) does **not** include `leroice-26` — that repo lives under a different GitHub org, `Leroice` (capital L).
-- Mid-troubleshooting, `leroice-meddle/leroice` (wrong repo) got connected by accident — this has been disconnected again. Project is currently in a clean, disconnected state.
-- Tried "Add GitHub Account" to link an identity with access to the `Leroice` org — user hit a conflict during that OAuth step (exact wording not captured).
+This was blocked for a long time by a GitHub identity mismatch, recorded here so the same dead ends aren't re-walked:
 
-Next step (needs Leigh's GitHub login — cannot be completed by an agent without credentials):
-1. `vercel.com/ls-2955s-projects/leroice-26/settings/git` → **GitHub** → account dropdown → **Add GitHub Account** → authorize whichever GitHub login has access to `Leroice/leroice-26`.
-2. If it conflicts again: that likely means the target GitHub account is already linked to a *different* Vercel account. Check `github.com` → Settings → Applications → Vercel → Configure, to see what it's currently scoped to — or grant the Vercel GitHub App access to the `Leroice` org directly from GitHub's org settings.
-3. Once the right account is connected, search `leroice-26` in the repo list and hit **Connect**. This deploys current `main` immediately and wires up auto-deploy for future pushes.
-4. Fallback if you just need it live *now*: `vercel --prod` from the CLI (requires `vercel login`) — gets today's build out without fixing the underlying git connection, so the same problem will recur on the next push.
+- `Leroice/leroice-26` is owned by the **`Leroice` personal user account** (id 700842) — *not* an org, which is what earlier notes assumed. That assumption sent troubleshooting toward org-settings paths that don't exist for a user-owned repo.
+- The Vercel account (`ls-2955`, ls@leroice.com) had been OAuth-linked to an unrelated GitHub account. `vercel git connect` therefore checked write access as the wrong identity and failed with `You need admin or write access to the repository "leroice-26" to link it. (400)`.
+- **Diagnosing this from the CLI:** `GET https://api.vercel.com/v1/integrations/git-namespaces?provider=github` (bearer token from `~/Library/Application Support/com.vercel.cli/auth.json`) lists what the linked GitHub identity can actually see. It returned `[]` — no working link at all. That single call distinguishes "wrong account linked" from "app lacks repo access", which the 400 alone does not.
+- Fix was two separate things, and **both are required** — doing only one reproduces the same 400:
+  1. GitHub side: Vercel GitHub App installed with access to `leroice-26` (`github.com/settings/installations`).
+  2. Vercel side: account-level GitHub OAuth link repointed to `Leroice` (`vercel.com/account/authentication`). Log the browser into the right GitHub account *first*, in a private window — otherwise the OAuth step silently reuses the existing session and nothing changes.
+- Once `git-namespaces` returned `Leroice`, `vercel git connect --yes` succeeded immediately.
+
+Verify the link at any time:
+```
+curl -s -H "Authorization: Bearer $TOK" \
+  "https://api.vercel.com/v9/projects/$PROJECT_ID?teamId=$TEAM_ID" | jq .link
+```
 
 ## What shipped in commit `6923a2d` (on GitHub, not yet live)
 
@@ -59,8 +64,13 @@ Splitting a Western Union client asset dump (35+ frames — cards, screens, icon
 ## MCP / tool access notes
 
 - **Figma MCP**: used throughout this session for `get_design_context`/`get_motion_context`/`use_figma` pulls — working, no auth issue encountered.
-- **GitHub**: push access confirmed working (HTTPS remote, though the sandboxed shell itself has no stored credentials — pushes were done from the user's own machine). The *Vercel* side's GitHub App connection is the actual blocker (see above), not repo access itself.
-- **Vercel**: no CLI/API token available in-session; all diagnosis was done via the web dashboard through a browser tool. If Claude Code has `vercel` CLI access with a valid login, that's a more direct path for checking/fixing deploys than the dashboard.
+- **GitHub**: push access works over the HTTPS remote. Note the machine's keychain has served the wrong GitHub account here before, producing `Permission to Leroice/leroice-26.git denied to leroice-meddle`. If that returns, the repo-local fix is a credential helper that defers to the `gh` CLI's active account:
+  ```
+  git config --local --add credential.https://github.com.helper ""
+  git config --local --add credential.https://github.com.helper "!gh auth git-credential"
+  ```
+  The empty first value clears inherited global helpers (osxkeychain) so the `gh` one actually wins. Check which account `gh` is active as with `gh auth status`.
+- **Vercel**: the `vercel` CLI is logged in as `ls-2955` and is the fastest path for checking deploys (`vercel ls --prod`) — faster than the dashboard. Its token lives at `~/Library/Application Support/com.vercel.cli/auth.json` and works directly against `api.vercel.com` for anything the CLI doesn't surface. Tokens do expire; `vercel login` is an interactive browser flow an agent cannot complete, so that step has to go to Leigh.
 
 ## Preferences observed this session (worth internalizing)
 
