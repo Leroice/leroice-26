@@ -1,0 +1,194 @@
+---
+import Base from '../layouts/Base.astro';
+
+/* Effects playground — not part of the site.
+
+   Somewhere to try liquid/goo techniques against this codebase's own tokens
+   and spring physics before any of it goes near the real pages. Uses Base's
+   standalone mode, so it carries noindex and no nav links: reachable if you
+   know the URL, invisible otherwise.
+
+   Delete this page (and src/lib/liquid.ts, if nothing else has adopted it)
+   when the experiment resolves either way. */
+---
+
+<Base standalone title="Lab — liquid effects" description="Effects playground.">
+  <!-- Goo filters live here, not in Base, so the lab can't affect the site.
+       Two ids because the demos want different reach: the merge demo needs a
+       wide blur to bridge a real gap, the trail a tighter one so the droplet
+       stays legible as a droplet. -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <filter id="lab-goo-merge">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="b" />
+        <feColorMatrix
+          in="b"
+          mode="matrix"
+          values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -9"
+          result="goo"
+        />
+      </filter>
+      <filter id="lab-goo-trail">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="b" />
+        <feColorMatrix
+          in="b"
+          mode="matrix"
+          values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -8"
+          result="goo"
+        />
+      </filter>
+    </defs>
+  </svg>
+
+  <main class="lab">
+    <header class="lab__head">
+      <h1>Liquid effects</h1>
+      <p>
+        Vanilla ports of the techniques in <code>liquid-gooey</code>, run on an
+        SVG silhouette layer rather than a CSS filter over HTML. Nothing here is
+        wired into the site.
+      </p>
+    </header>
+
+    <section class="lab__demo">
+      <h2>Move — liquid trail</h2>
+      <p class="lab__note">Move the pointer inside the panel.</p>
+      <div class="lab__stage" data-trail></div>
+
+      <div class="lab__knobs" data-knobs>
+        <label>springiness<input type="range" min="0" max="1" step="0.01" value="0.5" data-k="springiness" /><output>0.50</output></label>
+        <label>wobble<input type="range" min="0" max="1" step="0.01" value="0.5" data-k="wobble" /><output>0.50</output></label>
+        <label>stretch<input type="range" min="0" max="1" step="0.01" value="0.36" data-k="stretch" /><output>0.36</output></label>
+        <label>trail<input type="range" min="0" max="1" step="0.01" value="0.575" data-k="trail" /><output>0.58</output></label>
+      </div>
+    </section>
+
+    <section class="lab__demo">
+      <h2>Morph — gooey merge</h2>
+      <p class="lab__note">
+        Two bodies bridging as they meet. This is what the site's
+        <code>#leroice-goo</code> filter was built for but never got — it has
+        only ever had one pill to work with, and one body cannot merge.
+      </p>
+      <div class="lab__stage lab__stage--merge">
+        <svg class="lab__merge" viewBox="0 0 600 220" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+          <g filter="url(#lab-goo-merge)" fill="var(--text-primary)">
+            <circle cx="180" cy="110" r="46" />
+            <circle cx="420" cy="110" r="46" data-merge-travel />
+          </g>
+        </svg>
+      </div>
+    </section>
+  </main>
+</Base>
+
+<style>
+  .lab {
+    max-width: var(--content-max, 72rem);
+    margin: 0 auto;
+    padding: var(--sp-6, 3rem) var(--side-pad, 1.5rem) var(--sp-8, 6rem);
+    display: grid;
+    gap: var(--sp-6, 3rem);
+  }
+  .lab__head h1 {
+    font-size: var(--fs-h1, 2rem);
+    margin: 0 0 var(--sp-2, 0.5rem);
+  }
+  .lab__head p,
+  .lab__note {
+    color: var(--text-secondary, #888);
+    font-size: var(--fs-body, 0.875rem);
+    max-width: 46ch;
+    margin: 0;
+  }
+  .lab__demo { display: grid; gap: var(--sp-3, 0.75rem); }
+  .lab__demo h2 {
+    font-size: var(--fs-h3, 1.125rem);
+    margin: 0;
+  }
+  .lab__stage {
+    position: relative;
+    height: 320px;
+    border-radius: var(--radius-md, 12px);
+    background: var(--surface-raised, rgba(128, 128, 128, 0.08));
+    overflow: hidden;
+    /* The blob inherits this via currentColor. */
+    color: var(--text-primary, #000);
+    touch-action: none;
+  }
+  .lab__stage--merge { height: 240px; display: grid; place-items: center; }
+  .lab__merge { width: 100%; height: 100%; }
+
+  /* The SVG layer the trail renders into — fills the stage, never catches
+     pointer events (the stage itself is the listener). */
+  .lab__stage :global(.liquid__layer) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  .lab__knobs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: var(--sp-2, 0.5rem) var(--sp-4, 1.5rem);
+    font-size: var(--fs-small, 0.75rem);
+    color: var(--text-secondary, #888);
+  }
+  .lab__knobs label {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 0.25rem 0.5rem;
+  }
+  .lab__knobs input { grid-column: 1 / -1; width: 100%; }
+  .lab__knobs output { font-variant-numeric: tabular-nums; }
+
+  @media (prefers-reduced-motion: reduce) {
+    /* The merge demo is the only thing here that moves unprompted. The trail
+       is pointer-driven, so it stays — the visitor is choosing to move it. */
+    .lab__merge :global([data-merge-travel]) { animation: none !important; }
+  }
+</style>
+
+<script>
+  import { liquidTrail, type TrailOpts } from '../lib/liquid';
+
+  const stage = document.querySelector<HTMLElement>('[data-trail]');
+  if (stage) {
+    const trail = liquidTrail(stage, 'lab-goo-trail', { radius: 30 });
+
+    stage.addEventListener('pointermove', (e) => {
+      const r = stage.getBoundingClientRect();
+      trail.moveTo(e.clientX - r.left, e.clientY - r.top);
+    });
+
+    const knobs = document.querySelector<HTMLElement>('[data-knobs]');
+    knobs?.addEventListener('input', (e) => {
+      const input = e.target as HTMLInputElement;
+      const key = input.dataset.k as keyof TrailOpts | undefined;
+      if (!key) return;
+      const v = Number(input.value);
+      const out = input.parentElement?.querySelector('output');
+      if (out) out.textContent = v.toFixed(2);
+      trail.setOpts({ [key]: v } as TrailOpts);
+    });
+  }
+
+  /* Merge demo — drive the travelling circle with WAAPI so it uses the same
+     motion vocabulary as the rest of the site rather than a CSS keyframe. */
+  const travel = document.querySelector<SVGCircleElement>('[data-merge-travel]');
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  if (travel && !reduce.matches) {
+    travel.animate(
+      [{ transform: 'translateX(0px)' }, { transform: 'translateX(-190px)' }],
+      {
+        duration: 2000,
+        direction: 'alternate',
+        iterations: Infinity,
+        easing: 'cubic-bezier(0.37, 0, 0.18, 1)',
+      }
+    );
+  }
+</script>
