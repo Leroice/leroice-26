@@ -154,8 +154,9 @@ const inlineEntries = await Promise.all(
   <UnlockDialog />
 
   {/* TUNING — live design tool for the list→detail choreography.
-      Runtime-gated to localhost, or ?tuning on any host (see TUNING_ENABLED
-      in the script below); otherwise both elements are removed on load. */}
+      Runtime-gated to dev hosts + the 26.leroice.com sandbox (see
+      TUNING_ENABLED in the script below); ?tuning forces it on anywhere and
+      ?tuning=0 off. On any other host both elements are removed on load. */}
   <button class="tuner-toggle" type="button" data-tuner-toggle aria-expanded="false" hidden>TUNING</button>
   <aside class="tuner" data-tuner hidden aria-label="Transition tuning">
     <header class="tuner__head">
@@ -499,10 +500,16 @@ const inlineEntries = await Promise.all(
   // below always play.
   // Hidden on the deployed site (26.leroice.com included) — dev-only now.
   // Escape hatch: append ?tuning to the URL to summon it anywhere.
+  // Dev hosts + the 26.leroice.com sandbox. Still gated so the panel can
+  // never appear if this ships to the real leroice.com; ?tuning forces it
+  // on anywhere, ?tuning=0 hides it on the sandbox for a clean look.
+  const TUNING_PARAM = new URLSearchParams(location.search).get('tuning');
   const TUNING_ENABLED =
-    location.hostname === 'localhost' ||
-    location.hostname === '127.0.0.1' ||
-    new URLSearchParams(location.search).has('tuning');
+    TUNING_PARAM !== null
+      ? TUNING_PARAM !== '0' && TUNING_PARAM !== 'false'
+      : location.hostname === 'localhost' ||
+        location.hostname === '127.0.0.1' ||
+        location.hostname === '26.leroice.com';
 
   const CHOREO_KEY = 'leroice-choreo';
   const DEFAULT_CHOREO = {
