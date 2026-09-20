@@ -150,6 +150,55 @@ const {
       <span>© {new Date().getFullYear()} Leigh Scholten</span>
     </footer>
 
+    {!standalone && (
+      <>
+        {/* LIQUID panel — design tool for the nav liquid highlight.
+            Same gating and visual idiom as index.astro's TUNING panel, but
+            bottom-LEFT so the two can sit open together. Both are hidden
+            until the gate script un-hides them, so a production visitor
+            never sees a flash of either. */}
+        <button
+          class="liquid-toggle"
+          type="button"
+          data-liquid-toggle
+          aria-expanded="false"
+          hidden
+        >LIQUID</button>
+
+        <aside class="liquid-panel" data-liquid-panel hidden aria-label="Liquid highlight settings">
+          <header class="liquid-panel__head">
+            <span>liquid highlight</span>
+            <span class="liquid-panel__status" data-liquid-status></span>
+          </header>
+
+          <div class="liquid-panel__grid">
+            <div class="liquid-panel__sub">motion</div>
+            <label><span class="liquid-panel__lab">Springiness <output data-out="springiness"></output></span><input type="range" min="0" max="1" step="0.01" data-lq="springiness" /></label>
+            <label><span class="liquid-panel__lab">Wobble <output data-out="wobble"></output></span><input type="range" min="0" max="1" step="0.01" data-lq="wobble" /></label>
+            <label><span class="liquid-panel__lab">Trail <output data-out="trail"></output></span><input type="range" min="0" max="1" step="0.01" data-lq="trail" /></label>
+
+            <div class="liquid-panel__sub">shape</div>
+            <label><span class="liquid-panel__lab">Pad X <output data-out="padX"></output></span><input type="range" min="0" max="28" step="1" data-lq="padX" /></label>
+            <label><span class="liquid-panel__lab">Pad Y <output data-out="padY"></output></span><input type="range" min="0" max="24" step="1" data-lq="padY" /></label>
+            <label><span class="liquid-panel__lab">Radius <output data-out="radius"></output></span><input type="range" min="0" max="24" step="1" data-lq="radius" /></label>
+
+            <div class="liquid-panel__sub">surface</div>
+            <label><span class="liquid-panel__lab">Intensity <output data-out="intensity"></output></span><input type="range" min="0" max="0.6" step="0.01" data-lq="intensity" /></label>
+            {/* Goo only shows where two bodies meet — raising blur widens the
+                bridge, raising threshold tightens the boundary. Both write
+                straight to #leroice-goo-nav's primitives. */}
+            <label><span class="liquid-panel__lab">Goo blur <output data-out="gooBlur"></output></span><input type="range" min="0" max="16" step="0.5" data-lq="gooBlur" /></label>
+            <label><span class="liquid-panel__lab">Goo threshold <output data-out="gooThreshold"></output></span><input type="range" min="4" max="34" step="1" data-lq="gooThreshold" /></label>
+          </div>
+
+          <div class="liquid-panel__actions">
+            <button type="button" data-liquid-copy>Copy CSS</button>
+            <button type="button" data-liquid-reset>Reset</button>
+          </div>
+        </aside>
+      </>
+    )}
+
     <script>
       // Mobile nav. The panel is [hidden] when closed (so it's out of the
       // a11y tree and invisible at every width); CSS only reveals it below
@@ -227,13 +276,160 @@ const {
       // Desktop only: .nav__links is display:none below --bp-tablet, where
       // the hamburger menu takes over, and a hover affordance has nothing
       // to do on touch anyway.
-      const navLinks = document.querySelector<HTMLElement>('.nav__links');
-      if (navLinks && matchMedia('(hover: hover)').matches) {
+      /* Every link group on the site gets the highlight: the main nav and
+         the case-study subnav tabs. querySelectorAll, not querySelector —
+         home renders an inline subnav per row (hidden until a row opens),
+         so there are several, and each needs its own layer. A hidden one
+         measures zero, but it can't receive a pointerenter while hidden,
+         so it simply never shows until it's real. */
+      const liquidGroups: HTMLElement[] = matchMedia('(hover: hover)').matches
+        ? Array.from(
+            document.querySelectorAll<HTMLElement>('.nav__links, .detail__subnav-tabs')
+          )
+        : [];
+
+      const liquidHandles = liquidGroups.map((group) =>
         liquidHighlight(
-          navLinks,
-          Array.from(navLinks.querySelectorAll<HTMLElement>('a')),
+          group,
+          Array.from(group.querySelectorAll<HTMLElement>('a')),
           'leroice-goo-nav'
-        );
+        )
+      );
+
+      /* ── LIQUID panel ────────────────────────────────────────
+         Gated like the TUNING panel, plus *.vercel.app — without that the
+         panel would be missing on exactly the preview builds this branch
+         exists to be judged on. ?liquid forces it on anywhere, ?liquid=0
+         hides it. Never appears on the real leroice.com. */
+      const LQ_PARAM = new URLSearchParams(location.search).get('liquid');
+      const LQ_HOST = location.hostname;
+      const LQ_ON =
+        LQ_PARAM !== null
+          ? LQ_PARAM !== '0' && LQ_PARAM !== 'false'
+          : LQ_HOST === 'localhost' ||
+            LQ_HOST === '127.0.0.1' ||
+            LQ_HOST === '26.leroice.com' ||
+            LQ_HOST.endsWith('.vercel.app');
+
+      const lqPanel = document.querySelector<HTMLElement>('[data-liquid-panel]');
+      const lqToggle = document.querySelector<HTMLElement>('[data-liquid-toggle]');
+
+      if (!LQ_ON || liquidHandles.length === 0) {
+        // Remove rather than hide: no stray markup in the shipped DOM, and
+        // nothing for a screen reader to find.
+        lqPanel?.remove();
+        lqToggle?.remove();
+      } else if (lqPanel && lqToggle) {
+        lqToggle.hidden = false;
+
+        const DEFAULTS = {
+          springiness: 0.55,
+          wobble: 0.45,
+          trail: 0.5,
+          padX: 10,
+          padY: 6,
+          radius: 10,
+          intensity: 0.14,
+          gooBlur: 7,
+          gooThreshold: 19,
+        };
+        type LqKey = keyof typeof DEFAULTS;
+        const STORE = 'leroice-liquid';
+
+        let state = { ...DEFAULTS };
+        try {
+          const saved = localStorage.getItem(STORE);
+          if (saved) state = { ...state, ...JSON.parse(saved) };
+        } catch {
+          // Private mode / blocked storage — defaults are fine.
+        }
+
+        const blurNode = document.querySelector('#leroice-goo-nav feGaussianBlur');
+        const matrixNode = document.querySelector('#leroice-goo-nav feColorMatrix');
+        const statusEl = lqPanel.querySelector<HTMLElement>('[data-liquid-status]');
+
+        function apply() {
+          for (const h of liquidHandles) {
+            h.setOpts({
+              springiness: state.springiness,
+              wobble: state.wobble,
+              trail: state.trail,
+              padX: state.padX,
+              padY: state.padY,
+              radius: state.radius,
+            });
+          }
+          // Written to each group, not :root — the default lives on the
+          // group, and a property set on an element beats an inherited one.
+          for (const g of liquidGroups) {
+            g.style.setProperty('--nav-liquid', String(state.intensity));
+          }
+
+          blurNode?.setAttribute('stdDeviation', String(state.gooBlur));
+          // The offset is kept at roughly -threshold/2 so raising the
+          // multiplier sharpens the edge instead of erasing the shape —
+          // tying them together is what makes one slider usable.
+          matrixNode?.setAttribute(
+            'values',
+            `1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 ${state.gooThreshold} ${-(state.gooThreshold / 2 + 0.5).toFixed(1)}`
+          );
+
+          for (const [k, v] of Object.entries(state)) {
+            const input = lqPanel!.querySelector<HTMLInputElement>(`[data-lq="${k}"]`);
+            const out = lqPanel!.querySelector<HTMLElement>(`[data-out="${k}"]`);
+            if (input && input.value !== String(v)) input.value = String(v);
+            if (out) out.textContent = typeof v === 'number' && v % 1 !== 0 ? v.toFixed(2) : String(v);
+          }
+          try {
+            localStorage.setItem(STORE, JSON.stringify(state));
+          } catch {}
+        }
+
+        lqPanel.addEventListener('input', (e) => {
+          const input = e.target as HTMLInputElement;
+          const key = input.dataset.lq as LqKey | undefined;
+          if (!key) return;
+          state[key] = Number(input.value);
+          apply();
+          if (statusEl) statusEl.textContent = 'edited';
+        });
+
+        lqToggle.addEventListener('click', () => {
+          lqPanel.hidden = !lqPanel.hidden;
+          lqToggle.setAttribute('aria-expanded', String(!lqPanel.hidden));
+        });
+
+        lqPanel.querySelector('[data-liquid-reset]')?.addEventListener('click', () => {
+          state = { ...DEFAULTS };
+          apply();
+          if (statusEl) statusEl.textContent = 'reset';
+        });
+
+        /* Copy out the values in the form they'd actually be pasted back —
+           the CSS token and the JS options object — so tuning here can be
+           promoted into the source without retyping numbers. */
+        lqPanel.querySelector('[data-liquid-copy]')?.addEventListener('click', async () => {
+          const text = [
+            `/* global.css — .nav__links .liquid__layer */`,
+            `--nav-liquid: ${state.intensity};`,
+            ``,
+            `<!-- Base.astro — #leroice-goo-nav -->`,
+            `stdDeviation="${state.gooBlur}"`,
+            `values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 ${state.gooThreshold} ${-(state.gooThreshold / 2 + 0.5).toFixed(1)}"`,
+            ``,
+            `// Base.astro — liquidHighlight()`,
+            `{ springiness: ${state.springiness}, wobble: ${state.wobble}, trail: ${state.trail}, padX: ${state.padX}, padY: ${state.padY}, radius: ${state.radius} }`,
+          ].join('\n');
+          try {
+            await navigator.clipboard.writeText(text);
+            if (statusEl) statusEl.textContent = 'copied';
+          } catch {
+            if (statusEl) statusEl.textContent = 'copy failed';
+          }
+        });
+
+        apply();
+        if (statusEl) statusEl.textContent = 'ready';
       }
 
       // Load-in: content fades + blurs in, top-down.

@@ -294,17 +294,29 @@ body:has(.split.is-detail) .nav {
   align-items: center;
   /* Anchors the liquid highlight layer. */
   position: relative;
+  /* Rest intensity of the highlight. Low enough to stay a background
+     surface rather than a button, high enough to actually read — 0.11 was
+     the first guess and proved near-invisible against --bg.
+
+     Declared HERE, on the container, not on .liquid__layer. A custom
+     property set on an element always beats one inherited from its
+     parent, so a default living on the layer itself would shadow any
+     override written to .nav__links — which is exactly how the LIQUID
+     panel sets it. */
+  --nav-liquid: 0.14;
 }
 
-/* ── Liquid nav highlight (experiment) ──────────────────────
+/* ── Liquid highlight (experiment) ──────────────────────────
    A pill that springs between hovered links, trailing a droplet that
-   merges back into it through #leroice-goo-nav.
+   merges back into it through #leroice-goo-nav. Applied to both link
+   groups on the site: the main nav and the case-study subnav tabs.
 
    The filter runs on this SVG layer only — never on the links themselves.
    Goo over live text would destroy it, and WebKit's HTML filter path is
    unreliable regardless. The links sit above, unfiltered and crisp; the
    liquid is only ever the surface beneath them. */
-.nav__links .liquid__layer {
+.nav__links .liquid__layer,
+.detail__subnav-tabs .liquid__layer {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -317,22 +329,120 @@ body:has(.split.is-detail) .nav {
      and nothing renders at all. So tint the whole layer with opacity
      here, AFTER the filter has run, rather than tinting the fill. */
   --liquid-fill: var(--text-primary);
-  /* Rest intensity of the highlight. Low enough to stay a background
-     surface rather than a button, high enough to actually read — 0.11 was
-     the first guess and proved near-invisible against --bg. Tune here. */
-  --nav-liquid: 0.14;
   opacity: 0;
   transition: opacity 220ms var(--image-ease, ease);
 }
-.nav__links .liquid__layer.is-visible { opacity: var(--nav-liquid); }
+.nav__links .liquid__layer.is-visible,
+.detail__subnav-tabs .liquid__layer.is-visible { opacity: var(--nav-liquid); }
 
 /* Links ride above the liquid. */
-.nav__links a { position: relative; z-index: 1; }
+.nav__links a,
+.detail__subnav-tabs a { position: relative; z-index: 1; }
+
+/* Subnav tabs host their own layer. They already sit in a flex row like
+   .nav__links, so only positioning and the intensity default are needed.
+   The tabs are display:none at phone width, where there's no hover to
+   respond to anyway. */
+.detail__subnav-tabs {
+  position: relative;
+  --nav-liquid: 0.14;
+}
+
+/* LIQUID panel — design tool for the highlight above. Mirrors the TUNING
+   panel in index.astro, but bottom-LEFT so both can be open at once.
+   Experiment-only; removed from the DOM entirely when the gate is off. */
+.liquid-toggle {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 50;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  padding: 8px 13px;
+  border-radius: 999px;
+  background: var(--text-primary);
+  color: var(--bg);
+  border: none;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 160ms ease;
+}
+.liquid-toggle:hover { opacity: 1; }
+
+.liquid-panel {
+  position: fixed;
+  left: 16px;
+  bottom: 56px;
+  z-index: 50;
+  width: 264px;
+  max-width: calc(100vw - 32px);
+  /* Taller than TUNING, so cap it and scroll rather than run off-screen
+     on a laptop. */
+  max-height: calc(100vh - 88px);
+  overflow-y: auto;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--bg) 85%, transparent);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--rule);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+}
+.liquid-panel[hidden] { display: none; }
+
+.liquid-panel__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  opacity: 0.7;
+  letter-spacing: 0.02em;
+}
+.liquid-panel__status { opacity: 0.6; }
+.liquid-panel__grid { display: flex; flex-direction: column; gap: 11px; }
+.liquid-panel__sub {
+  opacity: 0.5;
+  letter-spacing: 0.02em;
+  margin-top: 4px;
+}
+.liquid-panel__sub:first-child { margin-top: 0; }
+.liquid-panel label { display: flex; flex-direction: column; gap: 5px; opacity: 0.9; }
+.liquid-panel__lab { display: flex; justify-content: space-between; gap: 8px; }
+.liquid-panel__lab output { opacity: 0.5; font-variant-numeric: tabular-nums; }
+.liquid-panel input[type="range"] {
+  width: 100%;
+  accent-color: var(--text-primary);
+  margin: 0;
+}
+.liquid-panel__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+.liquid-panel__actions button {
+  flex: 1;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  padding: 7px 10px;
+  border-radius: var(--radius-sm, 8px);
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--rule);
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 160ms ease;
+}
+.liquid-panel__actions button:hover { opacity: 1; }
 
 @media (prefers-reduced-motion: reduce) {
   /* The pill still marks the hovered link — it just cuts rather than
      flows. Removing it entirely would lose a genuine affordance. */
-  .nav__links .liquid__layer { transition-duration: 0ms; }
+  .nav__links .liquid__layer,
+  .detail__subnav-tabs .liquid__layer { transition-duration: 0ms; }
 }
 
 .nav__links a {
