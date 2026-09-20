@@ -350,6 +350,63 @@ export function clearWipe(el: HTMLElement): void {
 }
 
 /**
+ * Wipe the blocks of `container` that are actually on screen, together.
+ *
+ * The container itself carries [data-wipe] purely as the pre-paint gate —
+ * masking it is what stops a flash before JS runs. It must NOT be what
+ * animates: it spans the whole case study, so wiping it drags every image
+ * down the page through the same sweep. Only the blocks in view should
+ * move; everything below belongs to the scroll observer.
+ *
+ * The hand-off (arm the blocks, unmask the container) happens in one
+ * synchronous step so there is no frame where either is visible early.
+ */
+export function wipeRevealVisible(
+  container: HTMLElement,
+  blocks: HTMLElement[]
+): () => void {
+  // Hand off from the container gate to the individual blocks in one step,
+  // so there is no frame where anything is unmasked early.
+  for (const el of blocks) {
+    el.setAttribute('data-wipe', '');
+    armWipe(el);
+  }
+  clearWipe(container);
+
+  const onScreen = blocks.filter((el) => nearViewport(el));
+  for (const el of onScreen) wipeReveal(el);
+
+  const rest = blocks.filter((el) => !nearViewport(el));
+  if (!rest.length || reduced() || typeof IntersectionObserver === 'undefined') {
+    for (const el of rest) clearWipe(el);
+    return () => {};
+  }
+
+  // Everything below the fold wipes as it arrives. A tall hero means the
+  // body is usually entirely off-screen when the hero lands, so without
+  // this almost nothing would ever wipe — and masking the whole body
+  // instead just drags every image down the page through one sweep.
+  const io = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        io.unobserve(entry.target);
+        wipeReveal(entry.target as HTMLElement);
+      }
+    },
+    { rootMargin: '0px 0px -12% 0px', threshold: 0.01 }
+  );
+  for (const el of rest) io.observe(el);
+
+  const cancel = () => {
+    io.disconnect();
+    for (const el of blocks) clearWipe(el);
+  };
+  window.setTimeout(cancel, 20000); // never strand content behind a mask
+  return cancel;
+}
+
+/**
  * Site-wide exit: fade + blur the page's content out (rippling from `origin`),
  * then navigate to `href`. Honours reduced motion and always navigates even if
  * the animation is interrupted.

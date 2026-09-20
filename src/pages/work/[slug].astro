@@ -50,14 +50,18 @@ const slug = entry.id.replace(/\.md$/, '');
 </Base>
 
 <script>
+  /* One script block, not two. Astro compiles each <script> separately and
+     reorders them; split across two blocks the import below was dropped
+     from the emitted module and the wipe threw ReferenceError at runtime. */
+  import { isUnlocked, promptUnlock } from '../../lib/unlock';
+  import { wipeRevealVisible } from '../../lib/reveal';
+
   /* Hero → body choreography (standalone case-study page).
 
      The body wipes in once the hero has finished its own reveal. The cue
      is the hero's transitionend, i.e. the existing animation's lifecycle
      — not a duplicated duration that would drift the moment anyone
      retimes revealOnLoad. */
-  import { wipeReveal, revealOnScroll, nearViewport } from '../../lib/reveal';
-
   {
     const body = document.querySelector<HTMLElement>('.detail__body[data-wipe]');
     if (body) {
@@ -72,13 +76,11 @@ const slug = entry.id.replace(/\.md$/, '');
         window.clearTimeout(failsafe);
         hero?.removeEventListener('transitionend', onHeroEnd);
 
-        // Below-the-fold blocks keep their own scroll choreography. They sit
-        // inside the wiping group but are off-screen while it plays, so the
-        // two never overlap visually.
+        // Each block wipes on its own — the ones already in view now, the
+        // rest as they scroll up. One mask over the whole body would sweep
+        // every image on the page at once.
         const blocks = Array.from(body.children) as HTMLElement[];
-        revealOnScroll(blocks.filter((el) => !nearViewport(el)));
-
-        wipeReveal(body);
+        wipeRevealVisible(body, blocks);
       };
 
       // The hero transitions both opacity and filter; only take the first.
@@ -100,10 +102,6 @@ const slug = entry.id.replace(/\.md$/, '');
       failsafe = window.setTimeout(start, 2200);
     }
   }
-</script>
-
-<script>
-  import { isUnlocked, promptUnlock } from '../../lib/unlock';
 
   // Deep-link gate: a locked project's page holds its content blurred
   // behind the code-entry dialog. Dismissing the dialog returns home.
