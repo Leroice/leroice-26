@@ -292,6 +292,47 @@ body:has(.split.is-detail) .nav {
   gap: var(--sp-3);
   padding: var(--sp-3) var(--sp-base);
   align-items: center;
+  /* Anchors the liquid highlight layer. */
+  position: relative;
+}
+
+/* ── Liquid nav highlight (experiment) ──────────────────────
+   A pill that springs between hovered links, trailing a droplet that
+   merges back into it through #leroice-goo-nav.
+
+   The filter runs on this SVG layer only — never on the links themselves.
+   Goo over live text would destroy it, and WebKit's HTML filter path is
+   unreliable regardless. The links sit above, unfiltered and crisp; the
+   liquid is only ever the surface beneath them. */
+.nav__links .liquid__layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  /* The blobs must be FULLY OPAQUE. The goo filter thresholds alpha
+     (feColorMatrix 19a - 9), which assumes near-solid input — feed it a
+     translucent fill and the threshold resolves negative, clamps to zero,
+     and nothing renders at all. So tint the whole layer with opacity
+     here, AFTER the filter has run, rather than tinting the fill. */
+  --liquid-fill: var(--text-primary);
+  /* Rest intensity of the highlight. Low enough to stay a background
+     surface rather than a button, high enough to actually read — 0.11 was
+     the first guess and proved near-invisible against --bg. Tune here. */
+  --nav-liquid: 0.14;
+  opacity: 0;
+  transition: opacity 220ms var(--image-ease, ease);
+}
+.nav__links .liquid__layer.is-visible { opacity: var(--nav-liquid); }
+
+/* Links ride above the liquid. */
+.nav__links a { position: relative; z-index: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  /* The pill still marks the hovered link — it just cuts rather than
+     flows. Removing it entirely would lose a genuine affordance. */
+  .nav__links .liquid__layer { transition-duration: 0ms; }
 }
 
 .nav__links a {

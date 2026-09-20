@@ -265,3 +265,211 @@ export function liquidTrail(
     },
   };
 }
+
+export interface HighlightOpts {
+  /** 0..1 — how tightly the pill chases the hovered target. */
+  springiness?: number;
+  /** 0..1 — overshoot on arrival. */
+  wobble?: number;
+  /** 0..1 — trailing droplet size. 0 disables the tail. */
+  trail?: number;
+  /** Padding around the target's box, px. */
+  padX?: number;
+  padY?: number;
+  /** Corner radius, px. */
+  radius?: number;
+}
+
+export interface HighlightHandle {
+  setOpts(opts: HighlightOpts): void;
+  destroy(): void;
+}
+
+/**
+ * Liquid highlight — a pill that springs between hovered targets, with a
+ * droplet that lags and is reabsorbed. Distinct from liquidTrail: this
+ * chases *element rects*, so it animates width as well as position, and a
+ * long hop stretches into a bar before resolving back into a pill.
+ *
+ * `container` must be positioned; targets must be inside it.
+ */
+export function liquidHighlight(
+  container: HTMLElement,
+  targets: HTMLElement[],
+  filterId: string,
+  opts: HighlightOpts = {}
+): HighlightHandle {
+  let o: Required<HighlightOpts> = {
+    springiness: opts.springiness ?? 0.55,
+    wobble: opts.wobble ?? 0.45,
+    trail: opts.trail ?? 0.5,
+    padX: opts.padX ?? 10,
+    padY: opts.padY ?? 6,
+    radius: opts.radius ?? 10,
+  };
+
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('class', 'liquid__layer');
+  svg.setAttribute('aria-hidden', 'true');
+  const g = document.createElementNS(NS, 'g');
+  g.setAttribute('filter', `url(#${filterId})`);
+  const tail = document.createElementNS(NS, 'rect');
+  const lead = document.createElementNS(NS, 'rect');
+  for (const el of [tail, lead]) {
+    el.setAttribute('fill', 'var(--liquid-fill, currentColor)');
+    g.appendChild(el);
+  }
+  svg.appendChild(g);
+  container.appendChild(svg);
+
+  let sp = springFromKnobs(o.springiness, o.wobble);
+  const x = new Spring(0, sp);
+  const w = new Spring(0, sp);
+  const tailX = new Spring(0, { ...sp, stiffness: sp.stiffness! * 0.4 });
+  const tailW = new Spring(0, { ...sp, stiffness: sp.stiffness! * 0.4 });
+
+  // Opacity is a plain transition on the group, not a spring — fading is
+  // not a physical motion and springing it just makes it feel uncertain.
+  let visible = false;
+  let boxY = 0;
+  let boxH = 0;
+  let primed = false;
+  let raf = 0;
+  let last = 0;
+  let running = false;
+
+  function rectFor(el: HTMLElement) {
+    const c = container.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    return {
+      x: r.left - c.left - o.padX,
+      y: r.top - c.top - o.padY,
+      w: r.width + o.padX * 2,
+      h: r.height + o.padY * 2,
+    };
+  }
+
+  function frame(now: number) {
+    const dt = last ? (now - last) / 1000 : 1 / 60;
+    last = now;
+    x.step(dt);
+    w.step(dt);
+    tailX.step(dt);
+    tailW.step(dt);
+
+    lead.setAttribute('x', String(x.value));
+    lead.setAttribute('y', String(boxY));
+    lead.setAttribute('width', String(Math.max(0, w.value)));
+    lead.setAttribute('height', String(boxH));
+    lead.setAttribute('rx', String(o.radius));
+
+    if (o.trail > 0) {
+      // The droplet is a vertically-inset slab: it reads as liquid left
+      // behind rather than a second button. Height shrinks with distance
+      // so it thins out as it's stretched, like a real bridge.
+      const gap = Math.abs(tailX.value - x.value);
+      const thin = Math.min(gap / 120, 1);
+      const th = boxH * (1 - thin * 0.42) * o.trail;
+      tail.setAttribute('x', String(tailX.value));
+      tail.setAttribute('y', String(boxY + (boxH - th) / 2));
+      tail.setAttribute('width', String(Math.max(0, tailW.value)));
+      tail.setAttribute('height', String(Math.max(0, th)));
+      tail.setAttribute('rx', String(Math.min(o.radius, th / 2)));
+      tail.setAttribute('opacity', '1');
+    } else {
+      tail.setAttribute('opacity', '0');
+    }
+
+    if (x.settled && w.settled && tailX.settled && tailW.settled) {
+      running = false;
+      last = 0;
+      return;
+    }
+    raf = requestAnimationFrame(frame);
+  }
+
+  function wake() {
+    if (running) return;
+    running = true;
+    last = 0;
+    raf = requestAnimationFrame(frame);
+  }
+
+  function show(el: HTMLElement) {
+    const r = rectFor(el);
+    boxY = r.y;
+    boxH = r.h;
+
+    // First reveal appears in place. Springing in from wherever the pill
+    // was last parked would fly it across the nav on an unrelated hover.
+    if (!primed || !visible || reduce.matches) {
+      x.snap(r.x);
+      w.snap(r.w);
+      tailX.snap(r.x);
+      tailW.snap(r.w);
+      primed = true;
+    } else {
+      x.target = r.x;
+      w.target = r.w;
+      tailX.target = r.x;
+      tailW.target = r.w;
+    }
+    visible = true;
+    svg.classList.add('is-visible');
+    wake();
+    // One frame is still needed after a snap to write the attributes.
+    if (!running) requestAnimationFrame(frame);
+  }
+
+  function hide() {
+    visible = false;
+    svg.classList.remove('is-visible');
+  }
+
+  const onEnter = (e: Event) => show(e.currentTarget as HTMLElement);
+  for (const t of targets) {
+    t.addEventListener('pointerenter', onEnter);
+    t.addEventListener('focus', onEnter);
+  }
+  container.addEventListener('pointerleave', hide);
+  container.addEventListener('focusout', (e) => {
+    // Only clear when focus actually leaves the group, not when it hops
+    // between two links inside it.
+    const next = (e as FocusEvent).relatedTarget as Node | null;
+    if (!next || !container.contains(next)) hide();
+  });
+
+  // Rects move on resize and on font load; re-measure the active one.
+  const ro = new ResizeObserver(() => {
+    if (!visible) return;
+    const active = targets.find((t) => t.matches(':hover, :focus-visible'));
+    if (active) show(active);
+  });
+  ro.observe(container);
+
+  return {
+    setOpts(next: HighlightOpts) {
+      o = { ...o, ...next };
+      sp = springFromKnobs(o.springiness, o.wobble);
+      x.retune(sp);
+      w.retune(sp);
+      const t = { ...sp, stiffness: sp.stiffness! * 0.4 };
+      tailX.retune(t);
+      tailW.retune(t);
+      wake();
+    },
+    destroy() {
+      cancelAnimationFrame(raf);
+      running = false;
+      ro.disconnect();
+      for (const t of targets) {
+        t.removeEventListener('pointerenter', onEnter);
+        t.removeEventListener('focus', onEnter);
+      }
+      svg.remove();
+    },
+  };
+}

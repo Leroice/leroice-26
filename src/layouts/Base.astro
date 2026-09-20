@@ -84,6 +84,19 @@ const {
             result="goo" />
           <feComposite in="SourceGraphic" in2="goo" operator="atop" />
         </filter>
+
+        <!-- Nav highlight goo. Unlike #leroice-goo above (stdDeviation 0,
+             effectively inert), this one actually blurs — it has two bodies
+             to bridge, which is the only situation where goo shows.
+             No feComposite: the merged silhouette IS the surface here, so
+             compositing the sharp source back on top would reinstate the
+             hard edges the filter exists to dissolve. -->
+        <filter id="leroice-goo-nav">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="7" result="blur" />
+          <feColorMatrix in="blur" mode="matrix"
+            values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9"
+            result="goo" />
+        </filter>
       </defs>
     </svg>
 
@@ -208,6 +221,20 @@ const {
       // Site-wide motion: nothing appears or vanishes instantly.
       import { revealOnLoad, revealItems, pageExit } from '../lib/reveal';
       import { subnavElasticEnter, clearSubnavElastic } from '../lib/subnav-elastic';
+      import { liquidHighlight } from '../lib/liquid';
+
+      // Liquid nav highlight (experiment — experiment/liquid-effects).
+      // Desktop only: .nav__links is display:none below --bp-tablet, where
+      // the hamburger menu takes over, and a hover affordance has nothing
+      // to do on touch anyway.
+      const navLinks = document.querySelector<HTMLElement>('.nav__links');
+      if (navLinks && matchMedia('(hover: hover)').matches) {
+        liquidHighlight(
+          navLinks,
+          Array.from(navLinks.querySelectorAll<HTMLElement>('a')),
+          'leroice-goo-nav'
+        );
+      }
 
       // Load-in: content fades + blurs in, top-down.
       // On a cross-document NAVIGATION the browser holds the first paint until
