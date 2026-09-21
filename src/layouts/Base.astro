@@ -208,6 +208,11 @@ const {
       // Site-wide motion: nothing appears or vanishes instantly.
       import { revealOnLoad, revealItems, pageExit } from '../lib/reveal';
       import { subnavElasticEnter, clearSubnavElastic } from '../lib/subnav-elastic';
+      import { initVideos } from '../lib/video';
+
+      // Case-study video: lazy source attach, play only while in view.
+      // No-op on pages without any.
+      initVideos();
 
       // Load-in: content fades + blurs in, top-down.
       // On a cross-document NAVIGATION the browser holds the first paint until

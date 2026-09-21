@@ -909,6 +909,17 @@ body:has(.split.is-detail) .nav {
   margin: 0;
 }
 
+/* A lazily-attached video has NO source until it's scrolled near, so it
+   has no intrinsic size and falls back to the 300x150 default — which
+   collapses its figure and the grid track around it. Reserve the space
+   up front. 16/9 is the default; .cs-portrait overrides to 9/16 below
+   (two classes, so it wins). */
+.detail__body video[data-src] {
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background: var(--hover-bg);
+}
+
 /* ── Case-study layout kit ──────────────────────────────────
    Recreates the old site's arrangements. Use raw HTML in the markdown body:
      <figure class="cs-full"><img …></figure>      — full-width single
@@ -932,6 +943,40 @@ body:has(.split.is-detail) .nav {
 .detail__body .cs-mocks { grid-template-columns: repeat(4, 1fr); }
 .detail__body .cs-3 { grid-template-columns: repeat(3, 1fr); }
 .detail__body .cs-2 { grid-template-columns: repeat(2, 1fr); }
+/* cs-portrait — portrait live video, 2-up. A person holding a device
+   wants a tall frame, but one full-width portrait clip dominates a
+   desktop page completely, so they pair instead. Plain frame: same
+   radius as every other media block, no device chrome.
+
+     <div class="cs-portrait">
+       <video data-src="/videos/…mp4" poster="…jpg" muted loop playsinline></video>
+       …
+     </div>
+
+   No `src` and no `autoplay` in the markup — video.ts attaches the
+   source on approach and plays only while in view. Live footage runs
+   2-4MB a clip, so eagerly loading four of them would cost more than
+   the rest of the page put together. */
+.detail__body .cs-portrait {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  align-items: start;
+  margin: 2rem 0;
+  grid-column: 1 / -1;
+}
+.detail__body .cs-portrait video {
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  display: block;
+  /* The poster fills the frame the same way the video will, so there's
+     no reframe at the moment playback starts. */
+  object-position: center;
+  background: var(--hover-bg);
+}
+
 /* cs-rows — full-width stacked media. Each child spans the content width;
    useful for hero sequences where each frame deserves its own viewport-width
    moment (vs. a 3-up grid where they read as a comparison). */
@@ -964,10 +1009,14 @@ body:has(.split.is-detail) .nav {
   .detail__body .cs-mocks,
   .detail__body .cs-3,
   .detail__body .cs-2,
-  .detail__body .cs-rows {
+  .detail__body .cs-rows,
+  .detail__body .cs-portrait {
     margin-left: calc(var(--sp-3) * -1);
     margin-right: calc(var(--sp-3) * -1);
   }
+  /* One portrait clip per row on a phone. Two-up would leave each about
+     170px wide — too small to read an interaction in. */
+  .detail__body .cs-portrait { grid-template-columns: 1fr; }
   .detail__body .cs-3,
   .detail__body .cs-2 { grid-template-columns: 1fr; }
   /* cs-mocks are app screenshots — a square crop would cut the UI, so

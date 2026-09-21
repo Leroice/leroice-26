@@ -25,7 +25,7 @@ Our goal was to create a cohesive visual and digital presence that reflected the
 
 <figure class="cs-full"><img src="/images/work/luxem/Moodboard.jpg" alt="LUXEM moodboard" /></figure>
 
-<figure class="cs-full"><video src="/videos/work/luxem/LUXEMVC-BG-Animation-Wide-transcode.mp4" autoplay muted loop playsinline></video></figure>
+<figure class="cs-full"><video data-src="/videos/work/luxem/LUXEMVC-BG-Animation-Wide-transcode.mp4" preload="none" muted loop playsinline></video></figure>
 
 <figure class="cs-full"><img src="/images/work/luxem/WeLuxem-WebMock.jpg" alt="LUXEM web mockup" /></figure>
 
