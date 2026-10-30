@@ -25,35 +25,30 @@ const impact = [
 
 const current = [
   {
-    role: "Staff Product Designer",
-    org: "TELUS Digital, Western Union E1 Wallet, Melbourne and Sydney",
-    date: "Oct 2025 – Present",
-    bullets: [
-      "Leading UX design for the E1 Wallet, a new multicurrency digital wallet that moves Western Union from a legacy remittance platform to a full-service global financial product.",
-      "Running a design audit across the AU and MX markets: about 360 screens over 34 flows, sorted as Core, Configurable or Local to find where the system has drifted and set a shared baseline for global scale.",
-      "Embedded as design leadership in a cross-functional product, engineering and PMO team, influencing roadmap priorities, sprint planning and QA standards at director level.",
-      "Leading design system strategy across market variants, fixing inconsistencies in navigation, scroll behaviour and components ahead of the Friends and Family release.",
-      "Mentoring and directing a distributed design team across AU, India and the US, covering research, UX, content and interaction design. Directly responsible for the local team of five.",
-      "Using Claude and AI workflows for audit analysis, design documentation, stakeholder communication and sprint planning. Work that took days now takes hours.",
-      "Built React Native prototypes and shared them through TestFlight to test customer scenarios, design system improvements and micro-interactions.",
-      "Led contract negotiations between TELUS Digital (vendor) and Western Union. Co-created an 18-month design system rollout roadmap as part of that business development.",
-      "Running the engagement end to end: team leadership, SOWs, client management, implementation plans, business development and status reporting. Still hands-on with the day-to-day design.",
-    ],
-  },
-  {
-    role: "Founding Designer",
-    org: "Meddle, Melbourne and Sydney, healthtech startup",
-    date: "Sep 2025 – Present",
-    bullets: [
-      "Founding designer at Meddle, a healthtech platform built on one idea: patients own their health record. Meddle connects patients and practitioners through AI matching and shared appointments. Patients carry a personal, long-term health record to every provider they see.",
-      "Responsible for product design, brand identity and UX direction from zero, including the core interaction model for both the patient and practitioner sides.",
-      "In a live pilot with 400 allied health professionals, testing clinical workflows and iterating as we go.",
-      "Delivered an investment-ready product and design system the team can keep building on.",
-    ],
+    role: "Lead UX Designer",
+    org: "RACV, Melbourne",
+    date: "Sep 2026 – Present",
+    bullets: [],
   },
 ];
 
 const prior = [
+  {
+    role: "Staff Product Designer",
+    org: "TELUS Digital, Western Union E1 Wallet, Melbourne and Sydney",
+    date: "Oct 2025 – 2026",
+    bullets: [
+      "Led UX design for the E1 Wallet, a new multicurrency digital wallet to move Western Union from a legacy remittance platform to a full-service global financial product.",
+      "Ran a design audit across the AU and MX markets: about 360 screens over 34 flows, sorted as Core, Configurable or Local to find where the system had drifted and set a shared baseline for global scale.",
+      "Embedded as design leadership in a cross-functional product, engineering and PMO team, influencing roadmap priorities, sprint planning and QA standards at director level.",
+      "Led design system strategy across market variants, fixing inconsistencies in navigation, scroll behaviour and components ahead of the Friends and Family release.",
+      "Mentored and directed a distributed design team across AU, India and the US, covering research, UX, content and interaction design. Directly responsible for the local team of five.",
+      "Used Claude and AI workflows for audit analysis, design documentation, stakeholder communication and sprint planning. Work that took days took hours.",
+      "Built React Native prototypes and shared them through TestFlight to test customer scenarios, design system improvements and micro-interactions.",
+      "Led contract negotiations between TELUS Digital (vendor) and Western Union. Co-created an 18-month design system rollout roadmap as part of that business development.",
+      "Ran the engagement end to end: team leadership, SOWs, client management, implementation plans, business development and status reporting. Stayed hands-on with the day-to-day design.",
+    ],
+  },
   {
     role: "Principal Designer / Design Director",
     org: "ANZ Plus, Melbourne",
@@ -125,7 +120,7 @@ const prior = [
     org: "Apple Retail, Regent Street, London",
     date: "2008 – 2009",
     bullets: [
-      "Worked at Apple's flagship store during a career break. Consistently beat targets and was asked back for a second stint. It's where I learnt product culture and customer experience the Apple way.",
+      "Worked at Apple's flagship store during a career break. Consistently beat targets and was asked back for a second stint. It's where I learnt how Apple thinks about customers.",
     ],
   },
 ];
@@ -194,9 +189,11 @@ const lastUpdated = "July 2026";
           </div>
           <span class="cv-role__date">{job.date}</span>
         </header>
-        <ul class="cv-role__bullets">
-          {job.bullets.map((b) => <li>{b}</li>)}
-        </ul>
+        {job.bullets.length > 0 && (
+          <ul class="cv-role__bullets">
+            {job.bullets.map((b) => <li>{b}</li>)}
+          </ul>
+        )}
       </article>
     ))}
   </div>
@@ -214,9 +211,11 @@ const lastUpdated = "July 2026";
           </div>
           <span class="cv-role__date">{job.date}</span>
         </header>
-        <ul class="cv-role__bullets">
-          {job.bullets.map((b) => <li>{b}</li>)}
-        </ul>
+        {job.bullets.length > 0 && (
+          <ul class="cv-role__bullets">
+            {job.bullets.map((b) => <li>{b}</li>)}
+          </ul>
+        )}
       </article>
     ))}
   </div>

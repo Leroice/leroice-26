@@ -131,7 +131,7 @@ A locked row shows a padlock on its top line; hovering swaps it (fade-from-blur)
 `src/lib/unlock.ts`) instead of the transition. Correct code → unlock persists for the
 session (sessionStorage `leroice-unlocked`), the row reads "Unlocked", and the open plays.
 "Request a code" is a prefilled mailto to ls@leroice.com. Deep links (`/work/[slug]`)
-blur the page behind the same dialog; dismissing returns home. WU + Meddle are locked
+blur the page behind the same dialog; dismissing returns home. WU is locked
 with the placeholder code `leroice26` — **change it**: set `lockHash` to
 `printf '<newcode>' | shasum -a 256`. Codes are verified client-side against the hash;
 note the page content itself still ships in the static HTML, so this is a soft gate —
@@ -149,7 +149,6 @@ so they span full width; prose stays markdown and is held to a readable measure)
 | Project | order | detail | content | notes |
 |---|---|---|---|---|
 | AU multicurrency wallet (wu-au-wallet) | 1 | yes | placeholder | **placeholder SVG cover** `/images/work/wu-au-wallet.svg`; needs real content + cover |
-| Meddle | 2 | yes | placeholder | current work, no old content |
 | ANZ Plus | 3 | yes | migrated | mockup row + full shots + bento + type/icons |
 | Luxem | 4 | yes | migrated | header + mocks + moodboard + **video** |
 | Ghost VC | 5 | yes | migrated | mocks; Lottie logo omitted (md renders img/video only) |
@@ -197,7 +196,7 @@ Intent: **redesign the page layouts in Figma, then rebuild here.**
 
 ## 7. Open items / TODO
 - [ ] **Figma:** connect a write integration to auto-push pages (or redesign manually per §6).
-- [ ] **Meddle & WU:** real case-study content; replace WU placeholder SVG cover.
+- [ ] **WU:** real case-study content; replace WU placeholder SVG cover.
 - [ ] **Years:** Ghost (2022), LifeSpaceJourney (2021), Luxem (2023) are placeholders to confirm.
 - [ ] **Ghost Lottie logo:** omitted; add via a small component if wanted.
 - [x] **TUNING panel:** runtime-gated to localhost / 127.0.0.1 / 26.leroice.com
