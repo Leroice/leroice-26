@@ -5,11 +5,8 @@ context: "Western Union, iOS, Android"
 summary: "Led design on Western Union's multicurrency digital wallet for Australia, built inside a global design system that has to flex. The first release shipped a redesigned send money flow. The next release brings PayID, PayTo, BPAY and BPAY top-up together in one place."
 order: 1
 detail: true
-cover: "/images/work/wu-au-wallet.svg"
-coverAlt: "Western Union AU wallet send money flow"
-locked: true
-# Access code (placeholder, change me): leroice26
-lockHash: "6d666b34ddeb035e8ca02408984c9f5913e28923ac0a7cf687e50c384df59327"
+cover: "/images/work/wu-au-wallet.jpg"
+coverAlt: "Western Union AU wallet home screen on an iPhone, showing balances in AUD and JPY"
 ---
 
 More detail once it launches. The work is in progress and partly confidential until it's on the App Store.

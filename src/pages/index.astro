@@ -167,25 +167,27 @@ const inlineEntries = await Promise.all(
     </header>
     <div class="tuner__grid">
       <label><span class="tuner__lab">Lead-in <output id="out-leadIn"></output></span><input type="range" id="tune-leadIn" /></label>
-      <label><span class="tuner__lab">Image duration <output id="out-idur"></output></span><input type="range" id="tune-idur" /></label>
-      <label><span class="tuner__lab">Image delay (trail) <output id="out-idelay"></output></span><input type="range" id="tune-idelay" /></label>
-      <label><span class="tuner__lab">Image arc (yield) <output id="out-iarc"></output></span><input type="range" id="tune-iarc" /></label>
-      <label><span class="tuner__lab">Min yield <output id="out-iyield"></output></span><input type="range" id="tune-iyield" /></label>
       <label><span class="tuner__lab">Cascade step <output id="out-sgstep"></output></span><input type="range" id="tune-sgstep" /></label>
       <label><span class="tuner__lab">Cascade blur <output id="out-sgblur"></output></span><input type="range" id="tune-sgblur" /></label>
       <label><span class="tuner__lab">Image follow <output id="out-pfollow"></output></span><input type="range" id="tune-pfollow" /></label>
       <label><span class="tuner__lab">Subnav delay <output id="out-sndelay"></output></span><input type="range" id="tune-sndelay" /></label>
       <label><span class="tuner__lab">Subnav duration scale <output id="out-snscale"></output></span><input type="range" id="tune-snscale" /></label>
-      <label><span class="tuner__lab">Easing</span>
-        <select id="tune-easing"></select>
-      </label>
     </div>
 
-    <div class="tuner__spring" data-tuner-spring>
-      <div class="tuner__sub">spring (when easing = spring)</div>
+    <div class="tuner__spring">
+      <div class="tuner__sub">image flight spring</div>
       <label><span class="tuner__lab">Stiffness <output id="out-sstiff"></output></span><input type="range" id="tune-sstiff" /></label>
       <label><span class="tuner__lab">Damping <output id="out-sdamp"></output></span><input type="range" id="tune-sdamp" /></label>
       <label><span class="tuner__lab">Mass <output id="out-smass"></output></span><input type="range" id="tune-smass" /></label>
+      <label><span class="tuner__lab">Dip <output id="out-dip"></output></span><input type="range" id="tune-dip" /></label>
+    </div>
+
+    <div class="tuner__spring">
+      <div class="tuner__sub">preview spring</div>
+      <label><span class="tuner__lab">Stiffness <output id="out-pstiff"></output></span><input type="range" id="tune-pstiff" /></label>
+      <label><span class="tuner__lab">Damping <output id="out-pdamp"></output></span><input type="range" id="tune-pdamp" /></label>
+      <label><span class="tuner__lab">Mass <output id="out-pmass"></output></span><input type="range" id="tune-pmass" /></label>
+      <label><span class="tuner__lab">Drift (0 = off) <output id="out-pdrift"></output></span><input type="range" id="tune-pdrift" /></label>
     </div>
     <div class="tuner__actions">
       <button type="button" data-tune-replay>Replay</button>
@@ -283,6 +285,76 @@ const inlineEntries = await Promise.all(
     let incomingSlug: string | null = null;
     let transitionStartY = 0;
     let transitionDistance = 0;
+
+    // ── Preview frame: level with the hovered row, on its own soft spring ──
+    // Row index maps proportionally onto the list's height (first row: tops
+    // aligned, last row: bottoms aligned), so the image never sits above or
+    // below the list. An optional drift (A/B in the tuner) nudges it toward
+    // the pointer's position inside the row.
+    const preview = document.querySelector('.preview') as HTMLElement | null;
+    const frame = document.querySelector('.preview__frame') as HTMLElement | null;
+    const pv = { y: 0, vy: 0, target: 0, raf: 0, prev: 0 };
+    let pointerFrac = 0.5;
+
+    const previewSpring = () => {
+      const cs = getComputedStyle(document.documentElement);
+      const n = (name: string, fallback: number) => {
+        const v = parseFloat(cs.getPropertyValue(name));
+        return Number.isFinite(v) ? v : fallback;
+      };
+      return {
+        stiffness: n('--preview-stiffness', 90),
+        damping: n('--preview-damping', 15),
+        mass: n('--preview-mass', 1),
+        drift: n('--preview-drift', 0),
+      };
+    };
+    const previewTargetFor = (row: HTMLElement) => {
+      if (!preview || !frame) return 0;
+      const travel = Math.max(0, preview.clientHeight - frame.offsetHeight);
+      const i = rows.indexOf(row);
+      const p = rows.length > 1 ? i / (rows.length - 1) : 0;
+      const drift = previewSpring().drift * (pointerFrac * 2 - 1);
+      return Math.min(travel, Math.max(0, p * travel + drift));
+    };
+    const paintPreview = () => {
+      if (frame) frame.style.transform = `translateY(${pv.y.toFixed(2)}px)`;
+    };
+    const previewTick = (ts: number) => {
+      const { stiffness, damping, mass } = previewSpring();
+      let dt = pv.prev ? Math.min((ts - pv.prev) / 1000, 1 / 20) : 1 / 60;
+      pv.prev = ts;
+      while (dt > 0) {
+        const h = Math.min(1 / 240, dt);
+        pv.vy += ((-stiffness * (pv.y - pv.target) - damping * pv.vy) / mass) * h;
+        pv.y += pv.vy * h;
+        dt -= h;
+      }
+      if (Math.abs(pv.y - pv.target) < 0.2 && Math.abs(pv.vy) < 3) {
+        pv.y = pv.target; pv.vy = 0; pv.raf = 0; pv.prev = 0;
+        paintPreview();
+        return;
+      }
+      paintPreview();
+      pv.raf = requestAnimationFrame(previewTick);
+    };
+    const movePreview = (row: HTMLElement) => {
+      pv.target = previewTargetFor(row);
+      // Hidden (faded out): jump straight there so it fades in already in place.
+      if (preview && parseFloat(getComputedStyle(preview).opacity) < 0.05) {
+        cancelAnimationFrame(pv.raf);
+        pv.raf = 0; pv.prev = 0;
+        pv.y = pv.target; pv.vy = 0;
+        paintPreview();
+        return;
+      }
+      if (!pv.raf) pv.raf = requestAnimationFrame(previewTick);
+    };
+
+    // The open transition parks the frame while the case study is open.
+    (window as any).__leroicePreview = {
+      park: () => { cancelAnimationFrame(pv.raf); pv.raf = 0; pv.prev = 0; pv.vy = 0; },
+    };
 
     const step = (dt: number) => {
       const m = readMotion();
@@ -396,6 +468,8 @@ const inlineEntries = await Promise.all(
 
       activeRow = row;
 
+      movePreview(row);
+
       // Measure the new target row and update the spring's destination
       const { y, h } = measureRow(row);
       state.targetY = y;
@@ -427,7 +501,10 @@ const inlineEntries = await Promise.all(
     list.addEventListener('pointermove', (e) => {
       const target = (e.target as HTMLElement).closest('[data-row]') as HTMLElement | null;
       if (!target) return;
-      setActive(target);
+      const r = target.getBoundingClientRect();
+      pointerFrac = r.height ? Math.min(1, Math.max(0, (e.clientY - r.top) / r.height)) : 0.5;
+      if (target === activeRow) movePreview(target);
+      else setActive(target);
     }, { passive: true });
 
     list.addEventListener('focusin', (e) => {
@@ -471,6 +548,7 @@ const inlineEntries = await Promise.all(
           state.vy = 0; state.vh = 0;
           pill.style.transform = `translateY(${y}px)`;
           pill.style.height = `${h}px`;
+          movePreview(activeRow);
         }
       });
     });
@@ -481,7 +559,7 @@ const inlineEntries = await Promise.all(
   // ─────────────────────────────────────────────────────────
   // Inline transition: list → detail (same page, no navigation)
   // ─────────────────────────────────────────────────────────
-  import { arcFlip, concert, easings, makeSpring } from '../lib/arc-flip';
+  import { springFlip, type SpringFlip } from '../lib/spring-flip';
   import {
     staggerOut,
     staggerIn,
@@ -499,11 +577,10 @@ const inlineEntries = await Promise.all(
   const SUBNAV_ELASTIC_DURATION = 1409.864;
 
   // Choreography props for the list → detail move. All rows (including the
-  // clicked one) fade out via the proximity cascade; the image then FLIPs in
-  // from the preview pane while DetailSubnav plays its own unmodified
-  // subnav-elastic entrance underneath. Default easing is the organic SPRING
-  // from the menu rollover (tokens 410/84/3). Live-editable via the TUNING
-  // panel below.
+  // clicked one) fade out via the proximity cascade; the image then springs in
+  // from the preview pane (spring-flip.ts, carrying the preview's velocity)
+  // while DetailSubnav plays its own unmodified subnav-elastic entrance
+  // underneath. Live-editable via the TUNING panel below.
   // The TUNING panel (and its saved localStorage overrides) only exist on
   // dev hosts — everywhere else the panel is removed and the baked defaults
   // below always play.
@@ -520,12 +597,16 @@ const inlineEntries = await Promise.all(
         location.hostname === '127.0.0.1' ||
         location.hostname === '26.leroice.com';
 
-  const CHOREO_KEY = 'leroice-choreo';
+  const CHOREO_KEY = 'leroice-choreo-arc'; // renamed: ignores values saved for older motion models
   const DEFAULT_CHOREO = {
     leadIn: 0,          // ms: delay before the proximity cascade begins
-    easing: 'gentle',   // soft-landing curve (smooth in, gentle settle)
-    spring: { stiffness: 900, damping: 160, mass: 0.5 },
-    image: { duration: 980,  delay: 0, arc: 0.1, minYield: 58, scale: true },
+    // The image's flight into the hero: one arc. It sinks up to `dip` px
+    // early in the move, then rises into place with only a float of overshoot.
+    spring: { stiffness: 50, damping: 13, mass: 1 },
+    dip: 108,
+    // The preview following rows (read by the first script as CSS vars).
+    // drift: px the image leans toward the pointer inside a row; 0 = off.
+    preview: { stiffness: 90, damping: 15, mass: 1, drift: 0 },
     // Proximity cascade when a row opens: nearest rows fade+blur out first.
     stagger: { step: 15, blur: 6, outDuration: 340 },
     // ms the preview image trails the rollover pill (both directions).
@@ -545,9 +626,9 @@ const inlineEntries = await Promise.all(
       if (saved) {
         return {
           leadIn: saved.leadIn ?? DEFAULT_CHOREO.leadIn,
-          easing: saved.easing ?? DEFAULT_CHOREO.easing,
           spring: { ...DEFAULT_CHOREO.spring, ...(saved.spring || {}) },
-          image: { ...DEFAULT_CHOREO.image, ...(saved.image || {}) },
+          dip: saved.dip ?? DEFAULT_CHOREO.dip,
+          preview: { ...DEFAULT_CHOREO.preview, ...(saved.preview || {}) },
           stagger: { ...DEFAULT_CHOREO.stagger, ...(saved.stagger || {}) },
           previewFollow: saved.previewFollow ?? DEFAULT_CHOREO.previewFollow,
           subnav: { ...DEFAULT_CHOREO.subnav, ...(saved.subnav || {}) },
@@ -556,13 +637,16 @@ const inlineEntries = await Promise.all(
     } catch { /* ignore bad storage */ }
     return JSON.parse(JSON.stringify(DEFAULT_CHOREO));
   })();
-  const easingFor = () =>
-    CHOREO.easing === 'spring'
-      ? makeSpring(CHOREO.spring)
-      : (easings[CHOREO.easing] || easings.expoOut);
-
-  // Apply the persisted image-follow delay (pill leads, image trails).
-  document.documentElement.style.setProperty('--preview-follow', CHOREO.previewFollow + 'ms');
+  // Apply the persisted image-follow delay (pill leads, image trails) and
+  // the preview spring, which the first script reads from these vars.
+  {
+    const ds = document.documentElement.style;
+    ds.setProperty('--preview-follow', CHOREO.previewFollow + 'ms');
+    ds.setProperty('--preview-stiffness', String(CHOREO.preview.stiffness));
+    ds.setProperty('--preview-damping', String(CHOREO.preview.damping));
+    ds.setProperty('--preview-mass', String(CHOREO.preview.mass));
+    ds.setProperty('--preview-drift', CHOREO.preview.drift + 'px');
+  }
 
   {
     const split = document.querySelector('.split') as HTMLElement;
@@ -579,15 +663,12 @@ const inlineEntries = await Promise.all(
       let openDetail: HTMLElement | null = null;
       // Tears down the open detail's scroll-reveal observer (see restore()).
       let cancelScrollReveal: (() => void) | null = null;
-      let activeAnims: Animation[] = [];
+      // The hero's spring flight along its arc.
+      let heroFlip: SpringFlip | null = null;
       // Token invalidates stale async callbacks (a close/new-open supersedes a
       // pending open finalize), so a late .then() can't clobber fresh state.
       let token = 0;
 
-      const cancelActive = () => {
-        for (const a of activeAnims) { try { a.cancel(); } catch { /* noop */ } }
-        activeAnims = [];
-      };
       const reducedMotion = () =>
         window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -615,10 +696,6 @@ const inlineEntries = await Promise.all(
         list.style.pointerEvents = 'none';
         window.scrollTo({ top: 0, behavior: 'instant' });
 
-        // FIRST rect, captured while the preview is still in its list state.
-        // (FLIP is meant to span the layout change: `from` is the pre-collapse
-        // box, the post-collapse box is measured inside arcFlip.)
-        const imageFirst = previewFrame ? previewFrame.getBoundingClientRect() : null;
 
         // Every row — including the clicked one — cascades OUT by proximity
         // to the clicked row (nearest fades+blurs first, rippling outward).
@@ -630,6 +707,10 @@ const inlineEntries = await Promise.all(
 
         const runCommit = () => {
           if (myToken !== token) return; // superseded before the lead-in fired
+
+          // FIRST rect, read live at launch, then park the preview's spring.
+          const imageFirst = previewFrame ? previewFrame.getBoundingClientRect() : null;
+          (window as any).__leroicePreview?.park();
 
           // Commit the final layout. Every row (including the clicked one)
           // has already faded out via the cascade above; DetailSubnav takes
@@ -691,9 +772,14 @@ const inlineEntries = await Promise.all(
           // subnav-elastic's unmodified 4-track spring (badge, title,
           // subtitle, credits), exactly as authored in Figma. Nothing FLIPs
           // or travels into it; it just plays its own animation in place.
-          activeAnims = [
-            arcFlip(hero!, imageFirst!, { ...CHOREO.image, easing: easingFor() }),
-          ];
+          // Fly above the sticky case-study header, which would otherwise
+          // clip the image's top on the way in.
+          hero!.style.position = 'relative';
+          hero!.style.zIndex = '11';
+          heroFlip = springFlip(hero!, imageFirst!, {
+            spring: CHOREO.spring,
+            dip: CHOREO.dip,
+          });
           let subnavDone: Promise<void> = Promise.resolve();
           if (subnavRoot) {
             subnavElasticEnter(detail, {
@@ -707,9 +793,11 @@ const inlineEntries = await Promise.all(
             subnavDone = new Promise((r) => window.setTimeout(r, subnavMs));
           }
 
-          Promise.all([concert(activeAnims), subnavDone]).then(() => {
+          heroFlip.finished.then(() => {
+            if (myToken === token) { hero!.style.position = ''; hero!.style.zIndex = ''; }
+          });
+          Promise.all([heroFlip.finished, subnavDone]).then(() => {
             if (myToken !== token) return; // a close/open superseded us
-            activeAnims = [];
             list.style.pointerEvents = ''; // restore hover only after the motion
             // Hero flip + subnav have both landed — this IS the completion
             // cue for the wipe, rather than a duration copied from them.
@@ -745,7 +833,6 @@ const inlineEntries = await Promise.all(
         busy = true;
         ++token;                 // invalidate any pending open finalize
         const myToken = token;
-        cancelActive();          // stop an in-flight open animation
 
         const row = openRow;
         const detail = openDetail;
@@ -764,8 +851,15 @@ const inlineEntries = await Promise.all(
         const subnavBadge = subnavRoot?.querySelector('[data-elastic="badge"]') as HTMLElement | null;
         const bodyText = detail.querySelector('.detail__body') as HTMLElement | null;
         const hero = detail.querySelector('.detail__hero') as HTMLElement | null;
+        // Closing while the image is still flying in: send it back along the
+        // same arc and land it on the preview.
+        const reversing = !prefersReduced && !!heroFlip?.running && !!hero;
+        const flight = heroFlip;
+        if (reversing) flight!.reverse();
+        else heroFlip?.cancel();
+        heroFlip = null;
         const outEls = [
-          hero,
+          reversing ? null : hero,
           subnavRoot,
           ...(bodyText ? (Array.from(bodyText.children) as HTMLElement[]) : []),
         ].filter(Boolean) as HTMLElement[];
@@ -784,6 +878,10 @@ const inlineEntries = await Promise.all(
           // Clear subnav-elastic's own inline styles too (transform,
           // column-gap) — outEls above only covers staggerOut's properties.
           clearSubnavElastic(detail);
+          if (hero) {
+            hero.style.transform = ''; hero.style.transformOrigin = ''; hero.style.willChange = '';
+            hero.style.position = ''; hero.style.zIndex = '';
+          }
           // Re-arm the wipe. This element is reused on every reopen, so
           // leaving it in the .is-wiped state would mean the body was
           // already unmasked and simply appeared next time. Strip the
@@ -804,7 +902,17 @@ const inlineEntries = await Promise.all(
             if (r !== row) r.style.cssText = '';
           }
           if (pw) { pw.style.transition = ''; pw.style.opacity = ''; }
-          if (preview) { preview.style.transition = ''; preview.style.opacity = ''; }
+          if (preview) {
+            preview.style.transition = ''; preview.style.opacity = ''; preview.style.filter = '';
+          }
+          if (reversing) {
+            // The hero just landed on the preview's spot: keep the preview up
+            // so the hand-off is seamless, then let it fade on the usual wait.
+            list.classList.add('is-hovered');
+            window.setTimeout(() => {
+              if (!list.querySelector('[data-row]:hover')) list.classList.remove('is-hovered');
+            }, 1800);
+          }
 
           // Reset the pill's velocity-driven CSS vars to rest so it doesn't
           // snap from a stale value when the list returns.
@@ -835,12 +943,25 @@ const inlineEntries = await Promise.all(
         // origin is the back badge, not `row` — `row` is display:none at this
         // point (hidden since open()'s commit), so its rect is degenerate
         // (0,0) and would throw proximity ordering off.
-        staggerOut(outEls, {
+        const fadeOut = staggerOut(outEls, {
           origin: subnavBadge ?? undefined,
           step: CHOREO.stagger.step,
           blur: CHOREO.stagger.blur,
           duration: 260,
-        }).then(restore);
+        });
+        if (reversing) {
+          // Show the preview instantly under the landing hero so nothing blinks.
+          Promise.all([fadeOut, flight!.finished]).then(() => {
+            if (preview) {
+              preview.style.transition = 'none';
+              preview.style.opacity = '1';
+              preview.style.filter = 'none';
+            }
+            restore();
+          });
+        } else {
+          fadeOut.then(restore);
+        }
       }
 
       // Expose the live transition state so the site-wide exit handler
@@ -923,18 +1044,19 @@ const inlineEntries = await Promise.all(
 
         const fields = [
           { path: ['leadIn'],            id: 'leadIn', min: 0,   max: 400,  step: 10,   unit: 'ms' },
-          { path: ['image', 'duration'], id: 'idur',   min: 200, max: 1400, step: 20,   unit: 'ms' },
-          { path: ['image', 'delay'],    id: 'idelay', min: 0,   max: 400,  step: 10,   unit: 'ms' },
-          { path: ['image', 'arc'],      id: 'iarc',   min: 0,   max: 1,    step: 0.05, unit: '' },
-          { path: ['image', 'minYield'], id: 'iyield', min: 0,   max: 120,  step: 2,    unit: 'px' },
           { path: ['stagger', 'step'],   id: 'sgstep', min: 0,   max: 120,  step: 5,    unit: 'ms' },
           { path: ['stagger', 'blur'],   id: 'sgblur', min: 0,   max: 20,   step: 1,    unit: 'px' },
           { path: ['previewFollow'],     id: 'pfollow', min: 0,  max: 800,  step: 20,   unit: 'ms', cssVar: '--preview-follow' },
           { path: ['subnav', 'delay'],         id: 'sndelay', min: 0,   max: 400, step: 10,   unit: 'ms' },
           { path: ['subnav', 'durationScale'], id: 'snscale', min: 0.5, max: 2,   step: 0.05, unit: 'x' },
-          { path: ['spring', 'stiffness'], id: 'sstiff', min: 40,  max: 900, step: 10,  unit: '' },
+          { path: ['spring', 'stiffness'], id: 'sstiff', min: 10,  max: 900, step: 10,  unit: '' },
           { path: ['spring', 'damping'],   id: 'sdamp',  min: 4,   max: 160, step: 2,   unit: '' },
           { path: ['spring', 'mass'],      id: 'smass',  min: 0.5, max: 8,   step: 0.5, unit: '' },
+          { path: ['dip'],                 id: 'dip',    min: 0,   max: 160, step: 4,   unit: 'px' },
+          { path: ['preview', 'stiffness'], id: 'pstiff', min: 10,  max: 900, step: 10,  unit: '', cssVar: '--preview-stiffness' },
+          { path: ['preview', 'damping'],   id: 'pdamp',  min: 4,   max: 160, step: 2,   unit: '', cssVar: '--preview-damping' },
+          { path: ['preview', 'mass'],      id: 'pmass',  min: 0.5, max: 8,   step: 0.5, unit: '', cssVar: '--preview-mass' },
+          { path: ['preview', 'drift'],     id: 'pdrift', min: 0,   max: 32,  step: 4,   unit: 'px', cssVar: '--preview-drift' },
         ];
         const getVal = (path: string[]) => path.reduce((o: any, k) => o[k], CHOREO);
         const setVal = (path: string[], v: number) => {
@@ -965,10 +1087,6 @@ const inlineEntries = await Promise.all(
               document.documentElement.style.setProperty((f as any).cssVar, getVal(f.path) + f.unit);
             }
           }
-          const sel = tuner.querySelector('#tune-easing') as HTMLSelectElement | null;
-          if (sel) sel.value = CHOREO.easing;
-          const grp = tuner.querySelector('[data-tuner-spring]') as HTMLElement | null;
-          if (grp) grp.style.opacity = CHOREO.easing === 'spring' ? '1' : '0.35';
         };
 
         for (const f of fields) {
@@ -983,24 +1101,6 @@ const inlineEntries = await Promise.all(
             if ((f as any).cssVar) {
               document.documentElement.style.setProperty((f as any).cssVar, v + f.unit);
             }
-            save();
-          });
-        }
-
-        const easeSel = tuner.querySelector('#tune-easing') as HTMLSelectElement | null;
-        const springGroup = tuner.querySelector('[data-tuner-spring]') as HTMLElement | null;
-        const updateSpringVisibility = () => {
-          if (springGroup) springGroup.style.opacity = CHOREO.easing === 'spring' ? '1' : '0.35';
-        };
-        if (easeSel) {
-          // Populate from the full easing library, with the organic spring first.
-          const names = ['spring', ...Object.keys(easings)];
-          easeSel.innerHTML = names
-            .map((n) => `<option value="${n}">${n}</option>`)
-            .join('');
-          easeSel.addEventListener('change', () => {
-            CHOREO.easing = easeSel.value;
-            updateSpringVisibility();
             save();
           });
         }
@@ -1021,9 +1121,9 @@ const inlineEntries = await Promise.all(
           const cfg =
             `const CHOREO = {\n` +
             `  leadIn: ${c.leadIn},\n` +
-            `  easing: '${c.easing}',\n` +
             `  spring: { stiffness: ${c.spring.stiffness}, damping: ${c.spring.damping}, mass: ${c.spring.mass} },\n` +
-            `  image: { duration: ${c.image.duration}, delay: ${c.image.delay}, arc: ${c.image.arc}, minYield: ${c.image.minYield}, scale: ${c.image.scale} },\n` +
+            `  dip: ${c.dip},\n` +
+            `  preview: { stiffness: ${c.preview.stiffness}, damping: ${c.preview.damping}, mass: ${c.preview.mass}, drift: ${c.preview.drift} },\n` +
             `  stagger: { step: ${c.stagger.step}, blur: ${c.stagger.blur}, outDuration: ${c.stagger.outDuration} },\n` +
             `  previewFollow: ${c.previewFollow},\n` +
             `  subnav: { delay: ${c.subnav.delay}, durationScale: ${c.subnav.durationScale} },\n` +

@@ -635,18 +635,11 @@ body:has(.split.is-detail) .nav {
 /* ── Preview pane ───────────────────────────────────────── */
 
 .preview {
-  /* Fixed to the viewport and vertically centred (top:0/bottom:0 → full
-     viewport height, image centred at 50vh) so it stays neatly anchored to
-     the viewport regardless of scroll — not to the page height. Pinned
-     horizontally to the right (preview) column of the page-max grid. */
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: calc(max((100vw - var(--page-max)) / 2, 0px) + var(--side-pad) + var(--list-width) + var(--col-gap));
-  right: calc(max((100vw - var(--page-max)) / 2, 0px) + var(--content-pad));
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  /* Sits in the grid's right column, exactly as tall as the list. The frame
+     inside is moved by JS on a spring: level with the hovered row, scaled to
+     the list's height so it never sits above or below the list. */
+  position: relative;
+  align-self: stretch;
   pointer-events: none;
   /* Tied to the rollover bar: the preview shows only while the pointer is over
      a row, fading in from blur. The pill leads; the image FOLLOWS it by
@@ -664,7 +657,9 @@ body:has(.split.is-detail) .nav {
 }
 
 .preview__frame {
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   aspect-ratio: 16 / 10;
   max-height: 100%;
@@ -674,7 +669,7 @@ body:has(.split.is-detail) .nav {
      The blur is the only velocity-driven texture on the frame.
      Image cross-fade is driven directly on each <img> by the rAF loop. */
   filter: blur(var(--frame-blur, 0px));
-  will-change: filter;
+  will-change: filter, transform;
 }
 
 /* Images cross-fade by direct opacity manipulation from JS during transit.
