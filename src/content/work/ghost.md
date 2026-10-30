@@ -2,17 +2,17 @@
 title: "Ghost VC"
 year: "2022"
 context: "Brand, Illustration, Motion, Web"
-summary: "Brand identity, illustration, and motion for Ghost VC — including creative direction, a custom illustrated visual language, animated logo, and an interactive website."
+summary: "Brand identity, illustration and motion for Ghost VC: creative direction, an illustrated visual language, an animated logo and an interactive website."
 order: 5
 detail: true
 external: "https://www.ghost-vc.com"
 cover: "/images/work/ghost.jpg"
-coverAlt: "Ghost VC — illustrated ghost figure and abandoned sneakers"
+coverAlt: "Ghost VC illustrated ghost figure and abandoned sneakers"
 ---
 
-Ghost VC needed an identity with presence — something that could feel quiet and elusive while still carrying the confidence of a venture brand. The work spanned creative direction, illustration, 2D animation, and the design and build of the website itself.
+Ghost VC wanted an identity that felt elusive but still carried the confidence of a venture firm. I did the creative direction, illustration and 2D animation, then designed and built the website.
 
-The identity centres on an illustrated ghost and an animated logo that brings the character to life, paired with a system that carries across screens and interactions.
+The identity is built around an illustrated ghost, with an animated logo that brings the character to life. The same system runs through the site and its interactions.
 
 <div class="cs-mocks">
   <img src="/images/work/ghost/01-ghost.png" alt="Ghost VC mobile design" />
@@ -21,10 +21,11 @@ The identity centres on an illustrated ghost and an animated logo that brings th
   <img src="/images/work/ghost/04-ghost.png" alt="Ghost VC mobile design" />
 </div>
 
-You can explore the full project at [ghost-vc.com](https://www.ghost-vc.com).
+The full project is at [ghost-vc.com](https://www.ghost-vc.com).
 
 ## Project info
 
-- **Role:** Designer — Creative Direction, Illustration, Interaction Design & Development, 2D Animation
+- **Role:** Designer
+- **Responsibilities and deliverables:** Creative direction, illustration, interaction design and development, 2D animation
 - **Credits:** The Ghost
 - **Visit:** [ghost-vc.com](https://www.ghost-vc.com)

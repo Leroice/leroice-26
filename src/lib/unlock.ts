@@ -57,8 +57,8 @@ export function promptUnlock({ slug, title, hash }: UnlockRequest): Promise<bool
 
   if (titleEl) titleEl.textContent = title;
   if (request) {
-    const subject = encodeURIComponent(`Access code request — ${title}`);
-    const body = encodeURIComponent(`Hi Leigh — I'd like to view the ${title} case study.`);
+    const subject = encodeURIComponent(`Access code request: ${title}`);
+    const body = encodeURIComponent(`Hi Leigh, I'd like to see the ${title} case study.`);
     request.href = `mailto:ls@leroice.com?subject=${subject}&body=${body}`;
   }
 
@@ -82,7 +82,7 @@ export function promptUnlock({ slug, title, hash }: UnlockRequest): Promise<bool
         dialog.classList.remove('is-closing');
         if (dialog.open) dialog.close();
         resolve(ok);
-      }, 240);
+      }, 180);
     };
 
     const onSubmit = async (e: SubmitEvent) => {

@@ -18,7 +18,7 @@ const { Content } = await render(entry);
 const slug = entry.id.replace(/\.md$/, '');
 ---
 
-<Base title={`${entry.data.title} — Leigh Scholten`} description={entry.data.summary}>
+<Base title={`Leigh Scholten: ${entry.data.title}`} description={entry.data.summary}>
   <DetailSubnav title={entry.data.title} context={entry.data.context} href="/" />
 
   <article
