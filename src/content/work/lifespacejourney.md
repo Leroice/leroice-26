@@ -14,7 +14,7 @@ coverAlt: "LifeSpaceJourney copper foil triangular emblem on textured paper"
 
 Brothers Justin and Glenn Lamont make beautiful, unusual objects for the home. Their approach to manufacturing is friendly and human.
 
-Their style comes from their roots in rural Australia. It's refined and a little luxurious while staying approachable and relaxed.
+Their style comes from their roots in rural Australia. The pieces are refined without being precious.
 
 My long-time collaborator Jayden Zernich and I made the digital and brand assets to show what they do.
 
