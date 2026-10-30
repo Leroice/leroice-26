@@ -218,6 +218,14 @@ body {
   transition: background-color 240ms ease, color 240ms ease;
 }
 
+/* Even lines on headings, no orphans in prose, numbers that line up. */
+h1, h2, h3 { text-wrap: balance; }
+p, li { text-wrap: pretty; }
+.row__year,
+.cv-role__date,
+.cv-stat__num,
+.cv-updated { font-variant-numeric: tabular-nums; }
+
 img, video {
   max-width: 100%;
   height: auto;
@@ -412,7 +420,8 @@ body:has(.split.is-detail) .nav {
 }
 
 .nav__menu.is-open {
-  animation: nav-menu-in 240ms var(--image-ease) both;
+  transform-origin: top right;
+  animation: nav-panel-in 240ms var(--image-ease) both;
 }
 /* Links cascade in behind the panel — same fade-from-blur, 40ms steps,
    top-down (the site's load-cascade idiom in miniature). */
@@ -423,7 +432,16 @@ body:has(.split.is-detail) .nav {
 .nav__menu.is-open a:nth-child(2) { animation-delay: 100ms; }
 .nav__menu.is-open a:nth-child(3) { animation-delay: 140ms; }
 .nav__menu.is-closing {
-  animation: nav-menu-out 200ms var(--image-ease) both;
+  transform-origin: top right;
+  animation: nav-panel-out 200ms var(--image-ease) both;
+}
+@keyframes nav-panel-in {
+  from { opacity: 0; filter: blur(6px); transform: scale(0.97); }
+  to   { opacity: 1; filter: blur(0); transform: scale(1); }
+}
+@keyframes nav-panel-out {
+  from { opacity: 1; filter: blur(0); transform: scale(1); }
+  to   { opacity: 0; filter: blur(6px); transform: scale(0.97); }
 }
 @keyframes nav-menu-in {
   from { opacity: 0; filter: blur(6px); }
@@ -443,6 +461,8 @@ body:has(.split.is-detail) .nav {
 
 @media (prefers-reduced-motion: reduce) {
   .nav__toggle-bars span { transition: none; }
+  .unlock__submit { transition: opacity 160ms ease; }
+  .unlock__submit:active { scale: none; }
   .nav__menu.is-open,
   .nav__menu.is-open a,
   .nav__menu.is-closing { animation: none; }
@@ -807,21 +827,6 @@ body:has(.split.is-detail) .nav {
   margin: 0 auto;
   padding: 2rem var(--content-pad) 8rem;
 }
-.detail__back {
-  display: inline-block;
-  margin-bottom: 4rem;
-  font-family: var(--font-sans);
-  font-size: var(--fs-caption);
-  color: var(--text-primary);
-  opacity: var(--op-strong);
-  text-decoration: none;
-  transition: opacity 160ms ease;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-}
-.detail__back:hover { opacity: 1; }
 
 .detail__hero {
   width: 100%;
@@ -856,7 +861,7 @@ body:has(.split.is-detail) .nav {
   font-size: var(--fs-h1);
   font-weight: 450;
   line-height: 1.15;
-  letter-spacing: -0.5px;
+  letter-spacing: var(--tracking-tight);
   margin: 0 0 0.5rem;
 }
 .detail__meta {
@@ -1196,19 +1201,7 @@ html.is-js:not(.revealed) [data-elastic] {
   padding: 1rem var(--content-pad) 4rem;
 }
 
-.cv__back {
-  display: inline-block;
-  margin-bottom: 3rem;
-  font-family: var(--font-sans);
-  font-size: var(--fs-caption);
-  color: var(--text-primary);
-  opacity: var(--op-strong);
-  text-decoration: none;
-  transition: opacity 160ms ease;
-}
-.cv__back:hover { opacity: 1; }
-
-/* Two-column section: lowercase label rail + content */
+/* Two-column section: label rail + content */
 .cv-section {
   display: grid;
   grid-template-columns: 11rem 1fr;
@@ -1222,7 +1215,7 @@ html.is-js:not(.revealed) [data-elastic] {
   margin: 0;
   font-family: var(--font-sans);
   font-size: var(--fs-caption);
-  letter-spacing: 0.02em;
+  letter-spacing: 0;
   color: var(--text-primary);
   opacity: var(--op-soft);
 }
@@ -1235,7 +1228,7 @@ html.is-js:not(.revealed) [data-elastic] {
   font-size: 15px;
   line-height: 1.6;
 }
-.cv-profile p:last-child { margin-bottom: 0; opacity: var(--op-strong); }
+.cv-profile p:last-child { margin-bottom: 0; }
 
 /* Selected impact — stat grid */
 .cv-stats {
@@ -1305,7 +1298,7 @@ html.is-js:not(.revealed) [data-elastic] {
 .cv-role__bullets li {
   position: relative;
   padding-left: 1.3rem;
-  font-size: 14px;
+  font-size: var(--fs-body);
   line-height: 1.5;
   opacity: var(--op-strong);
 }
@@ -1439,7 +1432,7 @@ html.is-js:not(.revealed) [data-elastic] {
   font-family: var(--font-sans);
   font-size: var(--fs-h1);
   font-weight: 450;
-  letter-spacing: -0.5px;
+  letter-spacing: var(--tracking-tight);
   margin: 0 0 0.5rem;
 }
 .sg-section > p.sg-intro {
@@ -1609,9 +1602,9 @@ html.is-js:not(.revealed) [data-elastic] {
   height: 22px;
   display: inline-flex;
   align-items: center;
-  /* No gap — the collapsed label must cost zero width, so the idle pill
-     is symmetric around the padlock. Label→glyph spacing comes from the
-     label's own padding-right, which collapses with the wrap. */
+  /* No gap: the idle clip removes exactly the label, so the idle pill is
+     symmetric around the padlock. Label to glyph spacing is the label's
+     own padding-right. */
   padding: 4px 10px;
   border-radius: 999px;
   background: var(--hover-bg);
@@ -1632,25 +1625,29 @@ html.is-js:not(.revealed) [data-elastic] {
    the "Unlock" label expands out from behind the lock on hover, the
    glyph cross-fades outline → solid, and the hairline appears. */
 .row__lock > .row__lock-pill {
+  /* The label is always laid out; idle, the pill is clipped from the left by
+     the label's width so only the padlock shows. Hover unclips it, so the
+     label opens out without anything reflowing. */
+  --lock-label-w: 43.75px; /* "Unlock" + its 8px padding, measured */
   opacity: 1;
   filter: blur(0);
+  clip-path: inset(0 0 0 var(--lock-label-w) round 999px);
   transition:
     opacity 240ms var(--image-ease),
     filter 240ms var(--image-ease),
-    box-shadow 240ms var(--image-ease);
+    box-shadow 240ms var(--image-ease),
+    clip-path 300ms var(--image-ease);
 }
 .row.is-active:not(.is-unlocked) .row__lock-pill {
   box-shadow: inset 0 0 0 0.5px var(--rule);
+  clip-path: inset(0 round 999px);
 }
 
 .row__lock-labelwrap {
   display: inline-flex;
-  max-width: 0;
-  overflow: hidden;
   opacity: 0;
   filter: blur(4px);
   transition:
-    max-width 300ms var(--image-ease),
     opacity 240ms var(--image-ease),
     filter 240ms var(--image-ease);
 }
@@ -1659,7 +1656,6 @@ html.is-js:not(.revealed) [data-elastic] {
   padding-right: 8px;
 }
 .row.is-active:not(.is-unlocked) .row__lock-labelwrap {
-  max-width: 72px;
   opacity: 1;
   filter: blur(0);
 }
@@ -1717,25 +1713,25 @@ dialog.unlock::backdrop {
 }
 
 dialog.unlock[open] {
-  animation: unlock-in 420ms var(--image-ease) both;
+  animation: unlock-in 260ms var(--image-ease) both;
 }
 dialog.unlock[open]::backdrop {
-  animation: unlock-backdrop-in 420ms var(--image-ease) both;
+  animation: unlock-backdrop-in 260ms var(--image-ease) both;
 }
 dialog.unlock.is-closing {
-  animation: unlock-out 240ms var(--image-ease) both;
+  animation: unlock-out 180ms var(--image-ease) both;
 }
 dialog.unlock.is-closing::backdrop {
-  animation: unlock-backdrop-out 240ms var(--image-ease) both;
+  animation: unlock-backdrop-out 180ms var(--image-ease) both;
 }
 
 @keyframes unlock-in {
-  from { opacity: 0; filter: blur(6px); }
-  to   { opacity: 1; filter: blur(0); }
+  from { opacity: 0; filter: blur(6px); transform: scale(0.97); }
+  to   { opacity: 1; filter: blur(0); transform: scale(1); }
 }
 @keyframes unlock-out {
-  from { opacity: 1; filter: blur(0); }
-  to   { opacity: 0; filter: blur(6px); }
+  from { opacity: 1; filter: blur(0); transform: scale(1); }
+  to   { opacity: 0; filter: blur(6px); transform: scale(0.98); }
 }
 @keyframes unlock-backdrop-in {
   from { opacity: 0; }
@@ -1766,16 +1762,9 @@ dialog.unlock.is-closing::backdrop {
 .unlock__close:hover { opacity: 1; }
 .unlock__close svg { display: block; }
 
-.unlock__kicker {
-  /* Subline — 11 · Regular · ls 0 */
-  margin: 0 0 12px;
-  font-size: var(--fs-caption);
-  letter-spacing: 0;
-  opacity: var(--op-subtle);
-}
-
 .unlock__title {
   margin: 0 0 12px;
+  padding-right: 32px; /* clears the close button */
   font-size: var(--fs-title);
   font-weight: 450;
   letter-spacing: var(--tracking-tight);
@@ -1838,9 +1827,10 @@ dialog.unlock.is-closing::backdrop {
   letter-spacing: var(--tracking-tight);
   cursor: pointer;
   opacity: 0.9;
-  transition: opacity 160ms ease;
+  transition: opacity 160ms ease, scale 150ms ease-out;
 }
 .unlock__submit:hover { opacity: 1; }
+.unlock__submit:active { scale: 0.97; }
 
 .unlock__request {
   font-size: var(--fs-body);

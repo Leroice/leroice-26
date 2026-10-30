@@ -1,25 +1,25 @@
 ---
 title: "AU multicurrency wallet"
 year: "2026"
-context: "Western Union · iOS, Android"
-summary: "Leading design on Western Union's AU digital wallet — a multicurrency consumer wallet built within a global design system that needed to flex. The first sequence shipped a redesigned send-money flow; the current sequence is bringing PayID, PayTo, BPay and BPay top-up into a single coherent surface."
+context: "Western Union, iOS, Android"
+summary: "Leading design on Western Union's multicurrency digital wallet for Australia, built inside a global design system that has to flex. The first release shipped a redesigned send money flow. The current one brings PayID, PayTo, BPAY and BPAY top-up together in one place."
 order: 1
 detail: true
 cover: "/images/work/wu-au-wallet.svg"
-coverAlt: "Western Union AU wallet — send money flow"
+coverAlt: "Western Union AU wallet send money flow"
 locked: true
-# Access code (placeholder — change me): leroice26
+# Access code (placeholder, change me): leroice26
 lockHash: "6d666b34ddeb035e8ca02408984c9f5913e28923ac0a7cf687e50c384df59327"
 ---
 
-More detail to come. The work is in flight and partially under wraps until App Store launch.
+More detail once it launches. The work is in progress and partly confidential until it's on the App Store.
 
-In the meantime, the headline: a multicurrency wallet for the AU market, designed within (and stress-testing) Western Union's global design system. I'm leading the design authority role across product, system contribution, and stakeholder alignment with the AU creative and product leadership.
+For now, the short version. It's a multicurrency wallet for the Australian market, designed inside Western Union's global design system and testing its limits. I hold design authority across the product, contributions back to the system, and alignment with the AU creative and product leads.
 
-## What I'm responsible for
+## My role
 
-I lead the design at the program level — direction, system contribution, and the connective tissue between AU executive stakeholders, the global product team, and the engineering org. The design audit I ran across 34 flows and 360 screens earlier in the program now anchors the system-level decisions that the rest of the work pulls from.
+I lead design at the program level. That covers direction, system contribution and keeping AU executives, the global product team and engineering connected. Early in the program I audited 34 flows and 360 screens. That audit is now the basis for the system decisions the rest of the work builds on.
 
-## Why it's interesting
+## The design problem
 
-Most multicurrency wallets either look like banking apps or look like crypto apps. Neither model fits a remittance-first audience. The interesting design problem is how the wallet feels familiar enough to trust with money, and lightweight enough not to feel like a bank.
+Most multicurrency wallets look like either a banking app or a crypto app. Neither suits people who mostly use it to send money home. The wallet has to feel familiar enough to trust with money and light enough not to feel like a bank.

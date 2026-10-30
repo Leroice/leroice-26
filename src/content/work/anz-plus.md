@@ -1,8 +1,8 @@
 ---
 title: "ANZ Plus"
-year: "2019—2025"
-context: "ANZ · Product Design, Brand, Web"
-summary: "As one of two principal product designers appointed pre-inception, I helped shape the vision, brand and product for ANZ Plus — a substantially better bank built from scratch inside a major incumbent — and went on to build and lead the design team behind Australia's fastest-growing banking app."
+year: "2019–2025"
+context: "Product Design, Brand, Web"
+summary: "One of two principal product designers on ANZ Plus from before it formally began. I helped shape the vision, brand and product for a new bank built from scratch inside ANZ, then built and led the design team behind Australia's fastest-growing banking app."
 order: 3
 detail: true
 external: "https://www.anz.com/plus"
@@ -10,9 +10,9 @@ cover: "/images/work/anz-plus.jpg"
 coverAlt: "ANZ Plus Money screen showing balances, accounts and transactions"
 ---
 
-The chance to build a bank from scratch within a major incumbent is rare; ANZ Plus was that opportunity.
+A chance to build a bank from scratch inside a major incumbent doesn't come up often. ANZ Plus was that chance.
 
-With a bold mission to create a substantially better bank, and armed with a foundational set of principles to help people with their financial wellbeing, we integrated scalable cloud platforms (GCP) and modern CX tools (Salesforce) into a best-in-class, mobile-first experience.
+The mission was a substantially better bank, grounded in a set of principles for helping people with their financial wellbeing. We built it mobile-first on Google Cloud Platform, with Salesforce running the customer experience tools.
 
 <div class="cs-mocks">
   <img src="/images/work/anz-plus/01-ANZ-.png" alt="ANZ Plus app screen" />
@@ -21,11 +21,11 @@ With a bold mission to create a substantially better bank, and armed with a foun
   <img src="/images/work/anz-plus/04-ANZ-.png" alt="ANZ Plus app screen" />
 </div>
 
-As one of two principal product designers appointed pre-inception, our initial task was to prototype and validate early CX concepts, accelerating launch readiness by six months.
+I was one of two principal product designers appointed before the program formally started. Our first job was to prototype and test the early customer experience concepts, which brought launch readiness forward by six months.
 
-I was critical in shaping the product vision, mission, and strategy, and went on to build and lead a high-performing team of designers, writers, and design system specialists.
+I helped shape the product vision and strategy. Then I built and led the team of designers, writers and design system specialists.
 
-Together, we defined and delivered a modern brand and product, fit for ANZ's future, and in the process delivered Australia's fastest-growing banking app.
+Together we defined and delivered a modern brand and product for ANZ. Along the way it became Australia's fastest-growing banking app.
 
 <figure class="cs-full"><img src="/images/work/anz-plus/HS-09.jpg" alt="ANZ Plus home screen" /></figure>
 
@@ -33,9 +33,9 @@ Together, we defined and delivered a modern brand and product, fit for ANZ's fut
 
 ## Financial wellbeing
 
-Long before ANZ Plus, an early concept formed the first pitch to convince our executive team that financial wellbeing could be something we hang our hat on as an organisation.
+Long before ANZ Plus, an early concept was our first pitch to the executive team that financial wellbeing could be something ANZ hangs its hat on.
 
-Born from the work in Grow — aimed at making wealth a concept people could grasp — the financial wellbeing principles formed a foundation for us to lean on as we designed the ANZ App and, later, ANZ Plus.
+It grew out of our work on Grow, which set out to make wealth something people could grasp. The financial wellbeing principles became the foundation we leaned on while designing the ANZ App and, later, ANZ Plus.
 
 <div class="cs-3">
   <img src="/images/work/anz-plus/204-Spending---L1.png" alt="ANZ Plus spending view" />
@@ -51,7 +51,7 @@ Born from the work in Grow — aimed at making wealth a concept people could gra
 ## Project info
 
 - **Role:** Principal Designer / Design Director
-- **Responsibilities & Deliverables:** Vision & Concept, Brand & Creative Direction, UI / UX Direction, Prototyping, Research & Validation, Team Recruitment, Team Leadership, Process Optimisation
-- **Credits:** ANZ Plus Creative / 3D & Motion · Garett Mayow, Creative Director · Emily Pritchard, Art Director · Nick Weller, Motion Director · Jonathan Lochhead, Head of UX & Principal Designer · Sam Berriman, Head of Design Systems · Duncan Ward, Head of Content · Adrian Maciburko, Head of Design
+- **Responsibilities and deliverables:** Vision and concept, brand and creative direction, UI and UX direction, prototyping, research and validation, team recruitment, team leadership, process optimisation
+- **Credits:** ANZ Plus Creative, 3D and Motion; Garett Mayow, Creative Director; Emily Pritchard, Art Director; Nick Weller, Motion Director; Jonathan Lochhead, Head of UX and Principal Designer; Sam Berriman, Head of Design Systems; Duncan Ward, Head of Content; Adrian Maciburko, Head of Design
 - **Visit:** [anz.com/plus](https://www.anz.com/plus)
-- **Download:** [App Store](https://apps.apple.com/au/app/anz-plus/id1495738612) · [Google Play](https://play.google.com/store/apps/details?id=com.anz.lotus&hl=en)
+- **Download:** [App Store](https://apps.apple.com/au/app/anz-plus/id1495738612), [Google Play](https://play.google.com/store/apps/details?id=com.anz.lotus&hl=en)

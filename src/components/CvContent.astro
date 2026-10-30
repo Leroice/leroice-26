@@ -1,53 +1,54 @@
 ---
-/* Shared CV content — rendered by BOTH /cv (with the site chrome and a
-   back link) and /resume (standalone, no links off-page). Lives here so
+/* Shared CV content — rendered by BOTH /cv (with the site chrome) and /resume (standalone, no links off-page). Lives here so
    the two can never drift: one set of data, one set of markup. */
 
 /* CV content — Figma node 32:124 (light) / 32:125 (dark).
    Data-driven so entries stay easy to edit. */
 
 const profile = [
-  "Proven Design Director with over two decades delivering high-impact digital products at enterprise scale. Deep expertise in fintech and financial services. Comfortable leading zero-to-one platform launches through to multi-market design system convergence across global teams. Known for translating complex product strategy into intuitive, high-performing experiences, and for building and leading design organisations that ship fast without sacrificing craft.",
-  "Recently I drove the design program for a next-generation multicurrency digital wallet across AU and MX markets. Career spans fintech, enterprise SaaS, brand, retail, and physical product design that maintains a consistent thread of commercial impact, creative leadership, and work at scale.",
+  "I’m a designer who loves making things, from digital products to brands. Whether it’s form or function, I care about the small details: how something looks, moves and feels to use. I want people to feel the care that’s gone into what I create.",
+  "I also love working and growing alongside people who care about the products they make.",
+  "I’ve spent the better part of two decades designing in banking and fintech. As a core member of the founding team at ANZ Plus, I shaped the design vision and stayed hands-on as we grew from two designers to more than twenty.",
+  "More recently, I built a small team to bring a multicurrency wallet program to life for Western Union. I’m currently UX Lead for RACV’s app team.",
 ];
 
 const impact = [
-  { stat: "1M customers",  desc: "acquired in 24 months — fastest digital banking app growth in Australia" },
-  { stat: "$2.4B+ FUM",    desc: "delivered within 18 months of ANZ Plus launch" },
-  { stat: "3.2 → 4.6★",    desc: "App Store rating uplift across 4M+ customer migration in 3 months" },
-  { stat: "$100M+",        desc: "fraud cost reduction in year one via VoiceID biometric authentication design" },
-  { stat: "+54 NPS",       desc: "onboarding improvement through a fully-digital join experience" },
-  { stat: "5× adoption",   desc: "cross-platform design system (iOS/Android/Web/AEM) vs legacy, ~4 weeks saved per feature" },
-  { stat: "15+ designers", desc: "mentored into senior and leadership roles; 3× the bank average promotion rate" },
-  { stat: "$4M+",          desc: "potential profit secured via brand licensing pitches to UFC and Under Armour" },
+  { stat: "1M customers",  desc: "acquired in 24 months, the fastest growth of any digital banking app in Australia" },
+  { stat: "$2.4B+ FUM",    desc: "within 18 months of the ANZ Plus launch" },
+  { stat: "3.2 to 4.6",    desc: "App Store rating after migrating 4M+ customers in 3 months" },
+  { stat: "$100M+",        desc: "cut from fraud costs in year one with VoiceID biometric authentication" },
+  { stat: "+54 NPS",       desc: "onboarding improvement from a fully digital join experience" },
+  { stat: "5× adoption",   desc: "of the cross-platform design system (iOS, Android, web, AEM) over legacy, saving about 4 weeks per feature" },
+  { stat: "15+ designers", desc: "mentored into senior and leadership roles, at 3× the bank's average promotion rate" },
+  { stat: "$4M+",          desc: "potential profit from brand licensing pitches to UFC and Under Armour" },
 ];
 
 const current = [
   {
     role: "Staff Product Designer",
-    org: "TELUS Digital · Western Union E1 Wallet · Melbourne/Sydney, AU",
-    date: "Oct 2025 — Present",
+    org: "TELUS Digital, Western Union E1 Wallet, Melbourne and Sydney",
+    date: "Oct 2025 – Present",
     bullets: [
-      "Leading UX design for the E1 Wallet — a next-generation multicurrency digital wallet transitioning Western Union from a legacy remittance platform to a full-service global financial product.",
-      "Driving a cross-market design audit across AU and MX, classifying ~360 screens across 34 flows using a Core / Configurable / Local framework to identify systemic drift and establish a shared baseline for global scale.",
-      "Operating as embedded design leadership within a cross-functional product, engineering and PMO team; influencing roadmap priorities, sprint planning and QA standards at director level.",
-      "Leading design system strategy across market variants, resolving navigation, scroll behaviour and component inconsistencies ahead of Friends & Family release.",
-      "Mentoring and directing a distributed design team across AU (directly responsible for the local team of five), India and US — spanning research, UX, content and interaction design.",
-      "Leveraging Claude and AI-powered workflows across audit analysis, design documentation, stakeholder communications and sprint planning — compressing days into hours.",
-      "Built and distributed React Native prototypes via TestFlight that tested customer scenarios, design system improvements and micro-interaction design.",
-      "Led contract negotiations and co-created an 18-month design system rollout roadmap as part of business development between TELUS Digital (vendor) and Western Union.",
-      "Managed the engagement end-to-end — team leadership, SOWs, client management, strategic implementation plans, business development and status reporting — all while staying hands-on with the day-to-day design work.",
+      "Leading UX design for the E1 Wallet, a new multicurrency digital wallet that moves Western Union from a legacy remittance platform to a full-service global financial product.",
+      "Running a design audit across the AU and MX markets: about 360 screens over 34 flows, sorted as Core, Configurable or Local to find where the system has drifted and set a shared baseline for global scale.",
+      "Embedded as design leadership in a cross-functional product, engineering and PMO team, influencing roadmap priorities, sprint planning and QA standards at director level.",
+      "Leading design system strategy across market variants, fixing inconsistencies in navigation, scroll behaviour and components ahead of the Friends and Family release.",
+      "Mentoring and directing a distributed design team across AU, India and the US, covering research, UX, content and interaction design. Directly responsible for the local team of five.",
+      "Using Claude and AI workflows for audit analysis, design documentation, stakeholder communication and sprint planning. Work that took days now takes hours.",
+      "Built React Native prototypes and shared them through TestFlight to test customer scenarios, design system improvements and micro-interactions.",
+      "Led contract negotiations between TELUS Digital (vendor) and Western Union. Co-created an 18-month design system rollout roadmap as part of that business development.",
+      "Running the engagement end to end: team leadership, SOWs, client management, implementation plans, business development and status reporting. Still hands-on with the day-to-day design.",
     ],
   },
   {
     role: "Founding Designer",
-    org: "Meddle · Melbourne/Sydney, AU · Healthtech startup",
-    date: "Sep 2025 — Present",
+    org: "Meddle, Melbourne and Sydney, healthtech startup",
+    date: "Sep 2025 – Present",
     bullets: [
-      "Founding designer for Meddle — a healthtech platform built around a radical proposition: patients own their health record. Meddle connects patients and practitioners through AI-powered matching, shared appointments and a personalised longitudinal health record patients carry across every provider they see.",
-      "Responsible for product design, brand identity, and end-to-end UX direction from zero — shaping the core interaction model for the patient-facing and practitioner-facing sides of the platform.",
-      "Currently in active pilot with 400 allied health professionals, validating clinical workflows and iterating in a live environment.",
-      "Created an investment-ready product and design system, ready for continued success from the team.",
+      "Founding designer at Meddle, a healthtech platform built on one idea: patients own their health record. Meddle connects patients and practitioners through AI matching and shared appointments. Patients carry a personal, long-term health record to every provider they see.",
+      "Responsible for product design, brand identity and UX direction from zero, including the core interaction model for both the patient and practitioner sides.",
+      "In a live pilot with 400 allied health professionals, testing clinical workflows and iterating as we go.",
+      "Delivered an investment-ready product and design system the team can keep building on.",
     ],
   },
 ];
@@ -55,120 +56,120 @@ const current = [
 const prior = [
   {
     role: "Principal Designer / Design Director",
-    org: "ANZ Plus · Melbourne, AU",
-    date: "Jun 2019 — 2025",
+    org: "ANZ Plus, Melbourne",
+    date: "Jun 2019 – 2025",
     bullets: [
-      "Joined as one of the founding designers for ANZ Plus and scaled the design function from 2 to 40+ in 24 months, reaching 1M customers and $2.4B+ FUM within 18 months of launch.",
-      "Championed and led creation of a cross-platform design system (iOS, Android, Web, AEM, Email) achieving 5× asset adoption vs legacy and reducing per-feature build time by ~4 weeks.",
-      "Secured C-suite alignment on Financial Wellbeing as a core product differentiator — a 23% uplift in engagement vs the classic ANZ app.",
-      "Led end-to-end payment card design: digital ordering, in-app application (35% reduction in application time), packaging and fulfilment (3 weeks → under 4 days), and Apple Pay used by 60%+ of active cardholders within 3 months.",
-      "Directed AEM marketing-site framework rollout, converting $480M in home-loan customers via web channels in 6 months.",
-      "Mentored 15+ designers into senior and leadership roles — 3× the bank average promotion rate.",
+      "One of the founding designers on ANZ Plus. Grew the design team from 2 to 40+ in 24 months. ANZ Plus reached 1M customers and $2.4B+ FUM within 18 months of launch.",
+      "Pushed for and led a cross-platform design system (iOS, Android, web, AEM, email). Adoption was 5× the legacy assets and it cut about 4 weeks from each feature build.",
+      "Got C-suite agreement on financial wellbeing as a core product differentiator. Engagement rose 23% over the classic ANZ app.",
+      "Led payment card design end to end. That covered digital ordering, an in-app application that takes 35% less time, and packaging and fulfilment cut from 3 weeks to under 4 days. Apple Pay was used by 60%+ of active cardholders within 3 months.",
+      "Directed the rollout of the AEM marketing site framework, which converted $480M in home loan customers through web channels in 6 months.",
+      "Mentored 15+ designers into senior and leadership roles, at 3× the bank's average promotion rate.",
     ],
   },
   {
-    role: "Principal Designer — Digital Customer Experience",
-    org: "ANZ · Melbourne, AU",
-    date: "Mar 2018 — Jun 2019",
+    role: "Principal Designer, Digital Customer Experience",
+    org: "ANZ, Melbourne",
+    date: "Mar 2018 – Jun 2019",
     bullets: [
-      "Unified the GoMoney and Grow app ecosystems into one experience, migrating 4M+ customers and lifting App Store ratings from 3.2 → 4.6 in 3 months post-release.",
-      "Introduced digital sales to the ANZ app for the first time, driving a 30% increase in in-app sales within 6 months.",
-      "Improved accessibility across native iOS and Android via HIG-aligned patterns, reducing support ticket volume by 18%.",
+      "Brought the GoMoney and Grow apps together into one experience, migrating 4M+ customers. App Store ratings went from 3.2 to 4.6 within 3 months of release.",
+      "Added digital sales to the ANZ app for the first time. In-app sales rose 30% within 6 months.",
+      "Improved accessibility on iOS and Android with HIG-aligned patterns, cutting support tickets by 18%.",
     ],
   },
   {
-    role: "Creative Director — Group Innovation",
-    org: "ANZ · Melbourne, AU",
-    date: "Sep 2014 — Mar 2018",
+    role: "Creative Director, Group Innovation",
+    org: "ANZ, Melbourne",
+    date: "Sep 2014 – Mar 2018",
     bullets: [
-      "Designed ANZ's first biometric authentication product (VoiceID), reducing high-limit payment fraud costs by $100M+ in year one.",
-      "Delivered Australia's first unified banking and wealth app across iPad, iPhone and Apple Watch — 250K+ multi-device users in year one.",
-      "Created and pitched the “9 Financial Wellbeing Principles” framework that later embedded across the ANZ Plus platform.",
+      "Designed VoiceID, ANZ's first biometric authentication product. It cut high-limit payment fraud costs by $100M+ in its first year.",
+      "Delivered Australia's first combined banking and wealth app across iPad, iPhone and Apple Watch, with 250K+ people using it on more than one device in year one.",
+      "Created and pitched the 9 Financial Wellbeing Principles, which were later built into ANZ Plus.",
     ],
   },
   {
-    role: "Senior Product Designer — Contract",
-    org: "Australia Post · ME Bank · Telstra · Factor5 / CourseLoop · Melbourne, AU",
-    date: "2013 — 2015",
+    role: "Senior Product Designer, Contract",
+    org: "Australia Post, ME Bank, Telstra, Factor5 / CourseLoop, Melbourne",
+    date: "2013 – 2015",
     bullets: [
-      "Australia Post — Senior PD on MyPost Digital Mailbox, a $2B national initiative to digitise postal correspondence, launched with ANZ, Westpac, NAB and AMP as founding partners.",
-      "ME Bank — Lead designer on their first mobile banking app for iPhone and Android.",
-      "Telstra — Product designer on the Telstra Health Gateway.",
-      "Factor5 / CourseLoop — Founding product designer and brand lead for what became CourseLoop, acquired by TechnologyOne (ASX: TNE) in 2024.",
+      "Australia Post: senior product designer on MyPost Digital Mailbox, a $2B national program to digitise postal mail. It launched with ANZ, Westpac, NAB and AMP as founding partners.",
+      "ME Bank: lead designer on their first mobile banking app for iPhone and Android.",
+      "Telstra: product designer on the Telstra Health Gateway.",
+      "Factor5 / CourseLoop: founding product designer and brand lead for what became CourseLoop. TechnologyOne (ASX: TNE) acquired it in 2024.",
     ],
   },
   {
-    role: "Senior Visual Designer — Customer Experience",
-    org: "ANZ · Melbourne, AU",
-    date: "Oct 2011 — 2013",
+    role: "Senior Visual Designer, Customer Experience",
+    org: "ANZ, Melbourne",
+    date: "Oct 2011 – 2013",
     bullets: [
-      "First design role at ANZ — established the first mobile visual style guide, the foundation for all subsequent design-system work across the bank.",
-      "Delivered consistent, on-brand digital experiences with UX, product and offshore development teams.",
+      "My first design role at ANZ. I set up the bank's first mobile visual style guide, which every later design system there built on.",
+      "Delivered consistent, on-brand digital work with UX, product and offshore development teams.",
     ],
   },
   {
-    role: "Early Career — Brand, Retail & Product Design",
-    org: "PlayCorp · House Corporate · SL Investments · Caramel Creative · Melbourne, AU",
-    date: "2000 — 2011",
+    role: "Early career in brand, retail and product design",
+    org: "PlayCorp, House Corporate, SL Investments, Caramel Creative, Melbourne",
+    date: "2000 – 2011",
     bullets: [
-      "Eight years at PlayCorp — Australia's largest integrated homewares, lifestyle and apparel manufacturer. Managed 6 designers, reported to CEO, designed full product ranges for Everlast, The North Face, AFL and NFL distributed through Kmart and major big-box retailers.",
-      "Led the rebrand and relaunch of House — one of Australia's longest-running homeware chains.",
-      "At SL Investments, conceived and pitched brand-licensing concepts to UFC and Under Armour generating $4M+ in potential contract value.",
-      "At Caramel Creative drove the strategy and successful pitch to transform a $500M retail and residential development, The Oracle — hand-crafting the design through to code and motion design.",
-      "Built the client portfolio at Caramel — personally responsible for three acquisitions.",
-      "Brand portfolio: Everlast, The North Face, AFL, NFL, Ben Sherman, FCUK, Guinness, Jack Daniels, Lucasfilm (Star Wars), Fosters Group, Penfolds.",
+      "Eight years at PlayCorp, Australia's largest integrated homewares, lifestyle and apparel manufacturer. Managed 6 designers and reported to the CEO. Designed full product ranges for Everlast, The North Face, AFL and NFL, sold through Kmart and other big-box retailers.",
+      "Led the rebrand and relaunch of House, one of Australia's longest-running homeware chains.",
+      "At SL Investments, came up with and pitched brand licensing concepts to UFC and Under Armour worth $4M+ in potential contract value.",
+      "At Caramel Creative, led the strategy and winning pitch for The Oracle, a $500M retail and residential development. Did the design myself, through to code and motion.",
+      "Grew the client list at Caramel, bringing in three new clients personally.",
+      "Brands worked on: Everlast, The North Face, AFL, NFL, Ben Sherman, FCUK, Guinness, Jack Daniel's, Lucasfilm (Star Wars), Foster's Group, Penfolds.",
     ],
   },
   {
     role: "Specialist",
-    org: "Apple Retail · Regent Street, London",
-    date: "2008 — 2009",
+    org: "Apple Retail, Regent Street, London",
+    date: "2008 – 2009",
     bullets: [
-      "Represented Apple's retail brand at its flagship global store during a career sabbatical. Consistently exceeded targets and was invited back for a second stint — formative grounding in product culture, customer experience and brand standards at the highest level.",
+      "Worked at Apple's flagship store during a career break. Consistently beat targets and was asked back for a second stint. It's where I learnt product culture and customer experience the Apple way.",
     ],
   },
 ];
 
 const skills = [
-  "Product Design (iOS / Android / Web)",
-  "Design Systems Strategy",
-  "Fintech / Financial Services",
-  "CX Strategy",
-  "Design Leadership & Team Scaling",
-  "Rapid Prototyping",
-  "Stakeholder Management",
+  "Product design for iOS, Android and web",
+  "Design systems strategy",
+  "Fintech and financial services",
+  "CX strategy",
+  "Design leadership and team scaling",
+  "Rapid prototyping",
+  "Stakeholder management",
   "Accessibility (WCAG 2.1)",
-  "Figma & Figma Systems Admin",
-  "Play / Swift Prototyping",
-  "AI-augmented Product Design",
-  "Claude / AI Workflows",
-  "Brand & Identity",
-  "Motion Design",
+  "Figma and Figma systems admin",
+  "Play and Swift prototyping",
+  "AI-augmented product design",
+  "Claude and AI workflows",
+  "Brand and identity",
+  "Motion design",
 ];
 
 const education = {
   degree: "Bachelor of Design (Hons)",
-  detail: "Graphic Design / Multimedia — Graduated with Distinction\nFederation University · 1999 – 2002",
+  detail: "Graphic Design and Multimedia, graduated with Distinction\nFederation University, 1999–2002",
 };
 
 const awards = [
-  { title: "Most Frictionless Consumer App",            source: "RFI Global Australian Banking & Finance Awards · 2026", role: "ANZ Plus — Principal Designer / Design Director" },
-  { title: "Digital Lender of the Year · Best for Refinance", source: "We Money Awards · 2025",                          role: "ANZ Plus — Principal Designer / Design Director" },
-  { title: "Gold Cube · 81st ADCNY",                    source: "Art Directors Club New York · 2001",                  role: "Promotional Use Only — CD-ROM" },
+  { title: "Most Frictionless Consumer App",               source: "RFI Global Australian Banking & Finance Awards, 2026", role: "ANZ Plus, Principal Designer / Design Director" },
+  { title: "Digital Lender of the Year, Best for Refinance", source: "We Money Awards, 2025",                             role: "ANZ Plus, Principal Designer / Design Director" },
+  { title: "Gold Cube, 81st ADCNY",                        source: "Art Directors Club New York, 2001",                   role: "Promotional Use Only CD-ROM" },
 ];
 
 const lastUpdated = "July 2026";
 ---
 
 <section class="cv-section" data-reveal-children>
-  <p class="cv-label">profile</p>
+  <p class="cv-label">Profile</p>
   <div class="cv-content cv-profile">
     {profile.map((para) => <p>{para}</p>)}
   </div>
 </section>
 
 <section class="cv-section" data-reveal-children>
-  <p class="cv-label">selected impact</p>
+  <p class="cv-label">Selected impact</p>
   <div class="cv-content">
     <ul class="cv-stats">
       {impact.map((item) => (
@@ -182,7 +183,7 @@ const lastUpdated = "July 2026";
 </section>
 
 <section class="cv-section" data-reveal-children>
-  <p class="cv-label">current</p>
+  <p class="cv-label">Current</p>
   <div class="cv-content cv-roles">
     {current.map((job) => (
       <article class="cv-role">
@@ -202,7 +203,7 @@ const lastUpdated = "July 2026";
 </section>
 
 <section class="cv-section" data-reveal-children>
-  <p class="cv-label">prior</p>
+  <p class="cv-label">Prior</p>
   <div class="cv-content cv-roles">
     {prior.map((job) => (
       <article class="cv-role">
@@ -222,7 +223,7 @@ const lastUpdated = "July 2026";
 </section>
 
 <section class="cv-section" data-reveal-children>
-  <p class="cv-label">core skills</p>
+  <p class="cv-label">Core skills</p>
   <div class="cv-content">
     <ul class="cv-skills">
       {skills.map((skill) => <li class="cv-skill">{skill}</li>)}
@@ -231,15 +232,15 @@ const lastUpdated = "July 2026";
 </section>
 
 <section class="cv-section" data-reveal-children>
-  <p class="cv-label">education &amp; awards</p>
+  <p class="cv-label">Education and awards</p>
   <div class="cv-content cv-edu-grid">
     <div>
-      <p class="cv-subhead">education</p>
+      <p class="cv-subhead">Education</p>
       <h3 class="cv-edu__degree">{education.degree}</h3>
       <p class="cv-edu__detail">{education.detail}</p>
     </div>
     <div>
-      <p class="cv-subhead">awards</p>
+      <p class="cv-subhead">Awards</p>
       <ul class="cv-awards">
         {awards.map((a) => (
           <li class="cv-award">
@@ -253,4 +254,4 @@ const lastUpdated = "July 2026";
   </div>
 </section>
 
-<p class="cv-updated" data-reveal>cv · last updated {lastUpdated}</p>
+<p class="cv-updated" data-reveal>Last updated {lastUpdated}</p>

@@ -2,18 +2,16 @@
 import Base from '../layouts/Base.astro';
 import CvContent from '../components/CvContent.astro';
 
-/* The in-site CV: full site chrome plus a back link. The content itself
+/* The in-site CV, with the full site chrome. The content itself
    lives in CvContent.astro, shared verbatim with /resume (the standalone,
    shareable version) so the two can't drift apart. */
 ---
 
 <Base
-  title="CV — Leigh Scholten"
-  description="Product Design Director — two decades of high-impact digital product work across fintech and financial services."
+  title="Leigh Scholten: CV"
+  description="Design director with more than 20 years of digital product work in fintech and financial services."
 >
   <main class="cv">
-    <a href="/" class="cv__back" data-reveal>← back</a>
-
     <CvContent />
   </main>
 </Base>
