@@ -6,7 +6,7 @@ summary: "Taking LUXEM Ventures' brand beyond a logo, palette and typeface into 
 order: 7
 detail: true
 external: "https://www.luxemvc.com.au"
-cover: "/images/work/luxem.jpg"
+cover: "/images/work/luxem/luxem-hero-desktop.jpg"
 coverAlt: "LUXEM Ventures wordmark on black"
 ---
 
@@ -17,17 +17,17 @@ LUXEM Ventures asked me to take their brand further than a logo, a colour palett
 They invest in promising seed and early-stage startups, so the brand draws on connection and digital networks. We carried that through the website, the motion and the 3D.
 
 <div class="cs-mocks">
-  <img src="/images/work/luxem/01-LUXEM-Mobile-Intro.png" alt="LUXEM mobile intro" />
-  <img src="/images/work/luxem/02-LUXEM-Mobile-Intro.png" alt="LUXEM mobile intro" />
-  <img src="/images/work/luxem/03-LUXEM-Mobile-Intro.png" alt="LUXEM mobile intro" />
-  <img src="/images/work/luxem/04LUXEM-Mobile-Intro.png" alt="LUXEM mobile intro" />
+  <img src="/images/work/luxem/luxem-mock-01.png" alt="LUXEM mobile intro" />
+  <img src="/images/work/luxem/luxem-mock-02.png" alt="LUXEM mobile intro" />
+  <img src="/images/work/luxem/luxem-mock-03.png" alt="LUXEM mobile intro" />
+  <img src="/images/work/luxem/luxem-mock-04.png" alt="LUXEM mobile intro" />
 </div>
 
-<figure class="cs-full"><img src="/images/work/luxem/Moodboard.jpg" alt="LUXEM moodboard" /></figure>
+<figure class="cs-full"><img src="/images/work/luxem/luxem-wide-02.jpg" alt="LUXEM moodboard" /></figure>
 
 <figure class="cs-full"><video src="/videos/work/luxem/LUXEMVC-BG-Animation-Wide-transcode.mp4" autoplay muted loop playsinline></video></figure>
 
-<figure class="cs-full"><img src="/images/work/luxem/WeLuxem-WebMock.jpg" alt="LUXEM web mockup" /></figure>
+<figure class="cs-full"><img src="/images/work/luxem/luxem-wide-01.jpg" alt="LUXEM web mockup" /></figure>
 
 ## Project info
 

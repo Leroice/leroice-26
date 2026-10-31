@@ -6,7 +6,7 @@ summary: "Brand identity, illustration and motion for Ghost VC: creative directi
 order: 8
 detail: true
 external: "https://www.ghost-vc.com"
-cover: "/images/work/ghost.jpg"
+cover: "/images/work/ghost/ghost-hero-desktop.jpg"
 coverAlt: "Ghost VC wordmark with the illustrated ghost standing in the O"
 ---
 
@@ -15,10 +15,10 @@ Ghost VC wanted an identity that felt elusive but still carried the confidence o
 The identity is built around an illustrated ghost, with an animated logo that brings the character to life. The same system runs through the site and its interactions.
 
 <div class="cs-mocks">
-  <img src="/images/work/ghost/01-ghost.png" alt="Ghost VC mobile design" />
-  <img src="/images/work/ghost/02-ghost.png" alt="Ghost VC mobile design" />
-  <img src="/images/work/ghost/03-ghost.png" alt="Ghost VC mobile design" />
-  <img src="/images/work/ghost/04-ghost.png" alt="Ghost VC mobile design" />
+  <img src="/images/work/ghost/ghost-mock-01.png" alt="Ghost VC mobile design" />
+  <img src="/images/work/ghost/ghost-mock-02.png" alt="Ghost VC mobile design" />
+  <img src="/images/work/ghost/ghost-mock-03.png" alt="Ghost VC mobile design" />
+  <img src="/images/work/ghost/ghost-mock-04.png" alt="Ghost VC mobile design" />
 </div>
 
 The full project is at [ghost-vc.com](https://www.ghost-vc.com).
