@@ -425,7 +425,9 @@ export function pageExit(href: string, origin?: StaggerOptions['origin'], opts: 
   let navigated = false;
   const go = () => { if (!navigated) { navigated = true; window.location.href = href; } };
   if (reduced()) { go(); return; }
-  const els = revealItems();
+  // The case-study subnav leaves with the page. Left out, it stays on the
+  // blank page until the next one paints, then vanishes in a single frame.
+  const els = [...revealItems(), ...document.querySelectorAll<HTMLElement>('[data-elastic-nav]')];
   if (!els.length) { go(); return; }
 
   // Keep the exit quick regardless of page size: cap the TOTAL stagger spread,

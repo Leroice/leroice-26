@@ -11,6 +11,8 @@
    3. Arrivals fade in, and the fade starts only after the load event, so
       Safari has the page on screen before it runs (on iPhone an earlier
       start is mostly spent before the first frame shows).
+   4. Leaving a case study for home fades the subnav out with the page,
+      so it can't sit on the blank page and vanish in one frame.
 
    Runs WebKit at desktop and iPhone sizes against `astro preview`. Needs
    the WebKit build: npx playwright-core install webkit
@@ -122,6 +124,23 @@ try {
       }
       await ctx.close();
     }
+
+    // Leaving a case study for home: the subnav fades out with the page.
+    // If it stays up, it vanishes in one frame when home paints.
+    const ctx = await browser.newContext(device);
+    const page = await ctx.newPage();
+    await page.addInitScript(() => addEventListener('pagehide', () => {
+      const nav = document.querySelector('[data-elastic-nav]');
+      if (nav) sessionStorage.setItem('exitNavOpacity', getComputedStyle(nav).opacity);
+    }));
+    await page.goto(BASE + '/work/trace');
+    await page.waitForTimeout(2700);
+    await page.locator('a.nav__brand').click();
+    await page.waitForURL(BASE + '/');
+    const exitNav = await page.evaluate(() => sessionStorage.getItem('exitNavOpacity'));
+    check(exitNav !== null && parseFloat(exitNav) < 0.05,
+      `${name} case study to home: subnav has faded out before leaving (opacity ${exitNav})`);
+    await ctx.close();
   }
   await browser.close();
 } finally {
