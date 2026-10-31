@@ -1,7 +1,9 @@
 // Rehype plugin: adds srcset/sizes/lazy-loading to every <img> in the
 // markdown case-study bodies whose src has variants in the manifest
-// (generated at prebuild by optimize-images.mjs). The bodies use raw
-// HTML for the layout kit, so this handles both shapes the tree can
+// (generated at prebuild by optimize-images.mjs), and width/height to
+// every one the manifest knows, so the browser reserves each image's
+// box before it loads and the page doesn't shift as they arrive. The
+// bodies use raw HTML for the layout kit, so this handles both shapes the tree can
 // take: parsed `element` nodes and unparsed `raw` nodes.
 
 import { readFileSync } from 'node:fs';
@@ -40,7 +42,13 @@ export default function rehypeSrcset() {
     visit(tree, (node) => {
       if (node.type === 'element' && node.tagName === 'img') {
         const src = node.properties?.src;
-        if (typeof src !== 'string' || node.properties.srcset) return;
+        if (typeof src !== 'string') return;
+        const entry = manifest[src];
+        if (entry?.height && node.properties.width == null) {
+          node.properties.width = entry.width;
+          node.properties.height = entry.height;
+        }
+        if (node.properties.srcset) return;
         const srcset = srcsetFor(manifest, src);
         if (!srcset) return;
         node.properties.srcset = srcset;
@@ -51,9 +59,13 @@ export default function rehypeSrcset() {
         node.value = node.value.replace(
           /<img\b[^>]*>/g,
           (tag) => {
-            if (/\bsrcset=/.test(tag)) return tag;
             const m = tag.match(/\bsrc="([^"]+)"/);
             if (!m) return tag;
+            const entry = manifest[m[1]];
+            if (entry?.height && !/\bwidth=/.test(tag)) {
+              tag = tag.replace(/<img\b/, `<img width="${entry.width}" height="${entry.height}"`);
+            }
+            if (/\bsrcset=/.test(tag)) return tag;
             const srcset = srcsetFor(manifest, m[1]);
             if (!srcset) return tag;
             let out = tag.replace(

@@ -45,7 +45,7 @@ for await (const file of walk(IMAGES_DIR)) {
   const srcStat = await fs.stat(file);
   const usable = WIDTHS.filter((w) => w < meta.width);
   const publicPath = '/' + path.relative(path.join(ROOT, 'public'), file).split(path.sep).join('/');
-  manifest[publicPath] = { width: meta.width, variants: usable };
+  manifest[publicPath] = { width: meta.width, height: meta.height, variants: usable };
 
   for (const w of usable) {
     const out = variantPath(file, w);

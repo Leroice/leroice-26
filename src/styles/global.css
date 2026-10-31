@@ -45,7 +45,9 @@
   --op-primary:   1;
   --op-secondary: 0.8;
   --op-tertiary:  0.7;
-  --op-subtle:    0.5;
+  /* 0.65 in light mode: at 0.5 the subtle text sat at 3.1:1 on the page,
+     under AA's 4.5:1. Dark mode passes at 0.5 (4.9:1) and keeps it. */
+  --op-subtle:    0.65;
   /* Legacy aliases (pre-Figma-sync names) */
   --op-strong:    var(--op-tertiary);
   --op-soft:      var(--op-subtle);
@@ -138,10 +140,23 @@
   /* How long the preview image trails the rollover pill (both directions).
      Tunable live via the TUNING panel. */
   --preview-follow:       300ms;
+
+  /* Stacking order, lowest to highest. Use these steps, never a raw
+     number. */
+  --z-base:      0;   /* home list pill layer */
+  --z-row:       1;   /* list rows, above the pill */
+  --z-row-lock:  2;   /* the lock pill inside a row */
+  --z-edge:      9;   /* Safari edge strips: over content, under headers */
+  --z-subnav:    10;  /* sticky case-study subnav */
+  --z-flight:    11;  /* case-study image while it flies in */
+  --z-float:     20;  /* nav dropdown, floating controls */
+  --z-nav:       30;  /* sticky main nav */
+  --z-tuner:     50;  /* TUNING panel (dev and preview only) */
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
+    --op-subtle:    0.5;
     --text-primary: #F2EFE8;
     --bg:           #14130F;
     --hover-bg:     rgba(255, 255, 255, 0.06);
@@ -149,12 +164,14 @@
   }
 }
 :root[data-theme="dark"] {
+  --op-subtle:    0.5;
   --text-primary: #F2EFE8;
   --bg:           #14130F;
   --hover-bg:     rgba(255, 255, 255, 0.06);
   --rule:         rgba(242, 239, 232, 0.08);
 }
 :root[data-theme="light"] {
+  --op-subtle:    0.65;
   --text-primary: #24221B;
   --bg:           #FAFAF7;
   --hover-bg:     rgba(0, 0, 0, 0.05);
@@ -185,6 +202,9 @@
 *, *::before, *::after { box-sizing: border-box; }
 html {
   -webkit-text-size-adjust: 100%;
+  /* Only Regular, Medium and SemiBold load. Never let the browser fake
+     another weight or an italic: a missing file should look missing. */
+  font-synthesis: none;
   /* Always reserve the scrollbar gutter so centered layouts don't shift
      sideways when a vertical scrollbar appears after content loads. */
   scrollbar-gutter: stable;
@@ -267,7 +287,7 @@ body {
   position: fixed;
   left: 0;
   right: 0;
-  z-index: 9;
+  z-index: var(--z-edge);
   pointer-events: none;
   color: var(--bg);
 }
@@ -282,6 +302,32 @@ body {
 .edge-top::after { background: var(--edge-top-background, var(--bg)); }
 .edge-bottom::after { background: var(--edge-bottom-background, var(--bg)); }
 
+/* ── Hit areas ─────────────────────────────────────────────
+   Small text links grow an invisible box to 40px tall (44 on phones)
+   without moving or changing size. Sideways growth stops at half the
+   12px gap between neighbours, so two hit areas never overlap. */
+.nav__brand,
+.nav__links a,
+.detail__subnav-title,
+.detail__subnav-tabs a { position: relative; }
+.nav__brand::before,
+.nav__links a::before,
+.detail__subnav-title::before,
+.detail__subnav-tabs a::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: max(100%, 40px);
+  translate: 0 -50%;
+}
+.nav__links a::before,
+.detail__subnav-tabs a::before { inset-inline: calc(var(--sp-3) / -2); }
+@media (--bp-phone) {
+  .nav__brand::before,
+  .detail__subnav-title::before { height: max(100%, 44px); }
+}
+
 /* ── Header — Figma node 2:15 ───────────────────────────── */
 
 .nav {
@@ -291,7 +337,7 @@ body {
      wide screens). Layout lives in .nav__inner. */
   position: sticky;
   top: var(--safe-top);
-  z-index: 30;
+  z-index: var(--z-nav);
   background: color-mix(in srgb, var(--bg) 88%, transparent);
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
@@ -338,7 +384,7 @@ body:has(.split.is-detail) .nav {
 }
 .nav__brand .role {
   color: var(--text-primary);
-  opacity: 0.5;
+  opacity: var(--op-subtle);
   margin-left: 0.25rem;
 }
 
@@ -419,7 +465,7 @@ body:has(.split.is-detail) .nav {
   position: absolute;
   top: 100%;
   right: var(--content-pad);
-  z-index: 20;
+  z-index: var(--z-float);
   flex-direction: column;
   min-width: 12rem;
   padding: var(--sp-3) 0;
@@ -562,7 +608,7 @@ body:has(.split.is-detail) .nav {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 0;
+  z-index: var(--z-base);
   --pill-visible: 0;
   filter: url(#leroice-goo) blur(calc(var(--pill-velocity-blur) + (1 - var(--pill-visible)) * 8px));
   opacity: calc(var(--pill-velocity-opacity) * var(--pill-visible));
@@ -607,7 +653,7 @@ body:has(.split.is-detail) .nav {
   cursor: pointer;
   color: inherit;
   text-decoration: none;
-  z-index: 1;
+  z-index: var(--z-row);
 }
 
 /* All rows dim to 90% by default. Only the actively-hovered row stays full. */
@@ -785,7 +831,7 @@ body:has(.split.is-detail) .nav {
      has fully scrolled off, since its natural position is right below. */
   position: sticky;
   top: var(--safe-top);
-  z-index: 10;
+  z-index: var(--z-subnav);
   background: color-mix(in srgb, var(--bg) 88%, transparent);
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
@@ -867,6 +913,10 @@ body:has(.split.is-detail) .nav {
 
 .detail__hero {
   width: 100%;
+  /* Covers are 16:10: reserving the box stops the body jumping down when
+     the cover arrives. */
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
   border-radius: var(--radius-md);
   /* Matches Figma `page_hero-wrapper` pb: 96px — the hero now carries the
      page identity (no h1 underneath) so it earns more breathing room. */
@@ -939,7 +989,18 @@ body:has(.split.is-detail) .nav {
 .detail__body li { margin: 0 0 0.4rem; }
 .detail__body a {
   color: var(--text-primary);
-  text-decoration: none;
+  /* Links in running text need more than colour to stand out: an
+     underline cut from the font's own metrics, clear of descenders,
+     in the subtle tone until hovered. */
+  text-decoration-line: underline;
+  text-decoration-thickness: from-font;
+  text-underline-offset: 0.2em;
+  text-decoration-skip-ink: auto;
+  text-decoration-color: color-mix(in srgb, var(--text-primary) calc(var(--op-subtle) * 100%), transparent);
+  transition: text-decoration-color 150ms ease-out;
+}
+@media (hover: hover) and (pointer: fine) {
+  .detail__body a:hover { text-decoration-color: var(--text-primary); }
 }
 /* Project-info list labels — Geist SemiBold (per the Figma credits block). */
 .detail__body strong,
@@ -1587,7 +1648,7 @@ html.is-js:not(.revealed) [data-elastic] {
   position: absolute;
   top: 0.75rem;
   right: 0.75rem;
-  z-index: 20;
+  z-index: var(--z-float);
   font-family: var(--font-sans);
   font-size: var(--fs-caption);
   color: var(--text-primary);
@@ -1636,7 +1697,7 @@ html.is-js:not(.revealed) [data-elastic] {
   font-weight: 400;
   letter-spacing: 0;
   color: var(--text-primary);
-  z-index: 2;
+  z-index: var(--z-row-lock);
 }
 
 .row__lock > span {
@@ -1838,11 +1899,19 @@ dialog.unlock.is-closing::backdrop {
      out of that behaviour. */
   font-size: max(16px, var(--fs-body));
   letter-spacing: var(--tracking-body);
-  transition: border-color 240ms var(--image-ease);
+  transition:
+    border-color 240ms var(--image-ease),
+    box-shadow 240ms var(--image-ease);
 }
 .unlock__input:focus {
   outline: none;
   border-color: color-mix(in srgb, var(--text-primary) 40%, transparent);
+}
+/* The border change alone is too quiet to find the field by keyboard:
+   a soft ring in the text colour (neutral in both themes) sits outside
+   it. Text fields match :focus-visible on every focus. */
+.unlock__input:focus-visible {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--text-primary) 14%, transparent);
 }
 
 .unlock__error {

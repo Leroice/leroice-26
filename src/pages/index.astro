@@ -775,7 +775,7 @@ const inlineEntries = await Promise.all(
           // Fly above the sticky case-study header, which would otherwise
           // clip the image's top on the way in.
           hero!.style.position = 'relative';
-          hero!.style.zIndex = '11';
+          hero!.style.zIndex = 'var(--z-flight)';
           heroFlip = springFlip(hero!, imageFirst!, {
             spring: CHOREO.spring,
             dip: CHOREO.dip,
@@ -1173,7 +1173,7 @@ const inlineEntries = await Promise.all(
     position: fixed;
     right: 16px;
     bottom: 16px;
-    z-index: 50;
+    z-index: var(--z-tuner);
     font-family: var(--font-sans);
     font-size: 11px;
     letter-spacing: 0.04em;
@@ -1192,7 +1192,7 @@ const inlineEntries = await Promise.all(
     position: fixed;
     right: 16px;
     bottom: 56px;
-    z-index: 50;
+    z-index: var(--z-tuner);
     width: 280px;
     max-width: calc(100vw - 32px);
     padding: 16px;

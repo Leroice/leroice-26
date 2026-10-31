@@ -10,7 +10,7 @@
     "preview": "astro preview",
     "astro": "astro",
     "prebuild": "node scripts/optimize-images.mjs",
-    "check:load": "astro build && node scripts/check-load.mjs"
+    "check:load": "npm run build && node scripts/check-load.mjs"
   },
   "dependencies": {
     "astro": "^5.0.0"
