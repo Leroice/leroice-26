@@ -7,9 +7,9 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
-import { DEFAULTS, LABELS, LENGTHS, PLASTICS, type Plastic, type ShellStyle, type Side } from './content';
+import { DEFAULTS, HIGHLIGHTS, LABELS, LENGTHS, PLASTICS, type Plastic, type ShellStyle, type Side } from './content';
 import { reelPose } from './tape';
-import { drawSheet, printInk } from './sheet';
+import { drawSheet, printInk, STICKER_FONTS, stickerNormals } from './sheet';
 import { buildControls } from './controls';
 import { packMaps, shellMaps } from './surfaces';
 
@@ -18,14 +18,14 @@ const FOV = 30;
 /** The app's camera angle: a little right of and above the tape. */
 const VIEW = new THREE.Vector3(0.06, 0.04, 0.46).normalize();
 /** Share of the stage's width the object fills, and how far above centre it sits (share of height). */
-const FRAMING = { wide: { fill: 0.54, lift: 0.02 }, tall: { fill: 0.84, lift: 0.06 } };
+const FRAMING = { wide: { fill: 0.54, lift: 0.07 }, tall: { fill: 0.84, lift: 0.12 } };
 const FLIP_MS = 600;
 /** Exponential ease back to rest after a drag, per second. */
 const SETTLE_RATE = 8;
 /** The tape stands 1.4 mm low in the case's pocket and 0.6 mm toward the card (build_case.py). */
 const CASE_OFFSET = new THREE.Vector3(0, 0.0014, -0.0006);
 /** Texture resolution of the print sheet. The app uses 10; the web tape is smaller on screen. */
-const SHEET_PX_PER_MM = 6;
+const SHEET_PX_PER_MM = 8;
 const PAPER = [0.93, 0.91, 0.85] as const;
 /** Refractive indices: polystyrene for the shell, windows and case; POM (acetal) for the hubs. */
 const IOR = { polystyrene: 1.59, pom: 1.48 };
@@ -41,6 +41,23 @@ function see(material: THREE.Material, opacity: number) {
   material.depthWrite = false;
   material.side = THREE.DoubleSide;
   return material;
+}
+
+/** Helvetica Neue and Futura on Apple devices; Inter and Jost, loaded here, everywhere else. */
+async function loadStickerFonts() {
+  const ctx = document.createElement('canvas').getContext('2d')!;
+  const installed = (family: string) => {
+    ctx.font = '40px monospace';
+    const base = ctx.measureText('PLB90 INDEX').width;
+    ctx.font = `40px ${family}, monospace`;
+    return ctx.measureText('PLB90 INDEX').width !== base;
+  };
+  const faces = [['"Helvetica Neue"', 'Inter', 'Inter-Medium'], ['Futura', 'Jost', 'Jost-Medium']]
+    .filter(([apple]) => !installed(apple))
+    .map(([, family, file]) => new FontFace(family, `url(/fonts/${file}.woff2)`, { weight: '500' }));
+  await Promise.all(faces.map(async (face) => document.fonts.add(await face.load()))).catch(() => {});
+  await document.fonts.load(`500 10px ${STICKER_FONTS.grotesk}`);
+  await document.fonts.load(`500 10px ${STICKER_FONTS.geometric}`);
 }
 
 /** The stage's background as the page draws it: --hover-bg over the page colour. */
@@ -186,6 +203,10 @@ export async function mountTape(stage: HTMLElement) {
     caseRim: see(new THREE.MeshPhysicalMaterial({ color: srgb(0.86, 0.9, 0.92), roughness: 0.15, ior: IOR.polystyrene }), 0.45),
     card: new THREE.MeshStandardMaterial({ map: sheet, roughness: 0.6 }),
     cardInside: new THREE.MeshStandardMaterial({ color: srgb(...PAPER), roughness: 0.85 }),
+    // Matte paper; the sheet's own transparency cuts the rounded corners and the window.
+    sticker: new THREE.MeshStandardMaterial({
+      map: sheet, alphaTest: 0.5, roughness: 0.75, normalMap: texture(stickerNormals(4)),
+    }),
   };
 
   // ── State ─────────────────────────────────────────────────
@@ -197,7 +218,9 @@ export async function mountTape(stage: HTMLElement) {
     position: 0,
     playing: false,
     inCase: DEFAULTS.inCase,
+    sticker: DEFAULTS.sticker,
   };
+  const highlight = () => HIGHLIGHTS.find((h) => h.id === state.sticker) ?? null;
 
   // ── Models, loaded once each and kept ─────────────────────
   const draco = new DRACOLoader().setDecoderPath(MODELS + 'draco/');
@@ -224,6 +247,7 @@ export async function mountTape(stage: HTMLElement) {
         set(model, ['ShellA', 'ShellB'], shellMaterial(style), 1);
         set(model, ['WindowA', 'WindowB'], fixed.window, 1);
         set(model, ['PrintA', 'PrintB'], fixed.print, 2);
+        set(model, ['StickerA', 'StickerB'], fixed.sticker);
         const part = (name: string) => {
           const found = model.getObjectByName(name);
           if (!found) throw new Error(`Playback model is missing ${name}`);
@@ -261,12 +285,27 @@ export async function mountTape(stage: HTMLElement) {
     // Gauge lines are printed ink: white or dark on the clear shell, gold on the solid one.
     const ink = printInk(plastic, darkStage());
     gauge.color.copy(clear ? srgb(ink, ink, ink) : srgb(0.86, 0.72, 0.36));
+    applySticker();
     steel.color.copy(clear ? srgb(0.72, 0.72, 0.72) : srgb(0.16, 0.16, 0.16));
     redrawSheet();
   }
 
+  /** With a sticker, it covers the shell's print and the solid shell's paper strips. */
+  function applySticker() {
+    const on = highlight();
+    fixed.accent.color.copy(on ? new THREE.Color(on.hex) : srgb(...ORANGE));
+    for (const t of [tapes.get('clear'), tapes.get('solid')]) t?.then(({ model }) => {
+      for (const name of ['StickerA', 'StickerB']) model.getObjectByName(name)!.visible = !!on;
+      for (const name of ['PrintA', 'PrintB', 'LabelTopA', 'LabelTopB', 'LabelBottomA', 'LabelBottomB']) {
+        const part = model.getObjectByName(name);
+        if (part) part.visible = !on;
+      }
+      invalidate();
+    });
+  }
+
   function redrawSheet() {
-    drawSheet(sheetCanvas, state.plastic, state.length, SHEET_PX_PER_MM, darkStage());
+    drawSheet(sheetCanvas, state.plastic, state.length, SHEET_PX_PER_MM, darkStage(), highlight());
     sheet.needsUpdate = true;
   }
 
@@ -396,8 +435,14 @@ export async function mountTape(stage: HTMLElement) {
   canvas.addEventListener('pointercancel', release);
 
   const controls = buildControls(stage, {
-    plastic: state.plastic.id, length: state.length.id, side: state.side, inCase: state.inCase,
+    plastic: state.plastic.id, length: state.length.id, side: state.side, inCase: state.inCase, sticker: state.sticker,
   }, {
+    sticker(id) {
+      state.sticker = id;
+      redrawSheet();
+      applySticker();
+      invalidate();
+    },
     play() {
       // At the end of a side, Play starts that side again.
       const atEnd = state.position === (state.side === 'a' ? 1 : 0);
@@ -445,6 +490,7 @@ export async function mountTape(stage: HTMLElement) {
   }
 
   // ── First frame ───────────────────────────────────────────
+  await loadStickerFonts();
   try {
     showTape(await loadTape(state.plastic.style));
   } catch {

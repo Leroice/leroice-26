@@ -2039,7 +2039,7 @@ dialog.unlock.is-closing::backdrop {
    controls over it when the figure nears the viewport. */
 .detail__body .tape {
   position: relative;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 3 / 2;
   background: var(--hover-bg);
   border-radius: var(--radius-md);
   overflow: hidden;
@@ -2049,9 +2049,9 @@ dialog.unlock.is-closing::backdrop {
    from the render, so the swap to the live canvas doesn't move the tape. */
 .detail__body .tape img {
   position: absolute;
-  left: 50.6%;
-  top: 48.4%;
-  width: 55.4%;
+  left: 50.5%;
+  top: 43.1%;
+  width: 55.3%;
   translate: -50% -50%;
   border-radius: 0;
 }
@@ -2077,9 +2077,12 @@ dialog.unlock.is-closing::backdrop {
   gap: calc(var(--control-pad) * 2);
   pointer-events: none;
 }
-.tape__bar > * { pointer-events: auto; }
+/* The bars and rows let drags through to the canvas; only the controls take the pointer. */
+.tape__bar > :not(.tape__row),
+.tape__row > * { pointer-events: auto; }
 .tape__bar--top { top: var(--sp-3); left: var(--sp-3); }
-.tape__bar--bottom { bottom: var(--sp-3); inset-inline: var(--sp-3); justify-content: center; }
+.tape__bar--bottom { bottom: var(--sp-3); inset-inline: var(--sp-3); flex-direction: column; align-items: center; }
+.tape__row { display: flex; flex-wrap: wrap; justify-content: center; gap: inherit; }
 
 .tape__seg {
   display: flex;
@@ -2192,6 +2195,6 @@ dialog.unlock.is-closing::backdrop {
 .tape__play[aria-pressed="false"] .tape__icon-pause { display: none; }
 
 @media (--bp-phone) {
-  .detail__body .tape { aspect-ratio: 4 / 5; }
-  .detail__body .tape img { top: 44.2%; width: 85.7%; }
+  .detail__body .tape { aspect-ratio: 3 / 4; }
+  .detail__body .tape img { top: 38%; width: 85.9%; }
 }
