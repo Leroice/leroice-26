@@ -13,6 +13,8 @@
       start is mostly spent before the first frame shows).
    4. Leaving a case study for home fades the subnav out with the page,
       so it can't sit on the blank page and vanish in one frame.
+   5. Closing an inline case study with the back chevron stays in the
+      same document, and no homepage row drops back once it has shown.
 
    Runs WebKit at desktop and iPhone sizes against `astro preview`. Needs
    the WebKit build: npx playwright-core install webkit
@@ -141,6 +143,44 @@ try {
     check(exitNav !== null && parseFloat(exitNav) < 0.05,
       `${name} case study to home: subnav has faded out before leaving (opacity ${exitNav})`);
     await ctx.close();
+
+    // Inline case study back to home: the back chevron replays close() in
+    // the same document. If the site-wide exit also takes the click, home
+    // loads again mid-cascade and the rows build twice.
+    const inline = await browser.newContext(device);
+    const home = await inline.newPage();
+    await home.addInitScript(() => {
+      // Armed by the test just before the click; counts every document after.
+      const KEY = 'backProbe';
+      const read = () => JSON.parse(sessionStorage.getItem(KEY) || 'null');
+      const arrived = read();
+      if (arrived) { arrived.docs++; sessionStorage.setItem(KEY, JSON.stringify(arrived)); }
+      const tick = () => {
+        requestAnimationFrame(tick);
+        const rec = read();
+        if (!rec) return;
+        document.querySelectorAll('[data-row]').forEach((row, i) => {
+          if (!row.offsetParent) return;
+          const o = parseFloat(getComputedStyle(row).opacity);
+          const peak = rec.peak[i] ?? 0;
+          if (peak > 0.05 && o < peak - 0.05 && !rec.dropped) rec.dropped = `row ${i + 1} ${peak.toFixed(2)} to ${o.toFixed(2)}`;
+          rec.peak[i] = Math.max(peak, o);
+        });
+        sessionStorage.setItem(KEY, JSON.stringify(rec));
+      };
+      requestAnimationFrame(tick);
+    });
+    await home.goto(BASE + '/');
+    await home.waitForTimeout(2700);
+    await home.locator('[data-row]').first().click();
+    await home.waitForTimeout(3000);
+    await home.evaluate(() => sessionStorage.setItem('backProbe', JSON.stringify({ docs: 1, peak: [], dropped: null })));
+    await home.locator('.list__detail:not([hidden]) [data-detail-back]').click();
+    await home.waitForTimeout(2500);
+    const back = await home.evaluate(() => JSON.parse(sessionStorage.getItem('backProbe')));
+    check(back.docs === 1, `${name} inline case study to home: stays in one document (${back.docs} loaded)`);
+    check(!back.dropped, `${name} inline case study to home: no row drops back once shown${back.dropped ? ` (${back.dropped})` : ''}`);
+    await inline.close();
   }
   await browser.close();
 } finally {

@@ -1012,13 +1012,15 @@ const inlineEntries = await Promise.all(
       document.addEventListener('click', (e) => {
         // DetailSubnav's back trigger is a real <a href="/"> (shared with the
         // standalone /work/[slug] page). Inline, intercept it so it replays
-        // the close() transition instead of a full navigation.
+        // the close() transition instead of a full navigation. Capture phase,
+        // so this claims the click before Base.astro's page exit sees it;
+        // otherwise both run and home builds twice.
         const backTrigger = (e.target as HTMLElement).closest('[data-detail-back]');
         if (backTrigger && openDetail) {
           e.preventDefault();
           history.back();
         }
-      });
+      }, { capture: true });
 
       // The browser's automatic scroll restoration yanks the page to the
       // previous entry's scroll offset the instant popstate fires — while
