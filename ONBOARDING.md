@@ -122,20 +122,7 @@ durations, image delay/arc/minYield, cascade step/blur, an easing dropdown (incl
 
 `src/content/work/<slug>.md` frontmatter (`src/content/config.ts`):
 `title, year, context, summary, order` (1 = top), `detail` (true → inline transition +
-`/work/[slug]` page), `external` (optional URL), `cover`, `coverAlt`, and for gated
-case studies `locked: true` + `lockHash`.
-
-### Gated case studies (lock/unlock — Figma "✅ Components" Nav-Item + unlock sets)
-A locked row shows a padlock on its top line; hovering swaps it (fade-from-blur) for an
-"Unlock on request" pill; clicking opens the code-entry dialog (`UnlockDialog.astro` +
-`src/lib/unlock.ts`) instead of the transition. Correct code → unlock persists for the
-session (sessionStorage `leroice-unlocked`), the row reads "Unlocked", and the open plays.
-"Request a code" is a prefilled mailto to ls@leroice.com. Deep links (`/work/[slug]`)
-blur the page behind the same dialog; dismissing returns home. No project is locked right now. To lock one, set
-`locked: true` and `lockHash` to `printf '<code>' | shasum -a 256`. Codes are verified client-side against the hash;
-note the page content itself still ships in the static HTML, so this is a soft gate —
-fine while those two are placeholder copy, but if genuinely sensitive content lands,
-revisit (e.g. build-time encryption of locked bodies).
+`/work/[slug]` page), `external` (optional URL), `cover`, `coverAlt`.
 
 **Case-study layout kit** (use raw HTML in the markdown body — images live outside `<p>`
 so they span full width; prose stays markdown and is held to a readable measure):

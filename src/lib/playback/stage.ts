@@ -428,6 +428,7 @@ export async function mountTape(stage: HTMLElement) {
     async plastic(id) {
       state.plastic = PLASTICS.find((p) => p.id === id)!;
       const next = await loadTape(state.plastic.style);
+      if (state.plastic.id !== id) return; // a later pick has taken over
       if (next !== tape) showTape(next);
       applyPlastic(state.plastic);
       invalidate();

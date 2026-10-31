@@ -15,7 +15,9 @@ const MANIFEST = path.resolve(
   '../src/generated/image-manifest.json'
 );
 
-const SIZES = '(max-width: 880px) 100vw, 1120px';
+/* Content images render at up to --page-max minus padding on desktop
+   (~1120px) and near-viewport width on phones. Also used by src/lib/img.ts. */
+export const SIZES = '(max-width: 880px) 100vw, 1120px';
 
 const load = () => {
   try {
@@ -27,7 +29,7 @@ const load = () => {
 
 const variantUrl = (src, w) => src.replace(/\.(jpe?g|png)$/i, `.w${w}.webp`);
 
-const srcsetFor = (manifest, src) => {
+export const srcsetFor = (manifest, src) => {
   const entry = manifest[src];
   if (!entry || !entry.variants?.length) return undefined;
   return entry.variants

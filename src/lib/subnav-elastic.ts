@@ -9,12 +9,41 @@
    page-transition on the site.
 
    Values (times/eases/durations) are taken verbatim from Figma's motion
-   export. Curves are baked into sampled keyframe positions (same approach
-   as arc-flip.ts's arcFlip()) so a WAAPI Animation can run with a flat
-   linear timing function while still tracing the original easing.
+   export. Curves are baked into sampled keyframe positions so a WAAPI
+   Animation can run with a flat linear timing function while still
+   tracing the original easing.
    ─────────────────────────────────────────────────────────── */
 
-import { cubicBezier, type EasingFn } from './arc-flip';
+type EasingFn = (t: number) => number;
+
+/** CSS-style cubic-bezier(x1,y1,x2,y2) as an EasingFn (Newton + bisection). */
+function cubicBezier(x1: number, y1: number, x2: number, y2: number): EasingFn {
+  const cx = 3 * x1, bx = 3 * (x2 - x1) - cx, ax = 1 - cx - bx;
+  const cy = 3 * y1, by = 3 * (y2 - y1) - cy, ay = 1 - cy - by;
+  const sampleX = (t: number) => ((ax * t + bx) * t + cx) * t;
+  const sampleY = (t: number) => ((ay * t + by) * t + cy) * t;
+  const sampleDX = (t: number) => (3 * ax * t + 2 * bx) * t + cx;
+  const solveX = (x: number) => {
+    let t = x;
+    for (let i = 0; i < 8; i++) {
+      const d = sampleDX(t);
+      if (Math.abs(d) < 1e-6) break;
+      const e = sampleX(t) - x;
+      if (Math.abs(e) < 1e-6) return t;
+      t -= e / d;
+    }
+    let lo = 0, hi = 1;
+    t = x;
+    while (lo < hi) {
+      const e = sampleX(t);
+      if (Math.abs(e - x) < 1e-6) break;
+      if (x > e) lo = t; else hi = t;
+      t = (lo + hi) / 2;
+    }
+    return t;
+  };
+  return (t) => (t <= 0 ? 0 : t >= 1 ? 1 : sampleY(solveX(t)));
+}
 
 interface Track {
   times: number[];           // normalised 0–1 breakpoints
@@ -121,7 +150,7 @@ export interface SubnavElasticOptions {
   duration?: number;
   /** Delay in ms before the whole cohort starts (lets a partner motion lead). */
   delay?: number;
-  /** Track keys to skip — e.g. ['title'] when a partner (arc-flip) already
+  /** Track keys to skip — e.g. ['title'] when a partner motion already
    *  owns the title element's motion and this should only drive badge/
    *  subtitle/credits. */
   skip?: string[];

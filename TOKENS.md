@@ -244,7 +244,7 @@ Hard-won rules. Breaking these has caused real bugs in this codebase.
 2. **`touch-action: manipulation` on `body`** — kills double-tap-to-zoom
    site-wide. Pinch-zoom stays available (accessibility). Don't scope it to images.
 3. **Form inputs must be ≥16px** — iOS Safari auto-zooms the whole page when a
-   focused input's text is smaller. `.unlock__input` uses `max(16px, var(--fs-body))`.
+   focused input's text is smaller. Size any new input with `max(16px, var(--fs-body))`.
 4. **Two render paths for every case study.** Opening from the home list renders
    the *inline* detail (`.list__detail`, pushState URL); a refresh renders the
    *standalone* `/work/[slug]` page. **Any layout rule must be checked in both.**

@@ -1,7 +1,5 @@
 ---
 import Base from '../layouts/Base.astro';
-import UnlockDialog from '../components/UnlockDialog.astro';
-import { lockClosed, lockClosedSolid, lockOpen } from '../lib/lock-icons';
 
 // /styleguide — the maintained catalogue of every token and component in
 // the build. Everything demoed here uses the site's real global.css classes
@@ -15,7 +13,6 @@ const nav = [
   { href: '#motion', label: 'Motion' },
   { href: '#nav-foot', label: 'Nav & footer' },
   { href: '#list', label: 'List / row / preview' },
-  { href: '#lock', label: 'Locked rows' },
   { href: '#subnav', label: 'Detail subnav' },
   { href: '#cs-kit', label: 'Case-study kit' },
   { href: '#cv', label: 'CV components' },
@@ -72,7 +69,7 @@ const layoutTokens = [
 ];
 
 const motionTokens = [
-  { name: 'Spring (pill / arc-flip)', value: 'stiffness 410 · damping 84 · mass 3', use: 'Rollover pill, arcFlip default spring' },
+  { name: 'Spring (pill)', value: 'stiffness 410 · damping 84 · mass 3', use: 'Rollover pill' },
   { name: 'Reveal — load cascade', value: '520ms in, 60ms step, 40ms base delay', use: 'revealOnLoad(), top-down' },
   { name: 'Reveal — proximity out', value: '380ms out / 480ms in, 45ms step', use: 'staggerOut / staggerIn, ripples from trigger' },
   { name: 'Page exit', value: '260ms, capped 160ms total spread', use: 'pageExit() before navigation' },
@@ -193,8 +190,8 @@ const skills = [
         <h2>Motion</h2>
         <p class="sg-intro">
           One rule sites-wide: nothing appears or vanishes instantly. Pure opacity + blur for
-          reveals (no transform, so layout measurements stay stable for FLIP); named easings
-          and spring physics live in <code>arc-flip.ts</code>.
+          reveals (no transform, so layout measurements stay stable for FLIP); the case-study
+          image springs in with <code>spring-flip.ts</code>.
         </p>
         <div class="sg-block">
           <h3>Timing reference</h3>
@@ -280,72 +277,6 @@ const skills = [
             <div class="preview__frame" style="aspect-ratio:16/10;">
               <img class="preview__image is-active" src="/images/work/luxem.jpg" alt="" />
             </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="sg-section" id="lock">
-        <h2>Locked rows</h2>
-        <p class="sg-intro">
-          Gated case studies (Figma: Nav-Item states + unlock set). A locked row carries a
-          padlock; hovering swaps it for the "Unlock on request" pill (fade-from-blur);
-          clicking opens the code-entry dialog. A correct code holds for the session.
-          Set <code>locked: true</code> + <code>lockHash</code> (SHA-256 of the code) in
-          the project's frontmatter.
-        </p>
-        <div class="sg-block">
-          <h3>States (idle / hovered / unlocked)</h3>
-          <div class="sg-demo sg-demo--flush">
-            <section class="list" style="padding: var(--sp-base);">
-              <div class="row" data-locked="true" style="cursor:default;">
-                <span class="row__lock" aria-hidden="true">
-                  <span class="row__lock-pill">
-                    <span class="row__lock-labelwrap"><span class="row__lock-label">Unlock</span></span>
-                    <span class="row__lock-glyphs">
-                      <Fragment set:html={lockClosed} />
-                      <Fragment set:html={lockClosedSolid} />
-                    </span>
-                  </span>
-                </span>
-                <div class="row__inner">
-                  <div class="row__year">2026</div>
-                  <div class="row__title">AU multicurrency wallet</div>
-                  <div class="row__desc">Western Union · iOS, Android</div>
-                </div>
-              </div>
-              <div class="row is-active" data-locked="true" style="cursor:default; background: var(--hover-bg); border-radius: var(--radius-md);">
-                <span class="row__lock" aria-hidden="true">
-                  <span class="row__lock-pill">
-                    <span class="row__lock-labelwrap"><span class="row__lock-label">Unlock</span></span>
-                    <span class="row__lock-glyphs">
-                      <Fragment set:html={lockClosed} />
-                      <Fragment set:html={lockClosedSolid} />
-                    </span>
-                  </span>
-                </span>
-                <div class="row__inner">
-                  <div class="row__year">2026</div>
-                  <div class="row__title">AU multicurrency wallet</div>
-                  <div class="row__desc">Western Union · iOS, Android</div>
-                </div>
-              </div>
-              <div class="row is-unlocked" data-locked="true" style="cursor:default;">
-                <span class="row__lock" aria-hidden="true">
-                  <span class="row__lock-open"><Fragment set:html={lockOpen} /></span>
-                </span>
-                <div class="row__inner">
-                  <div class="row__year">2026</div>
-                  <div class="row__title">AU multicurrency wallet</div>
-                  <div class="row__desc">Western Union · iOS, Android</div>
-                </div>
-              </div>
-            </section>
-          </div>
-        </div>
-        <div class="sg-block">
-          <h3>Code-entry dialog (demo code: <code>demo</code>)</h3>
-          <div class="sg-demo">
-            <button class="sg-replay" type="button" data-unlock-demo>Open dialog</button>
           </div>
         </div>
       </section>
@@ -530,22 +461,11 @@ const skills = [
     </main>
   </div>
 
-  <UnlockDialog />
 </Base>
 
 <script>
   import { subnavElasticEnter, clearSubnavElastic } from '../lib/subnav-elastic';
   import { staggerIn } from '../lib/reveal';
-  import { promptUnlock } from '../lib/unlock';
-
-  // Dialog demo — accepts the code "demo".
-  document.querySelector('[data-unlock-demo]')?.addEventListener('click', () => {
-    promptUnlock({
-      slug: 'sg-demo',
-      title: 'AU multicurrency wallet',
-      hash: '2a97516c354b68848cdbd8f54a226a0a55b21ed138e207ad6c5cbb9c00aa5aea',
-    });
-  });
 
   const subnavBtn = document.querySelector<HTMLButtonElement>('[data-replay="subnav"]');
   const subnavDemo = document.getElementById('subnav')?.querySelector('.sg-demo');
