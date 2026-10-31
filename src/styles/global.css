@@ -2047,7 +2047,7 @@ dialog.unlock.is-closing::backdrop {
 }
 /* The still sits where the live tape frames itself (stage.ts FRAMING), measured
    from the render, so the swap to the live canvas doesn't move the tape. */
-.detail__body .tape > img {
+.detail__body .tape img {
   position: absolute;
   left: 50.6%;
   top: 48.4%;
@@ -2067,7 +2067,7 @@ dialog.unlock.is-closing::backdrop {
 }
 .tape.is-dragging canvas { cursor: grabbing; }
 .tape.is-live canvas { opacity: 1; }
-.tape.is-live > img { opacity: 0; transition: opacity 0s 300ms; }
+.tape.is-live img { opacity: 0; transition: opacity 0s 300ms; }
 
 .tape__bar {
   position: absolute;
@@ -2193,5 +2193,5 @@ dialog.unlock.is-closing::backdrop {
 
 @media (--bp-phone) {
   .detail__body .tape { aspect-ratio: 4 / 5; }
-  .detail__body .tape > img { top: 44.2%; width: 85.7%; }
+  .detail__body .tape img { top: 44.2%; width: 85.7%; }
 }

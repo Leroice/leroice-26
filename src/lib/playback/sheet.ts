@@ -27,10 +27,12 @@ const FONT = 'system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif';
 
 const grey = (white: number, alpha = 1) => `rgb(${Math.round(white * 255)} ${Math.round(white * 255)} ${Math.round(white * 255)} / ${alpha})`;
 
-/** Light plastics take dark ink so the print stays readable. Returns the ink's grey level. */
-export function printInk(plastic: Plastic) {
+/** Light plastics take dark ink so the print stays readable, unless the plastic is clear and
+    the page behind it is dark. Returns the ink's grey level. */
+export function printInk(plastic: Plastic, darkBehind = false) {
   const [r, g, b] = plastic.rgb;
-  return (r + g + b) / 3 > 0.35 ? 0.1 : 0.94;
+  const light = (r + g + b) / 3 > 0.35 && !(plastic.opacity < 1 && darkBehind);
+  return light ? 0.1 : 0.94;
 }
 
 type Ctx = CanvasRenderingContext2D;
@@ -148,13 +150,14 @@ function paint(ctx: Ctx, name: string, design: [number, number], bleed: string |
 }
 
 /** Redraws the sheet for a plastic and length. `pxPerMM` sets the texture's resolution. */
-export function drawSheet(canvas: HTMLCanvasElement, plastic: Plastic, length: TapeLength, pxPerMM: number) {
+export function drawSheet(canvas: HTMLCanvasElement, plastic: Plastic, length: TapeLength, pxPerMM: number,
+                          darkBehind = false) {
   canvas.width = Math.round(SHEET_MM.w * pxPerMM);
   canvas.height = Math.round(SHEET_MM.h * pxPerMM);
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
   ctx.scale(pxPerMM / DESIGN_PX_PER_MM, pxPerMM / DESIGN_PX_PER_MM);
-  const ink = grey(printInk(plastic), 0.95);
+  const ink = grey(printInk(plastic, darkBehind), 0.95);
 
   paint(ctx, 'JCardFront', [2032, 1302], PAPER, (w, h) => cardFront(ctx, length, w, h));
   paint(ctx, 'JCardSpine', [2032, 254], grey(0.08), (w, h) => cardSpine(ctx, length, w, h));
