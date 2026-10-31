@@ -1029,6 +1029,7 @@ body:has(.split.is-detail) .nav {
 /* ── Case-study layout kit ──────────────────────────────────
    Recreates the old site's arrangements. Use raw HTML in the markdown body:
      <figure class="cs-full"><img …></figure>      — full-width single
+     <figure class="cs-full cs-square">…</figure>  — full-width, cropped square on phones
      <div class="cs-mocks">  4× <img> </div>        — phone mockup row
      <div class="cs-3">      3× <img> </div>         — three-up grid / bento
      <div class="cs-2">      2× <img> </div>         — two-up grid
@@ -1102,6 +1103,10 @@ body:has(.split.is-detail) .nav {
   }
   .detail__body .cs-rows img,
   .detail__body .cs-rows video { aspect-ratio: 9 / 16; }
+  .detail__body .cs-square > :is(img, video) {
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+  }
 }
 
 /* ── Inline detail ──────────────────────────────────────────

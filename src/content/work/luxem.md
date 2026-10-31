@@ -25,7 +25,7 @@ They invest in promising seed and early-stage startups, so the brand draws on co
 
 <figure class="cs-full"><img src="/images/work/luxem/luxem-wide-02.jpg" alt="LUXEM moodboard" /></figure>
 
-<figure class="cs-full"><video src="/videos/work/luxem/LUXEMVC-BG-Animation-Wide-transcode.mp4" autoplay muted loop playsinline></video></figure>
+<figure class="cs-full cs-square"><video src="/videos/work/luxem/LUXEMVC-BG-Animation-Wide-transcode.mp4" autoplay muted loop playsinline></video></figure>
 
 <figure class="cs-full"><img src="/images/work/luxem/luxem-wide-01.jpg" alt="LUXEM web mockup" /></figure>
 
