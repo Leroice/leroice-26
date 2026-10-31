@@ -7,7 +7,7 @@ order: 7
 detail: true
 external: "https://www.luxemvc.com.au"
 cover: "/images/work/luxem.jpg"
-coverAlt: "Luxem 'Globally informed' headline over a faceted dark sphere"
+coverAlt: "LUXEM Ventures wordmark on black"
 ---
 
 <figure class="cs-full"><img src="/images/work/luxem/header.jpg" alt="LUXEM Ventures brand header" /></figure>
