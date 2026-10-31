@@ -866,6 +866,7 @@ body:has(.split.is-detail) .nav {
   text-decoration: none;
   color: var(--text-primary);
   min-width: 0;
+  -webkit-tap-highlight-color: transparent; /* no system tap overlay on the back button, as on the home rows */
 }
 .detail__subnav-back {
   display: flex;
