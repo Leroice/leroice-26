@@ -67,6 +67,11 @@ if kind != "case":
     for sticker in stickers:
         sticker.parent = bpy.data.objects["Cassette"]
 
+    # The sticker is always on, so the shell print and paper strips it covers aren't exported.
+    for name in ("PrintA", "PrintB", "LabelTopA", "LabelTopB", "LabelBottomA", "LabelBottomB"):
+        if name in bpy.data.objects:
+            bpy.data.objects.remove(bpy.data.objects[name], do_unlink=True)
+
 bpy.ops.export_scene.gltf(filepath=out, export_format="GLB", export_yup=True, export_apply=True,
                           export_materials="EXPORT", export_texcoords=True, export_normals=True,
                           export_draco_mesh_compression_enable=True)
