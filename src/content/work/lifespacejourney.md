@@ -18,10 +18,10 @@ Their style comes from their roots in rural Australia. The pieces are refined wi
 
 My long-time collaborator Jayden Zernich and I made the digital and brand assets to show what they do.
 
-<div class="cs-3">
+<div class="cs-2">
+  <img class="cs-wide" src="/images/work/lifespacejourney/LSJ3.jpg" alt="LifeSpaceJourney object" />
   <img src="/images/work/lifespacejourney/LSJ1.jpg" alt="LifeSpaceJourney object" />
   <img src="/images/work/lifespacejourney/LSJ2.jpg" alt="LifeSpaceJourney object" />
-  <img src="/images/work/lifespacejourney/LSJ3.jpg" alt="LifeSpaceJourney object" />
 </div>
 
 <figure class="cs-full"><img src="/images/work/lifespacejourney/LSJ2_1.jpg" alt="LifeSpaceJourney object" /></figure>

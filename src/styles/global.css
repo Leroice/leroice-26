@@ -1018,6 +1018,7 @@ body:has(.split.is-detail) .nav {
      <div class="cs-mocks">  4× <img> </div>        — phone mockup row
      <div class="cs-3">      3× <img> </div>         — three-up grid / bento
      <div class="cs-2">      2× <img> </div>         — two-up grid
+     <div class="cs-2">      <img class="cs-wide"> + 2× <img> </div> — wide over a pair
    (Images live in raw HTML, not markdown ![], so they sit outside <p> and
    span full width.) */
 .detail__body figure { margin: 2rem 0; grid-column: 1 / -1; }
@@ -1035,6 +1036,9 @@ body:has(.split.is-detail) .nav {
 .detail__body .cs-mocks { grid-template-columns: repeat(4, 1fr); }
 .detail__body .cs-3 { grid-template-columns: repeat(3, 1fr); }
 .detail__body .cs-2 { grid-template-columns: repeat(2, 1fr); }
+/* A two-up can lead with one image across both columns: a wide image
+   stacked on a pair, as one group with the grid's own gap. */
+.detail__body .cs-2 > .cs-wide { grid-column: 1 / -1; }
 /* cs-rows — full-width stacked media. Each child spans the content width;
    useful for hero sequences where each frame deserves its own viewport-width
    moment (vs. a 3-up grid where they read as a comparison). */
