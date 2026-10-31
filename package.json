@@ -13,9 +13,11 @@
     "check:load": "npm run build && node scripts/check-load.mjs"
   },
   "dependencies": {
-    "astro": "^5.0.0"
+    "astro": "^5.0.0",
+    "three": "^0.171.0"
   },
   "devDependencies": {
+    "@types/three": "^0.171.0",
     "playwright-core": "^1.59.1",
     "postcss": "^8.5.0",
     "postcss-custom-media": "^12.0.1",

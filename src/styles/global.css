@@ -39,6 +39,9 @@
   --bg:             #FAFAF7;
   --hover-bg:       rgba(0, 0, 0, 0.05);    /* Figma: NavItem rest pill */
   --rule:           rgba(36, 34, 27, 0.08);
+  /* Segmented controls (live tape): the selected option's thumb and its lift */
+  --control-thumb:  #FFFFFF;
+  --control-shadow: 0 1px 2px rgba(36, 34, 27, 0.08), 0 4px 12px rgba(36, 34, 27, 0.08);
 
   /* Opacity steps — Figma Text + Icon ramp
      (Primary 1 · Secondary 0.8 · Tertiary 0.7 · Subtle 0.5) */
@@ -84,6 +87,11 @@
   --sp-3:           12px;
   --sp-base:        16px;
   --radius-md:      12px;
+  /* Segmented controls: option size (a 40px hit area), track inset, icon and swatch */
+  --control-size:   40px;
+  --control-pad:    4px;
+  --control-icon:   20px;
+  --control-swatch: 16px;
 
   /* Layout */
   --page-max:       76rem;
@@ -161,6 +169,8 @@
     --bg:           #14130F;
     --hover-bg:     rgba(255, 255, 255, 0.06);
     --rule:         rgba(242, 239, 232, 0.08);
+    --control-thumb:  #46443C;
+    --control-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.3);
   }
 }
 :root[data-theme="dark"] {
@@ -169,6 +179,8 @@
   --bg:           #14130F;
   --hover-bg:     rgba(255, 255, 255, 0.06);
   --rule:         rgba(242, 239, 232, 0.08);
+  --control-thumb:  #46443C;
+  --control-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 :root[data-theme="light"] {
   --op-subtle:    0.65;
@@ -176,6 +188,8 @@
   --bg:           #FAFAF7;
   --hover-bg:     rgba(0, 0, 0, 0.05);
   --rule:         rgba(36, 34, 27, 0.08);
+  --control-thumb:  #FFFFFF;
+  --control-shadow: 0 1px 2px rgba(36, 34, 27, 0.08), 0 4px 12px rgba(36, 34, 27, 0.08);
 }
 
 /* Phone insets — Figma mobile guide (217:222): a three-tier system that
@@ -2017,4 +2031,167 @@ dialog.unlock.is-closing::backdrop {
   .detail__subnav-tabs { display: none; }
   /* Figma footer: 32px all around. */
   .foot { padding: 2rem; }
+}
+
+/* ── Live tape (Playback case study) ────────────────────────
+   <figure class="cs-full tape" data-playback-tape> holds a still render.
+   src/lib/playback/loader.ts swaps in the three.js stage and lays the
+   controls over it when the figure nears the viewport. */
+.detail__body .tape {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  background: var(--hover-bg);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  isolation: isolate;
+}
+/* The still sits where the live tape frames itself (stage.ts FRAMING), measured
+   from the render, so the swap to the live canvas doesn't move the tape. */
+.detail__body .tape > img {
+  position: absolute;
+  left: 50.6%;
+  top: 48.4%;
+  width: 55.4%;
+  translate: -50% -50%;
+  border-radius: 0;
+}
+.tape canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 300ms cubic-bezier(0.23, 1, 0.32, 1);
+  touch-action: pan-y;
+  cursor: grab;
+}
+.tape.is-dragging canvas { cursor: grabbing; }
+.tape.is-live canvas { opacity: 1; }
+.tape.is-live > img { opacity: 0; transition: opacity 0s 300ms; }
+
+.tape__bar {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--control-pad) * 2);
+  pointer-events: none;
+}
+.tape__bar > * { pointer-events: auto; }
+.tape__bar--top { top: var(--sp-3); left: var(--sp-3); }
+.tape__bar--bottom { bottom: var(--sp-3); inset-inline: var(--sp-3); justify-content: center; }
+
+.tape__seg {
+  display: flex;
+  margin: 0;
+  padding: var(--control-pad);
+  min-inline-size: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--hover-bg);
+}
+.tape__seg:disabled { opacity: var(--op-subtle); }
+.tape__seg legend {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.tape__opt {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: var(--control-size);
+  height: var(--control-size);
+  border-radius: 999px;
+  color: var(--text-primary);
+  opacity: var(--op-subtle);
+  cursor: pointer;
+  /* One weight in every state, so selecting never reflows the label. */
+  font: 450 var(--fs-link)/1 var(--font-sans);
+  letter-spacing: var(--tracking-meta);
+  font-variant-numeric: tabular-nums;
+  font-synthesis: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition-property: background-color, box-shadow, opacity, scale;
+  transition-duration: 150ms;
+  transition-timing-function: ease-out;
+}
+.tape__seg:disabled .tape__opt { cursor: default; }
+/* The radio itself covers the option: native keyboard, focus and hit area. */
+.tape__opt input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: inherit;
+}
+.tape__opt:has(input:checked) {
+  background: var(--control-thumb);
+  box-shadow: var(--control-shadow);
+  opacity: 1;
+}
+.tape__opt:has(.tape__swatch) { opacity: 1; }
+.tape__opt:has(input:focus-visible),
+.tape__play:focus-visible {
+  outline: 2px solid var(--text-primary);
+  outline-offset: 2px;
+}
+.tape__seg:not(:disabled) .tape__opt:active,
+.tape__play:active { scale: 0.96; }
+@media (hover: hover) and (pointer: fine) {
+  .tape__seg:not(:disabled) .tape__opt:hover { opacity: 1; }
+}
+/* Trimmed to cap height, so figures and capitals sit on the circle's optical centre. */
+.tape__text { text-box: trim-both cap alphabetic; }
+.tape__opt svg,
+.tape__play svg {
+  width: var(--control-icon);
+  height: var(--control-icon);
+  pointer-events: none;
+}
+
+.tape__swatch {
+  position: relative;
+  width: var(--control-swatch);
+  height: var(--control-swatch);
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--swatch);
+  outline: 1px solid color-mix(in srgb, var(--text-primary) 20%, transparent);
+  outline-offset: -1px;
+  pointer-events: none;
+}
+/* See-through plastics sit over a fine check, the usual sign for transparency. */
+.tape__swatch.is-clear {
+  background:
+    linear-gradient(var(--swatch), var(--swatch)),
+    repeating-conic-gradient(var(--bg) 0 25%, color-mix(in srgb, var(--text-primary) 35%, var(--bg)) 0 50%)
+      0 0 / calc(var(--control-swatch) / 2) calc(var(--control-swatch) / 2);
+}
+
+.tape__play {
+  display: grid;
+  place-items: center;
+  width: calc(var(--control-size) + var(--control-pad) * 2);
+  height: calc(var(--control-size) + var(--control-pad) * 2);
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--control-thumb);
+  box-shadow: var(--control-shadow);
+  color: var(--text-primary);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: scale 150ms ease-out;
+}
+.tape__play[aria-pressed="true"] .tape__icon-play,
+.tape__play[aria-pressed="false"] .tape__icon-pause { display: none; }
+
+@media (--bp-phone) {
+  .detail__body .tape { aspect-ratio: 4 / 5; }
+  .detail__body .tape > img { top: 44.2%; width: 85.7%; }
 }

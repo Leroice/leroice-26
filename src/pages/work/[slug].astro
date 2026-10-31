@@ -55,6 +55,9 @@ const slug = entry.id.replace(/\.md$/, '');
      from the emitted module and the wipe threw ReferenceError at runtime. */
   import { isUnlocked, promptUnlock } from '../../lib/unlock';
   import { wipeRevealVisible } from '../../lib/reveal';
+  import { initPlaybackTape } from '../../lib/playback/loader';
+
+  initPlaybackTape();
 
   /* Hero → body choreography (standalone case-study page).
 
