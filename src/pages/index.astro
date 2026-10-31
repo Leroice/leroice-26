@@ -570,6 +570,10 @@ const inlineEntries = await Promise.all(
   } from '../lib/reveal';
   import { subnavElasticEnter, clearSubnavElastic } from '../lib/subnav-elastic';
   import { isUnlocked, promptUnlock } from '../lib/unlock';
+  import { initPlaybackTape } from '../lib/playback/loader';
+
+  // Playback's live tape loads only when its case study opens and the figure nears view.
+  initPlaybackTape();
 
   // Figma's verbatim cohort duration for "title + credits · elastic"
   // (node 169:1155) — subnav-elastic.ts's own default, kept in sync here

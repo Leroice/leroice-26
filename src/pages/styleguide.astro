@@ -383,6 +383,41 @@ const skills = [
         </div>
       </section>
 
+      <section class="sg-section" id="controls">
+        <h2>Segmented controls</h2>
+        <p class="sg-intro">
+          The live tape's controls on the Playback case study, built by
+          <code>src/lib/playback/controls.ts</code>. Native radios in pill tracks: the selected
+          option sits on <code>--control-thumb</code> with <code>--control-shadow</code>.
+        </p>
+        <div class="sg-block">
+          <div class="sg-demo">
+            <div style="display:flex; flex-wrap:wrap; gap:calc(var(--control-pad) * 2); align-items:center;">
+              <button type="button" class="tape__play" aria-pressed="false" aria-label="Play">
+                <svg class="tape__icon-play" viewBox="0 0 20 20" aria-hidden="true"><path d="M6.5 4.9v10.2c0 .6.6.9 1.1.6l8-5.1c.5-.3.5-.9 0-1.2l-8-5.1c-.5-.3-1.1 0-1.1.6z" fill="currentColor"/></svg>
+                <svg class="tape__icon-pause" viewBox="0 0 20 20" aria-hidden="true"><rect x="5.5" y="4.5" width="3" height="11" rx="1" fill="currentColor"/><rect x="11.5" y="4.5" width="3" height="11" rx="1" fill="currentColor"/></svg>
+              </button>
+              <fieldset class="tape__seg">
+                <legend>Side</legend>
+                <label class="tape__opt"><input type="radio" name="sg-side" checked /><span class="tape__text">A</span></label>
+                <label class="tape__opt"><input type="radio" name="sg-side" /><span class="tape__text">B</span></label>
+              </fieldset>
+              <fieldset class="tape__seg">
+                <legend>Plastic</legend>
+                <label class="tape__opt"><input type="radio" name="sg-plastic" aria-label="Smoke" checked /><span class="tape__swatch is-clear" style="--swatch: rgb(41 43 48 / 0.6)"></span></label>
+                <label class="tape__opt"><input type="radio" name="sg-plastic" aria-label="Bone" /><span class="tape__swatch" style="--swatch: rgb(204 199 184)"></span></label>
+              </fieldset>
+              <fieldset class="tape__seg">
+                <legend>Length</legend>
+                <label class="tape__opt"><input type="radio" name="sg-length" aria-label="C60" /><span class="tape__text">60</span></label>
+                <label class="tape__opt"><input type="radio" name="sg-length" aria-label="C90" checked /><span class="tape__text">90</span></label>
+                <label class="tape__opt"><input type="radio" name="sg-length" aria-label="C120" /><span class="tape__text">120</span></label>
+              </fieldset>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section class="sg-section" id="cs-kit">
         <h2>Case-study layout kit</h2>
         <p class="sg-intro">

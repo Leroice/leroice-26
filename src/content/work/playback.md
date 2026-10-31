@@ -13,7 +13,7 @@ Playback is a cassette you can hold on your phone. Turn it, flip it from side A 
 
 The tape and case were modelled in Blender, from measured dimensions for the cassette and reference photos for the case, then rendered in RealityKit with tinted see-through plastics. The tape behaves like tape. It runs at 4.76 cm a second, its thickness depends on the length, and the packs grow and shrink on the reels as it plays. Flip it ten minutes into side A and you're ten minutes from the end of side B.
 
-<figure class="cs-full"><img src="/images/work/playback/mix-tape.jpg" alt="Playback on iPhone, with the mix tape above controls for tape, case, shell, plastic and length" /></figure>
+<figure class="cs-full tape" data-playback-tape><img src="/images/work/playback/live-tape.png" alt="A smoke-tinted clear cassette labelled Mix tape, Playback mix, 90" /></figure>
 
 It can also make a tape from an album. It splits the tracks across two sides, picks the shortest tape they fit on, and prints the cover, spine and track list onto the card. I built it with Claude in one evening in October 2026.
 
