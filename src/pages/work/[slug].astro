@@ -88,18 +88,21 @@ const slug = entry.id.replace(/\.md$/, '');
         if (e.propertyName === 'opacity') start();
       };
 
-      // No hero (a case study without a cover), or reduced motion where
-      // revealOnLoad resolves instantly and never fires a transition.
-      if (!hero || reduce) {
-        start();
+      if (document.documentElement.classList.contains('settled')) {
+        // Settled (reload, back/forward): the body is at rest. The CSS
+        // drops the mask, so there's nothing to wipe.
+        started = true;
       } else {
-        hero.addEventListener('transitionend', onHeroEnd);
-      }
+        // No hero (a case study without a cover), or reduced motion where
+        // revealOnLoad resolves instantly and never fires a transition.
+        if (!hero || reduce) start();
+        else hero.addEventListener('transitionend', onHeroEnd);
 
-      // Failsafe: the hero can be revealed without transitioning (the
-      // 4s is-js escape hatch, a cached instant paint). Never strand the
-      // body behind a mask waiting for an event that isn't coming.
-      failsafe = window.setTimeout(start, 2200);
+        // Failsafe: the hero can be revealed without transitioning (the
+        // 4s is-js escape hatch, a cached instant paint). Never strand the
+        // body behind a mask waiting for an event that isn't coming.
+        failsafe = window.setTimeout(start, 2200);
+      }
     }
   }
 
