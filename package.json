@@ -9,7 +9,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "prebuild": "node scripts/optimize-images.mjs",
+    "prebuild": "node scripts/optimize-images.mjs && rm -rf node_modules/.astro .astro/data-store.json",
     "check:load": "npm run build && node scripts/check-load.mjs"
   },
   "dependencies": {
