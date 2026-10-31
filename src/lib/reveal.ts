@@ -207,11 +207,21 @@ export function revealOnScroll(els: HTMLElement[], opts: StaggerOptions = {}): (
  * same items can fade back out on navigation. Robust: a failsafe always
  * reveals so content can never stick hidden.
  */
-export function revealOnLoad(opts: StaggerOptions = {}): void {
+export function revealOnLoad(opts: StaggerOptions & { settled?: boolean } = {}): void {
   const root = document.documentElement;
   const reveal = () => root.classList.add('revealed');
   const all = revealItems();
   if (!all.length) { reveal(); return; }
+
+  // Settled (reload, back/forward): no entrance. What's on screen is
+  // already showing; only blocks below the fold keep their scroll reveal.
+  if (opts.settled) {
+    reveal();
+    // Only blocks wholly below the viewport: one peeking in at the bottom
+    // edge was painted in the first frame and must not be hidden again.
+    if (!reduced()) revealOnScroll(all.filter((el) => el.getBoundingClientRect().top >= window.innerHeight), opts);
+    return;
+  }
 
   // Only what's on (or near) screen joins the load cascade. Everything
   // below the fold is handed to the scroll observer, so a long case study

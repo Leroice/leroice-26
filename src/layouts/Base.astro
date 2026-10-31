@@ -23,7 +23,18 @@ const {
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- The page colour, before global.css arrives: without it Safari paints
+         its own black or white canvas for the frames before the stylesheet
+         lands. Same values as --bg in global.css; keep the two in step
+         (scripts/check-load.mjs fails the check if they drift). -->
+    <meta name="color-scheme" content="light dark" />
+    <style is:inline>
+      html { background: #FAFAF7; }
+      @media (prefers-color-scheme: dark) { html { background: #14130F; } }
+    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#FAFAF7" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#14130F" media="(prefers-color-scheme: dark)" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
     {standalone && <meta name="robots" content="noindex" />}
@@ -70,10 +81,25 @@ const {
         const root = document.documentElement;
         root.classList.add('is-js');
         setTimeout(() => root.classList.remove('is-js'), 4000);
+        // A reload or a back/forward visit lands on a page that was already
+        // on screen. Browsers hold the old page up until the new one paints,
+        // so hiding the content for an entrance reads as a flicker (visible,
+        // gone, back), and on iPhone most of the fade has run before the
+        // page shows. These visits settle instead: content is at rest from
+        // the first frame. Set here, before first paint, so the CSS gates
+        // never hide anything. Checked by scripts/check-load.mjs.
+        const nav = performance.getEntriesByType?.('navigation')?.[0];
+        if (nav && (nav.type === 'reload' || nav.type === 'back_forward')) {
+          root.classList.add('revealed', 'settled');
+        }
       })();
     </script>
   </head>
   <body>
+    <!-- Paint behind Safari's status bar and bottom toolbar. Coloured by
+         src/lib/edges.ts to match the page beside them. -->
+    <div class="edge-top" aria-hidden="true"></div>
+    <div class="edge-bottom" aria-hidden="true"></div>
     <!-- Gooey filter — used by .list__pill-wrap. Invisible. -->
     <svg width="0" height="0" style="position:absolute" aria-hidden="true">
       <defs>
@@ -209,12 +235,15 @@ const {
       import { revealOnLoad, revealItems, pageExit } from '../lib/reveal';
       import { subnavElasticEnter, clearSubnavElastic } from '../lib/subnav-elastic';
 
-      // Load-in: content fades + blurs in, top-down.
-      // On a cross-document NAVIGATION the browser holds the first paint until
-      // the new page is ready — which skips a JS entrance animation (the page
-      // appears already-revealed). A RELOAD paints progressively, so it
-      // animates. To make navigation animate too, start the reveal once the
-      // page is actually presented (pageshow); keep reloads immediate.
+      // Load-in: content fades + blurs in, top-down — on arrivals only.
+      // Reloads and back/forward visits are settled by the head script
+      // (html.settled): what's on screen stays put, and only blocks below
+      // the fold keep their scroll reveal.
+      //
+      // An arrival starts once the page is loaded and two frames have gone
+      // by. Before load, Safari can still be holding the previous page on
+      // screen (or nothing at all), so a fade started earlier runs unseen
+      // and only its tail shows — on iPhone that's most of it.
       let revealed = false;
       const startReveal = () => {
         if (revealed) return;
@@ -222,13 +251,14 @@ const {
         revealOnLoad();
         subnavElasticEnter(); // no-op on pages without a detail subnav
       };
-      const navEntry = (performance.getEntriesByType?.('navigation')?.[0]) as
-        PerformanceNavigationTiming | undefined;
-      if (navEntry && navEntry.type === 'navigate') {
-        window.addEventListener('pageshow', (e) => { if (!e.persisted) startReveal(); }, { once: true });
-        setTimeout(startReveal, 1500); // fallback if pageshow is delayed
+      if (document.documentElement.classList.contains('settled')) {
+        revealOnLoad({ settled: true });
       } else {
-        startReveal(); // reload / direct / back-forward: progressive paint
+        const afterTwoFrames = () =>
+          requestAnimationFrame(() => requestAnimationFrame(startReveal));
+        if (document.readyState === 'complete') afterTwoFrames();
+        else window.addEventListener('load', afterTwoFrames, { once: true });
+        setTimeout(startReveal, 2500); // failsafe if load never comes
       }
 
       // Exit: clicking an internal link (nav menu items, project links, back
@@ -269,6 +299,15 @@ const {
         }
         clearSubnavElastic();
       });
+    </script>
+    <script>
+      import { start } from '../lib/edges';
+      // pageshow covers the first load and pages restored from the
+      // back-forward cache (with their scroll position); pagehide undoes it.
+      let stop: (() => void) | null = null;
+      window.addEventListener('pageshow', () => { stop?.(); stop = start(); });
+      window.addEventListener('pagehide', () => { stop?.(); stop = null; });
+      if (document.readyState === 'complete') stop = start();
     </script>
   </body>
 </html>

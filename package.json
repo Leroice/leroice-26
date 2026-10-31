@@ -9,12 +9,14 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "prebuild": "node scripts/optimize-images.mjs"
+    "prebuild": "node scripts/optimize-images.mjs",
+    "check:load": "astro build && node scripts/check-load.mjs"
   },
   "dependencies": {
     "astro": "^5.0.0"
   },
   "devDependencies": {
+    "playwright-core": "^1.59.1",
     "postcss": "^8.5.0",
     "postcss-custom-media": "^12.0.1",
     "sharp": "^0.35.3",

@@ -240,6 +240,48 @@ img, video {
   touch-action: manipulation;
 }
 
+/* ── Safe areas and Safari edges ────────────────────────────
+   viewport-fit=cover lets the page run under the status bar, the home
+   indicator and the landscape notch. Body padding keeps text and
+   controls inside the safe areas, and sticky headers pin below the
+   status bar. The two strips paint behind Safari's chrome in the
+   colour of the page beside them (src/lib/edges.ts): fixed to body, so
+   no transformed ancestor can move them, under the sticky headers and
+   over the page. `color` carries the page colour for the script. */
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --edge-top-height: max(12px, var(--safe-top));
+  --edge-bottom-height: max(12px, var(--safe-bottom));
+}
+body {
+  min-height: 100vh;
+  padding:
+    var(--safe-top)
+    env(safe-area-inset-right, 0px)
+    var(--edge-bottom-height)
+    env(safe-area-inset-left, 0px);
+}
+.edge-top,
+.edge-bottom {
+  position: fixed;
+  left: 0;
+  right: 0;
+  z-index: 9;
+  pointer-events: none;
+  color: var(--bg);
+}
+.edge-top { top: 0; height: var(--edge-top-height); }
+.edge-bottom { bottom: 0; height: var(--edge-bottom-height); }
+.edge-top::after,
+.edge-bottom::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+.edge-top::after { background: var(--edge-top-background, var(--bg)); }
+.edge-bottom::after { background: var(--edge-bottom-background, var(--bg)); }
+
 /* ── Header — Figma node 2:15 ───────────────────────────── */
 
 .nav {
@@ -248,7 +290,7 @@ img, video {
      shell clips the blur at the page-max boundary and reads broken on
      wide screens). Layout lives in .nav__inner. */
   position: sticky;
-  top: 0;
+  top: var(--safe-top);
   z-index: 30;
   background: color-mix(in srgb, var(--bg) 88%, transparent);
   -webkit-backdrop-filter: blur(12px);
@@ -742,7 +784,7 @@ body:has(.split.is-detail) .nav {
      see the body:has() static rule by .nav). Pins the moment the nav
      has fully scrolled off, since its natural position is right below. */
   position: sticky;
-  top: 0;
+  top: var(--safe-top);
   z-index: 10;
   background: color-mix(in srgb, var(--bg) 88%, transparent);
   -webkit-backdrop-filter: blur(12px);
@@ -1155,6 +1197,13 @@ html.is-js [data-wipe].is-wiped,
      mask-image reset were ever outranked, the mask would be fully open
      rather than hiding the body outright. */
   --wipe: 0%;
+}
+
+/* Settled visits (reload, back/forward — see Base.astro): the body is
+   at rest from the first frame. */
+html.settled [data-wipe] {
+  -webkit-mask-image: none;
+  mask-image: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
