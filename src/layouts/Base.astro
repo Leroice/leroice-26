@@ -291,7 +291,7 @@ const {
       window.addEventListener('pageshow', (e) => {
         if (!e.persisted) return;
         document.documentElement.classList.add('revealed');
-        for (const el of revealItems()) {
+        for (const el of [...revealItems(), ...document.querySelectorAll<HTMLElement>('[data-elastic-nav]')]) {
           el.style.transition = '';
           el.style.willChange = '';
           el.style.opacity = '';
