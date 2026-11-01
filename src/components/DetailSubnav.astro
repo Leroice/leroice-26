@@ -1,7 +1,6 @@
 ---
 /* ───────────────────────────────────────────────────────────
-   DetailSubnav — the case-study header: back-badge, title, and
-   the Credits link. Shared by every entry point into a project:
+   DetailSubnav — the case-study header: back badge and title. Shared by every entry point into a project:
    the standalone /work/[slug] page and the home list's inline
    transition. Ported from Figma ("title + credits · elastic",
    node 169:1155) — markup + typography match that node verbatim.
@@ -38,26 +37,5 @@ const { title, context, href = '/' } = Astro.props as Props;
         <span class="detail__subnav-meta" data-elastic="subtitle">{context}</span>
       </span>
     </a>
-    <nav class="detail__subnav-tabs" data-elastic="credits" aria-label="Page sections">
-      <a href="#project-info" data-credits-link>Credits</a>
-    </nav>
   </div>
 </section>
-
-<script>
-  /* Credits scrolls smoothly to this project's "Project info" heading.
-     The home page renders a subnav per inline project, so look for the
-     target from the link outwards rather than by id across the page. */
-  document.addEventListener('click', (event) => {
-    const link = (event.target as Element).closest('[data-credits-link]');
-    if (!link) return;
-    let scope = link.parentElement;
-    let body: Element | null = null;
-    while (scope && !(body = scope.querySelector('.detail__body'))) scope = scope.parentElement;
-    if (!body) return;
-    event.preventDefault();
-    const target = body.querySelector('#project-info') ?? body.lastElementChild ?? body;
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    target.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
-  });
-</script>
