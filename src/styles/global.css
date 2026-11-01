@@ -1188,6 +1188,12 @@ body:has(.split.is-detail) .nav {
     margin: 0 calc(var(--content-pad) * -1) 3rem;
     border-radius: 0;
   }
+  /* heroSquare: a square, centred crop instead of the tall phone hero. */
+  .detail__hero.detail__hero--square,
+  .list__detail .detail__hero.detail__hero--square {
+    aspect-ratio: 1 / 1;
+    object-position: center;
+  }
   /* (The inline subnav's full-viewport bleed is width-independent now —
      see the 100vw rule in the inline-detail section.) */
 }

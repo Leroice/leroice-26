@@ -24,7 +24,7 @@ const { Content } = await render(entry);
       <picture>
         {entry.data.coverPhone && <source media="(max-width: 520px)" srcset={entry.data.coverPhone} />}
         <img
-          class="detail__hero" data-reveal
+          class:list={['detail__hero', { 'detail__hero--square': entry.data.heroSquare }]} data-reveal
           src={entry.data.cover}
           srcset={srcsetFor(entry.data.cover)}
           sizes={CONTENT_SIZES}

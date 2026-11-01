@@ -8,6 +8,7 @@ detail: true
 cover: "/images/work/trace/trace-hero-desktop.jpg"
 coverAlt: "Trace on iPad, writing Dog on the moon in blue joined handwriting"
 coverPhone: "/images/work/trace/trace-hero-phone.jpg"
+heroSquare: true
 ---
 
 Trace is a handwriting app I built for my son Charlie. He says a phrase, the words appear in the handwriting his school teaches, and he traces over them with Apple Pencil. When he finishes, he gets a sticker of what he said.

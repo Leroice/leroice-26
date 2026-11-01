@@ -95,7 +95,7 @@ const inlineEntries = await Promise.all(
             <picture>
               {entry.data.coverPhone && <source media="(max-width: 520px)" srcset={entry.data.coverPhone} />}
               <img
-                class="detail__hero"
+                class:list={['detail__hero', { 'detail__hero--square': entry.data.heroSquare }]}
                 src={entry.data.cover}
                 srcset={srcsetFor(entry.data.cover)}
                 sizes={CONTENT_SIZES}
@@ -133,9 +133,8 @@ const inlineEntries = await Promise.all(
   </main>
 
   {/* TUNING — live design tool for the list→detail choreography.
-      Runtime-gated to dev hosts + the 26.leroice.com sandbox (see
-      TUNING_ENABLED in the script below); ?tuning forces it on anywhere and
-      ?tuning=0 off. On any other host both elements are removed on load. */}
+      Runtime-gated (see
+      TUNING_ENABLED in the script below); hidden unless the URL has ?tuning. */}
   <button class="tuner-toggle" type="button" data-tuner-toggle aria-expanded="false" hidden>TUNING</button>
   <aside class="tuner" data-tuner hidden aria-label="Transition tuning">
     <header class="tuner__head">
@@ -561,21 +560,12 @@ const inlineEntries = await Promise.all(
   // from the preview pane (spring-flip.ts, carrying the preview's velocity)
   // while DetailSubnav plays its own unmodified subnav-elastic entrance
   // underneath. Live-editable via the TUNING panel below.
-  // The TUNING panel (and its saved localStorage overrides) only exist on
-  // dev hosts — everywhere else the panel is removed and the baked defaults
-  // below always play.
-  // Hidden on the deployed site (26.leroice.com included) — dev-only now.
-  // Escape hatch: append ?tuning to the URL to summon it anywhere.
-  // Dev hosts + the 26.leroice.com sandbox. Still gated so the panel can
-  // never appear if this ships to the real leroice.com; ?tuning forces it
-  // on anywhere, ?tuning=0 hides it on the sandbox for a clean look.
+  // The TUNING panel (and its saved localStorage overrides) is hidden
+  // everywhere; the baked defaults below always play. Append ?tuning to the
+  // URL to summon it.
   const TUNING_PARAM = new URLSearchParams(location.search).get('tuning');
   const TUNING_ENABLED =
-    TUNING_PARAM !== null
-      ? TUNING_PARAM !== '0' && TUNING_PARAM !== 'false'
-      : location.hostname === 'localhost' ||
-        location.hostname === '127.0.0.1' ||
-        location.hostname === '26.leroice.com';
+    TUNING_PARAM !== null && TUNING_PARAM !== '0' && TUNING_PARAM !== 'false';
 
   const CHOREO_KEY = 'leroice-choreo-arc'; // renamed: ignores values saved for older motion models
   const DEFAULT_CHOREO = {

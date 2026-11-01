@@ -14,6 +14,7 @@ const work = defineCollection({
     cover: z.string().optional(), // path to /public image for the index
     coverAlt: z.string().optional(),
     coverPhone: z.string().optional(), // portrait crop for the phone hero
+    heroSquare: z.boolean().default(false), // square phone hero instead of the tall one
   }),
 });
 
