@@ -10,7 +10,9 @@ cover: "/images/work/anz-plus-card/anz-plus-hero-desktop-anz-plus-card.jpg"
 coverAlt: "A hand holding the blue ANZ Plus debit card"
 ---
 
-The card was the first physical thing an ANZ Plus customer held. We designed the card itself and everything around getting it: ordering, tracking delivery, activating it and managing it from the app.
+My role expanded to combine graphic design with end-to-end development of the ANZ Plus debit card experience. As the first physical touchpoint with ANZ's new digital bank, the card was designed to offer customers a warm welcome and introduce the brand.
+
+We designed the card itself and the experience around it: from ordering and tracking delivery to activation and ongoing management in the app.
 
 <div class="cs-mocks">
   <img src="/images/work/anz-plus-card/anz-plus-mock-01-anz-plus-card.png" alt="ANZ Plus home screen with a card delivery update" />
@@ -19,9 +21,7 @@ The card was the first physical thing an ANZ Plus customer held. We designed the
   <img src="/images/work/anz-plus-card/anz-plus-mock-04-anz-plus-card.png" alt="Card shipped screen with delivery tracking" />
 </div>
 
-<figure class="cs-full"><img src="/images/work/anz-plus-card/Card-Delivery.png" alt="ANZ Plus card out for delivery notification" /></figure>
-
-Applying for a card got 35% faster. Delivery went from three weeks to under four days, and over 60% of customers added their card to Apple Pay.
+Applying for a card got 45% faster for customers over the classic bank online process. Delivery went from three weeks to under four days, and over 60% of customers added their card to Apple Pay before receiving their physical card in the mail.
 
 <div class="cs-2">
   <img src="/images/work/anz-plus-card/anz-plus-half-01-anz-plus-card.jpg" alt="ANZ Plus card designs, front and back" />
