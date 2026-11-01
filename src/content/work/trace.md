@@ -27,8 +27,6 @@ The sticker is made on the iPad. Apple's on-device model rewrites the phrase int
 
 <figure class="cs-full"><img src="/images/work/trace/ipad-first-build.png" alt="The first build of Trace: a form to say a phrase, pick letters and line style, then make a tracing sheet" /></figure>
 
-I built it with Claude from an empty folder on 4 August 2026. It went to TestFlight three days later and reached build 19 by the end of the month. It's SwiftUI with PencilKit, SwiftData, Speech and Vision, about 20,000 lines of Swift.
-
 ## Project info
 
 - **Role:** Design, code
