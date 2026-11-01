@@ -8,6 +8,7 @@ detail: true
 external: "https://www.ghost-vc.com"
 cover: "/images/work/ghost/ghost-hero-desktop.jpg"
 coverAlt: "Ghost VC wordmark with the illustrated ghost standing in the O"
+coverPhone: "/images/work/ghost/ghost-hero-phone.jpg"
 ---
 
 Ghost VC wanted an identity that felt elusive but still carried the confidence of a venture firm. I did the creative direction, illustration and 2D animation, then designed and built the website.
