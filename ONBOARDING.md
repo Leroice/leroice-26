@@ -126,7 +126,7 @@ durations, image delay/arc/minYield, cascade step/blur, an easing dropdown (incl
 
 **Case-study layout kit** (use raw HTML in the markdown body — images live outside `<p>`
 so they span full width; prose stays markdown and is held to a readable measure):
-- `<figure class="cs-full"><img/></figure>` — full-width single (or `<video>`)
+- `<figure class="cs-full"><img/></figure>` — full-width single (or `<video muted loop playsinline preload="none" data-autoplay>`, which plays only while on screen)
 - `<div class="cs-mocks"> 4× <img> </div>` — phone-mockup row (responsive 4→2→1)
 - `<div class="cs-3"> 3× <img> </div>` — three-up / bento
 - `<div class="cs-2"> 2× <img> </div>` — two-up

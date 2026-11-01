@@ -15,7 +15,7 @@ It covers all five Australian school handwriting styles, joined and unjoined. Fo
 
 The sticker is made on the iPad. Apple's on-device model rewrites the phrase into a picture prompt while Charlie traces, Image Playground draws it, and Vision cuts the subject out. If a picture can't be made, he's asked to draw it himself instead.
 
-<figure class="cs-full"><img src="/images/work/trace/stickers.jpg" alt="Stickers Trace made from spoken phrases" /></figure>
+<figure class="cs-full cs-ipad"><video src="/videos/work/trace/trace.mp4" poster="/videos/work/trace/trace-poster.webp" muted loop playsinline preload="none" data-autoplay aria-label="Trace on iPad: a phrase becomes a trace sheet, the app writes it letter by letter, then it's traced over in red"></video><img src="/images/work/trace/ipad-bezel.png" alt="" /></figure>
 
 I built it with Claude from an empty folder on 4 August 2026. It went to TestFlight three days later and reached build 19 by the end of the month. It's SwiftUI with PencilKit, SwiftData, Speech and Vision, about 20,000 lines of Swift.
 
