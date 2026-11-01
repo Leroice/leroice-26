@@ -309,5 +309,23 @@ const {
       window.addEventListener('pagehide', () => { stop?.(); stop = null; });
       if (document.readyState === 'complete') stop = start();
     </script>
+    <script>
+      // Case-study videos load and play only while on screen: the home page
+      // carries every case study inline and shouldn't download them up front.
+      // With reduced motion they don't play by themselves and get controls.
+      const videos = document.querySelectorAll<HTMLVideoElement>('video[data-autoplay]');
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        videos.forEach((v) => { v.controls = true; });
+      } else {
+        const io = new IntersectionObserver((entries) => {
+          for (const { target, isIntersecting } of entries) {
+            const v = target as HTMLVideoElement;
+            if (isIntersecting) v.play().catch(() => {});
+            else v.pause();
+          }
+        });
+        videos.forEach((v) => io.observe(v));
+      }
+    </script>
   </body>
 </html>
