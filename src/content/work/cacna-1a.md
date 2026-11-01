@@ -30,8 +30,6 @@ I took his naive sketches and his way of working and turned them into splines. T
 
 The collection is on [foundation.app](https://foundation.app/collection/cacna1a).
 
-<a id="credits"></a>
-
 ## Project info
 
 - **Role:** Artist and father
