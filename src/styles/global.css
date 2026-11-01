@@ -1061,6 +1061,23 @@ body:has(.split.is-detail) .nav {
   aspect-ratio: 16 / 9;
   object-fit: cover;
 }
+/* cs-ipad — a screen recording inside Apple's iPad Air 13" bezel.
+   The bezel sizes the figure and sits on top. The video fills its screen
+   opening, 2732 x 2048 inside 2980 x 2300. */
+.detail__body .cs-ipad { position: relative; }
+.detail__body .cs-ipad img {
+  position: relative;
+  border-radius: 0;
+  pointer-events: none;
+}
+.detail__body .cs-ipad video {
+  position: absolute;
+  left: calc(124 / 2980 * 100%);
+  top: calc(126 / 2300 * 100%);
+  width: calc(2732 / 2980 * 100%);
+  height: calc(2048 / 2300 * 100%);
+  border-radius: 0;
+}
 @media (--bp-tablet) {
   /* Body collapses to a single column — prose + media share one rail. */
   .detail__body { grid-template-columns: 1fr; }
