@@ -3,7 +3,7 @@ title: "Luxem"
 year: "2023"
 context: "Brand, Web, 3D, Motion"
 summary: "Taking LUXEM Ventures' brand beyond a logo, palette and typeface into a complete visual and digital presence."
-order: 7
+order: 8
 detail: true
 external: "https://www.luxemvc.com.au"
 cover: "/images/work/luxem/luxem-hero-desktop.jpg"

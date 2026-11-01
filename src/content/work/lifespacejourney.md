@@ -3,7 +3,7 @@ title: "LifeSpaceJourney"
 year: "2021"
 context: "Brand, Web"
 summary: "Digital and brand assets for LifeSpaceJourney, the homeware brand run by brothers Justin and Glenn Lamont. Their objects take their cue from rural Australia: refined, but easy to live with."
-order: 9
+order: 10
 detail: true
 external: "https://www.lifespacejourney.com"
 cover: "/images/work/lifespacejourney.jpg"

@@ -3,7 +3,7 @@ title: "CACNA-1a"
 year: "2022"
 context: "3D Illustration, NFT"
 summary: "A father and son art project about gene mutation and the unexpected blessings of disability."
-order: 10
+order: 11
 detail: true
 external: "https://foundation.app/collection/cacna1a"
 cover: "/images/work/cacna-1a.jpg"

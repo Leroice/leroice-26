@@ -3,7 +3,7 @@ title: "Ghost VC"
 year: "2022"
 context: "Brand, Illustration, Motion, Web"
 summary: "Brand identity, illustration and motion for Ghost VC: creative direction, an illustrated visual language, an animated logo and an interactive website."
-order: 8
+order: 9
 detail: true
 external: "https://www.ghost-vc.com"
 cover: "/images/work/ghost/ghost-hero-desktop.jpg"
