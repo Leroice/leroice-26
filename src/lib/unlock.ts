@@ -70,6 +70,14 @@ export function promptUnlock({ slug, title, verify }: UnlockRequest): Promise<bo
 
   input.value = '';
   error.hidden = true;
+  const reveal = dialog.querySelector<HTMLButtonElement>('[data-unlock-reveal]');
+  const setShown = (shown: boolean) => {
+    input.type = shown ? 'text' : 'password';
+    reveal?.setAttribute('aria-pressed', String(shown));
+    reveal?.setAttribute('aria-label', shown ? 'Hide code' : 'Show code');
+  };
+  setShown(false);
+  if (reveal) reveal.onclick = () => setShown(input.type === 'password');
   form.classList.remove('is-wrong', 'is-checking');
 
   return new Promise((resolve) => {

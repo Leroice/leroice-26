@@ -13,8 +13,11 @@ const toB64 = (u: Uint8Array) => {
 };
 const fromB64 = (s: string) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
 
+// Codes are read without case or spaces, so lswu26 and "LSWU 26" both work.
+const normalise = (code: string) => code.replace(/\s+/g, '').toUpperCase();
+
 async function keyFor(code: string, salt: Uint8Array): Promise<CryptoKey> {
-  const base = await crypto.subtle.importKey('raw', enc.encode(code.trim()), 'PBKDF2', false, ['deriveKey']);
+  const base = await crypto.subtle.importKey('raw', enc.encode(normalise(code)), 'PBKDF2', false, ['deriveKey']);
   return crypto.subtle.deriveKey(
     { name: 'PBKDF2', salt, iterations: ITERATIONS, hash: 'SHA-256' },
     base,

@@ -1133,7 +1133,7 @@ body:has(.split.is-detail) .nav {
      large). Deviation from the guide's square tiles, by intent. */
   .detail__body .cs-mocks { grid-template-columns: repeat(2, 1fr); }
   /* Guide crops: 3-ups read as square tiles, rows as tall portraits. */
-  .detail__body .cs-3 img {
+  .detail__body .cs-3 > img {
     aspect-ratio: 1 / 1;
     object-fit: cover;
   }
@@ -1435,9 +1435,10 @@ dialog.unlock.is-closing::backdrop {
   opacity: var(--op-tertiary);
 }
 
+.unlock__field { position: relative; }
 .unlock__input {
   width: 100%;
-  padding: 10px 12px;
+  padding: 10px 44px 10px 12px; /* room for the show-code button */
   border: 1px solid var(--rule);
   border-radius: 8px;
   background: transparent;
@@ -1462,6 +1463,52 @@ dialog.unlock.is-closing::backdrop {
    it. Text fields match :focus-visible on every focus. */
 .unlock__input:focus-visible {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--text-primary) 14%, transparent);
+}
+
+/* Show code: an eye at the field's right edge, 44px hit area that stays
+   inside the field. The two glyphs swap with a soft blur. */
+.unlock__reveal {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  translate: 0 -50%;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--text-primary);
+  opacity: var(--op-subtle);
+  cursor: pointer;
+  transition: opacity 160ms ease;
+}
+.unlock__reveal:hover { opacity: 1; }
+.unlock__reveal > span {
+  grid-area: 1 / 1;
+  display: grid;
+  transition:
+    opacity 180ms var(--image-ease),
+    filter 180ms var(--image-ease),
+    scale 180ms var(--image-ease);
+}
+.unlock__reveal svg { display: block; }
+.unlock__reveal-hide,
+.unlock__reveal[aria-pressed="true"] .unlock__reveal-show {
+  opacity: 0;
+  filter: blur(2px);
+  scale: 0.9;
+}
+.unlock__reveal[aria-pressed="true"] .unlock__reveal-hide {
+  opacity: 1;
+  filter: none;
+  scale: 1;
+}
+.unlock__reveal:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--text-primary) 40%, transparent);
+  outline-offset: -4px;
 }
 
 .unlock__error {
@@ -1553,6 +1600,7 @@ dialog.unlock:focus { outline: none; }
   dialog.unlock.is-closing::backdrop,
   .unlock__form.is-wrong .unlock__error,
   .unlock__form.is-wrong .unlock__input { animation: none; }
+  .unlock__reveal > span { transition: none; }
   .detail:not(.is-locked) { transition: none; }
 }
 

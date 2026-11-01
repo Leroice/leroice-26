@@ -20,15 +20,23 @@
       This case study is private. Enter the access code, or ask for one and
       I&rsquo;ll send it over.
     </p>
-    <input
-      class="unlock__input"
-      type="password"
-      name="code"
-      placeholder="Access code"
-      autocomplete="off"
-      spellcheck="false"
-      data-unlock-input
-    />
+    <div class="unlock__field">
+      <input
+        class="unlock__input"
+        type="password"
+        name="code"
+        placeholder="Access code"
+        autocomplete="off"
+        autocapitalize="characters"
+        autocorrect="off"
+        spellcheck="false"
+        data-unlock-input
+      />
+      <button type="button" class="unlock__reveal" data-unlock-reveal aria-label="Show code" aria-pressed="false">
+        <span class="unlock__reveal-show"><svg class="unlock__eye" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></span>
+        <span class="unlock__reveal-hide"><svg class="unlock__eye" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.6 5.1A10.9 10.9 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-2.6 3.5M6.6 6.6A17.4 17.4 0 0 0 2 12s3.6 7 10 7a10 10 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/><path d="m3 3 18 18"/></svg></span>
+      </button>
+    </div>
     <p class="unlock__error" data-unlock-error hidden>
       That code isn&rsquo;t right. Check it and try again.
     </p>
