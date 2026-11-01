@@ -1,25 +1,12 @@
-// srcset helpers backed by the manifest scripts/optimize-images.mjs
-// writes at prebuild. Give any /images/... path to srcsetFor() and it
-// returns the srcset string (variants + the original as the largest
-// candidate) or undefined when there's nothing to gain (SVGs, small
-// images, files outside the manifest).
+// srcset helpers for templates, backed by the manifest scripts/optimize-images.mjs
+// writes at prebuild. The rule itself lives in scripts/rehype-srcset.mjs, so
+// templates and markdown bodies can't drift apart. srcsetFor() returns
+// undefined when there's nothing to gain (SVGs, small images, files outside
+// the manifest).
 
 import manifest from '../generated/image-manifest.json';
+import { srcsetFor as build, SIZES } from '../../scripts/rehype-srcset.mjs';
 
-type Entry = { width: number; variants: number[] };
-const entries: Record<string, Entry> = manifest as Record<string, Entry>;
+export const srcsetFor = (src: string): string | undefined => build(manifest, src);
 
-const variantUrl = (src: string, w: number) =>
-  src.replace(/\.(jpe?g|png)$/i, `.w${w}.webp`);
-
-export function srcsetFor(src: string): string | undefined {
-  const entry = entries[src];
-  if (!entry || entry.variants.length === 0) return undefined;
-  const parts = entry.variants.map((w) => `${variantUrl(src, w)} ${w}w`);
-  parts.push(`${src} ${entry.width}w`);
-  return parts.join(', ');
-}
-
-/* Content images render at up to --page-max minus padding on desktop
-   (~1120px) and near-viewport width on phones. */
-export const CONTENT_SIZES = '(max-width: 880px) 100vw, 1120px';
+export const CONTENT_SIZES = SIZES;

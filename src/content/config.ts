@@ -14,12 +14,6 @@ const work = defineCollection({
     cover: z.string().optional(), // path to /public image for the index
     coverAlt: z.string().optional(),
     coverPhone: z.string().optional(), // portrait crop for the phone hero
-    // Gated case studies: locked rows show a padlock + "Unlock on request"
-    // pill and open a code-entry dialog instead of the detail transition.
-    // lockHash is the SHA-256 hex of the access code (input is trimmed
-    // before hashing):  printf '<code>' | shasum -a 256
-    locked: z.boolean().default(false),
-    lockHash: z.string().optional(),
   }),
 });
 

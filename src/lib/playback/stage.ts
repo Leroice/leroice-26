@@ -7,7 +7,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
-import { DEFAULTS, HIGHLIGHTS, LABELS, LENGTHS, PLASTICS, type Plastic, type ShellStyle, type Side } from './content';
+import { DEFAULTS, LABELS, LENGTHS, PLASTICS, type Plastic, type ShellStyle, type Side } from './content';
 import { reelPose } from './tape';
 import { drawSheet, printInk, STICKER_FONTS, stickerNormals } from './sheet';
 import { buildControls } from './controls';
@@ -18,7 +18,7 @@ const FOV = 30;
 /** The app's camera angle: a little right of and above the tape. */
 const VIEW = new THREE.Vector3(0.06, 0.04, 0.46).normalize();
 /** Share of the stage's width the object fills, and how far above centre it sits (share of height). */
-const FRAMING = { wide: { fill: 0.54, lift: 0.07 }, tall: { fill: 0.84, lift: 0.12 } };
+const FRAMING = { wide: { fill: 0.54, lift: 0.02 }, tall: { fill: 0.84, lift: 0.067 } };
 const FLIP_MS = 600;
 /** Exponential ease back to rest after a drag, per second. */
 const SETTLE_RATE = 8;
@@ -31,7 +31,6 @@ const PAPER = [0.93, 0.91, 0.85] as const;
 const IOR = { polystyrene: 1.59, pom: 1.48 };
 /** Shell faces are 1.0 mm, walls 1.3 mm (the app's geometry sheet). */
 const WALL = 0.0012;
-const ORANGE = [0.95, 0.42, 0.12] as const;
 
 const srgb = (r: number, g: number, b: number) => new THREE.Color().setRGB(r, g, b, THREE.SRGBColorSpace);
 
@@ -92,7 +91,7 @@ function studio() {
   return texture;
 }
 
-/** Puts a material on named parts. `order` sets the draw order of see-through parts: shell, print, case. */
+/** Puts a material on named parts. `order` sets the draw order of see-through parts: shell, then case. */
 function set(model: THREE.Object3D, names: string[], material: THREE.Material, order = 0) {
   for (const name of names) {
     model.getObjectByName(name)?.traverse((o) => {
@@ -178,7 +177,7 @@ export async function mountTape(stage: HTMLElement) {
   const fixed = {
     // White POM hubs: satin, not glossy.
     hub: new THREE.MeshPhysicalMaterial({ color: srgb(0.92, 0.91, 0.87), roughness: 0.42, ior: IOR.pom }),
-    accent: new THREE.MeshPhysicalMaterial({ color: srgb(...ORANGE), roughness: 0.45, ior: IOR.pom }),
+    accent: new THREE.MeshPhysicalMaterial({ roughness: 0.45, ior: IOR.pom }),
     tape: new THREE.MeshStandardMaterial({ color: srgb(0.075, 0.052, 0.042), roughness: 0.28 }),
     // Wound tape: fine rings, with a sheen that runs round the pack.
     pack: new THREE.MeshPhysicalMaterial({
@@ -193,10 +192,6 @@ export async function mountTape(stage: HTMLElement) {
       ior: IOR.polystyrene, roughness: 0.03, transmission: 1, thickness: 0.001,
       attenuationColor: srgb(0.9, 0.9, 0.9), attenuationDistance: 0.001, side: THREE.DoubleSide,
     }),
-    label: new THREE.MeshStandardMaterial({ map: sheet, roughness: 0.85 }),
-    foil: new THREE.MeshStandardMaterial({ map: sheet, roughness: 0.35 }),
-    // Ink on clear plastic: the sheet's own transparency decides where there is ink.
-    print: new THREE.MeshBasicMaterial({ map: sheet, transparent: true, depthWrite: false }),
     // The case stays alpha-blended: transmission can't see the tape's own clear shell through it.
     casePlastic: see(new THREE.MeshPhysicalMaterial({ color: srgb(0.45, 0.5, 0.53), roughness: 0.08, ior: IOR.polystyrene, specularIntensity: 0.25 }), 0.13),
     // The thin rims of each wall are brighter, the way the edge of clear plastic catches light.
@@ -218,9 +213,7 @@ export async function mountTape(stage: HTMLElement) {
     position: 0,
     playing: false,
     inCase: DEFAULTS.inCase,
-    sticker: DEFAULTS.sticker,
   };
-  const highlight = () => HIGHLIGHTS.find((h) => h.id === state.sticker) ?? null;
 
   // ── Models, loaded once each and kept ─────────────────────
   const draco = new DRACOLoader().setDecoderPath(MODELS + 'draco/');
@@ -242,11 +235,8 @@ export async function mountTape(stage: HTMLElement) {
         set(model, ['Felt'], fixed.felt);
         set(model, ['LinerA', 'LinerB'], fixed.liner);
         set(model, ['Gauge'], gauge);
-        set(model, ['LabelTopA', 'LabelTopB'], fixed.label);
-        set(model, ['LabelBottomA', 'LabelBottomB'], fixed.foil);
         set(model, ['ShellA', 'ShellB'], shellMaterial(style), 1);
         set(model, ['WindowA', 'WindowB'], fixed.window, 1);
-        set(model, ['PrintA', 'PrintB'], fixed.print, 2);
         set(model, ['StickerA', 'StickerB'], fixed.sticker);
         const part = (name: string) => {
           const found = model.getObjectByName(name);
@@ -285,27 +275,14 @@ export async function mountTape(stage: HTMLElement) {
     // Gauge lines are printed ink: white or dark on the clear shell, gold on the solid one.
     const ink = printInk(plastic, darkStage());
     gauge.color.copy(clear ? srgb(ink, ink, ink) : srgb(0.86, 0.72, 0.36));
-    applySticker();
+    // The sticker's highlight comes with the plastic, and the clamps and rollers match it.
+    fixed.accent.color.set(plastic.highlight);
     steel.color.copy(clear ? srgb(0.72, 0.72, 0.72) : srgb(0.16, 0.16, 0.16));
     redrawSheet();
   }
 
-  /** With a sticker, it covers the shell's print and the solid shell's paper strips. */
-  function applySticker() {
-    const on = highlight();
-    fixed.accent.color.copy(on ? new THREE.Color(on.hex) : srgb(...ORANGE));
-    for (const t of [tapes.get('clear'), tapes.get('solid')]) t?.then(({ model }) => {
-      for (const name of ['StickerA', 'StickerB']) model.getObjectByName(name)!.visible = !!on;
-      for (const name of ['PrintA', 'PrintB', 'LabelTopA', 'LabelTopB', 'LabelBottomA', 'LabelBottomB']) {
-        const part = model.getObjectByName(name);
-        if (part) part.visible = !on;
-      }
-      invalidate();
-    });
-  }
-
   function redrawSheet() {
-    drawSheet(sheetCanvas, state.plastic, state.length, SHEET_PX_PER_MM, darkStage(), highlight());
+    drawSheet(sheetCanvas, state.plastic, state.length, SHEET_PX_PER_MM);
     sheet.needsUpdate = true;
   }
 
@@ -435,14 +412,8 @@ export async function mountTape(stage: HTMLElement) {
   canvas.addEventListener('pointercancel', release);
 
   const controls = buildControls(stage, {
-    plastic: state.plastic.id, length: state.length.id, side: state.side, inCase: state.inCase, sticker: state.sticker,
+    plastic: state.plastic.id, length: state.length.id, side: state.side, inCase: state.inCase,
   }, {
-    sticker(id) {
-      state.sticker = id;
-      redrawSheet();
-      applySticker();
-      invalidate();
-    },
     play() {
       // At the end of a side, Play starts that side again.
       const atEnd = state.position === (state.side === 'a' ? 1 : 0);
@@ -457,6 +428,7 @@ export async function mountTape(stage: HTMLElement) {
     async plastic(id) {
       state.plastic = PLASTICS.find((p) => p.id === id)!;
       const next = await loadTape(state.plastic.style);
+      if (state.plastic.id !== id) return; // a later pick has taken over
       if (next !== tape) showTape(next);
       applyPlastic(state.plastic);
       invalidate();
@@ -508,7 +480,7 @@ export async function mountTape(stage: HTMLElement) {
   new ResizeObserver(fit).observe(stage);
   const restage = () => {
     renderer.setClearColor(stageColor(stage), 1);
-    applyPlastic(state.plastic); // print ink follows the page behind clear plastic
+    applyPlastic(state.plastic); // gauge ink follows the page behind clear plastic
     invalidate();
   };
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', restage);

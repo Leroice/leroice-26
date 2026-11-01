@@ -153,7 +153,6 @@
      number. */
   --z-base:      0;   /* home list pill layer */
   --z-row:       1;   /* list rows, above the pill */
-  --z-row-lock:  2;   /* the lock pill inside a row */
   --z-edge:      9;   /* Safari edge strips: over content, under headers */
   --z-subnav:    10;  /* sticky case-study subnav */
   --z-flight:    11;  /* case-study image while it flies in */
@@ -428,7 +427,7 @@ body:has(.split.is-detail) .nav {
    The toggle and panel exist in the DOM at every width; desktop hides
    them outright, so ≥880px is pixel-identical to before. The panel opens
    below the nav (page stays visible underneath) with the site's
-   fade-from-blur idiom, same as dialog.unlock. */
+   fade-from-blur idiom. */
 
 .nav__toggle {
   display: none;
@@ -563,8 +562,6 @@ body:has(.split.is-detail) .nav {
 
 @media (prefers-reduced-motion: reduce) {
   .nav__toggle-bars span { transition: none; }
-  .unlock__submit { transition: opacity 160ms ease; }
-  .unlock__submit:active { scale: none; }
   .nav__menu.is-open,
   .nav__menu.is-open a,
   .nav__menu.is-closing { animation: none; }
@@ -1696,314 +1693,6 @@ html.is-js:not(.revealed) [data-elastic] {
   }
 }
 
-/* ───────────────────────────────────────────────────────────
-   Gated case studies — lock affordance on list rows + the
-   code-entry dialog (Figma "✅ Components": Nav-Item states +
-   unlock set). The gooey pill stays the hover treatment; the
-   lock lives on the row's top line, right-aligned, and swaps
-   between three states with the site's fade-from-blur rule:
-   padlock (idle) → "Unlock on request" pill (row hovered) →
-   "Unlocked" (code accepted, for the session).
-   ─────────────────────────────────────────────────────────── */
-
-/* Figma "unlock" component set: every state is a mini-pill on the row's
-   top line. Idle = icon-only (no border) · hovered = "Unlock" label + lock
-   (0.5px border) · unlocked = open lock only (0.5px border). Glyph/text
-   opacities: Subtle idle & unlocked, Tertiary on hover. */
-.row__lock {
-  position: absolute;
-  top: 12px;
-  right: var(--sp-base);
-  height: 22px;
-  pointer-events: none;
-  font-family: var(--font-sans);
-  font-size: var(--fs-caption);
-  font-weight: 400;
-  letter-spacing: 0;
-  color: var(--text-primary);
-  z-index: var(--z-row-lock);
-}
-
-.row__lock > span {
-  position: absolute;
-  top: 0;
-  right: 0;
-  height: 22px;
-  display: inline-flex;
-  align-items: center;
-  /* No gap: the idle clip removes exactly the label, so the idle pill is
-     symmetric around the padlock. Label to glyph spacing is the label's
-     own padding-right. */
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: var(--hover-bg);
-  white-space: nowrap;
-  opacity: 0;
-  filter: blur(4px);
-  transition:
-    opacity 240ms var(--image-ease),
-    filter 240ms var(--image-ease);
-}
-
-.row__lock svg {
-  display: block;
-  flex: none;
-}
-
-/* The locked pill is ONE element across idle and hover (Figma 196:586):
-   the "Unlock" label expands out from behind the lock on hover, the
-   glyph cross-fades outline → solid, and the hairline appears. */
-.row__lock > .row__lock-pill {
-  /* The label is always laid out; idle, the pill is clipped from the left by
-     the label's width so only the padlock shows. Hover unclips it, so the
-     label opens out without anything reflowing. */
-  --lock-label-w: 43.75px; /* "Unlock" + its 8px padding, measured */
-  opacity: 1;
-  filter: blur(0);
-  clip-path: inset(0 0 0 var(--lock-label-w) round 999px);
-  transition:
-    opacity 240ms var(--image-ease),
-    filter 240ms var(--image-ease),
-    box-shadow 240ms var(--image-ease),
-    clip-path 300ms var(--image-ease);
-}
-.row.is-active:not(.is-unlocked) .row__lock-pill {
-  box-shadow: inset 0 0 0 0.5px var(--rule);
-  clip-path: inset(0 round 999px);
-}
-
-.row__lock-labelwrap {
-  display: inline-flex;
-  opacity: 0;
-  filter: blur(4px);
-  transition:
-    opacity 240ms var(--image-ease),
-    filter 240ms var(--image-ease);
-}
-.row__lock-label {
-  opacity: var(--op-tertiary);
-  padding-right: 8px;
-}
-.row.is-active:not(.is-unlocked) .row__lock-labelwrap {
-  opacity: 1;
-  filter: blur(0);
-}
-
-/* Glyph cross-fade: outline 􀎠 @ Subtle idle → solid 􀎡 @ Tertiary hover. */
-.row__lock-glyphs {
-  display: grid;
-}
-.row__lock-glyphs .row__lock-glyph {
-  grid-area: 1 / 1;
-  transition: opacity 240ms var(--image-ease);
-}
-.row__lock-glyphs .row__lock-glyph:first-child { opacity: var(--op-subtle); }
-.row__lock-glyphs .row__lock-glyph:last-child { opacity: 0; }
-.row.is-active:not(.is-unlocked) .row__lock-glyphs .row__lock-glyph:first-child { opacity: 0; }
-.row.is-active:not(.is-unlocked) .row__lock-glyphs .row__lock-glyph:last-child { opacity: var(--op-tertiary); }
-
-/* Unlocked for the session: the pill hands off to the open padlock. */
-.row__lock-open {
-  box-shadow: inset 0 0 0 0.5px var(--rule);
-}
-.row__lock-open .row__lock-glyph { opacity: var(--op-subtle); }
-.row.is-unlocked .row__lock-pill {
-  opacity: 0;
-  filter: blur(4px);
-}
-.row.is-unlocked .row__lock-open {
-  opacity: 1;
-  filter: blur(0);
-}
-
-/* ── Unlock dialog ── */
-
-dialog.unlock {
-  position: fixed;
-  inset: 0;
-  margin: auto;
-  width: min(22rem, calc(100vw - 2rem));
-  border: none;
-  /* Figma 193:32 — 24px radius, uniform 12px rhythm inside */
-  border-radius: 24px;
-  padding: 24px;
-  background: var(--bg);
-  color: var(--text-primary);
-  box-shadow:
-    inset 0 0 0 1px var(--rule),
-    0 24px 64px rgba(0, 0, 0, 0.25);
-  font-family: var(--font-sans);
-}
-
-dialog.unlock::backdrop {
-  background: rgba(0, 0, 0, 0.25);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-}
-
-dialog.unlock[open] {
-  animation: unlock-in 260ms var(--image-ease) both;
-}
-dialog.unlock[open]::backdrop {
-  animation: unlock-backdrop-in 260ms var(--image-ease) both;
-}
-dialog.unlock.is-closing {
-  animation: unlock-out 180ms var(--image-ease) both;
-}
-dialog.unlock.is-closing::backdrop {
-  animation: unlock-backdrop-out 180ms var(--image-ease) both;
-}
-
-@keyframes unlock-in {
-  from { opacity: 0; filter: blur(6px); transform: scale(0.97); }
-  to   { opacity: 1; filter: blur(0); transform: scale(1); }
-}
-@keyframes unlock-out {
-  from { opacity: 1; filter: blur(0); transform: scale(1); }
-  to   { opacity: 0; filter: blur(6px); transform: scale(0.98); }
-}
-@keyframes unlock-backdrop-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-@keyframes unlock-backdrop-out {
-  from { opacity: 1; }
-  to   { opacity: 0; }
-}
-
-.unlock__close {
-  /* 44px hit area; the 24px glyph centers to a visual 14/14 inset. */
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  width: 44px;
-  height: 44px;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  border: none;
-  background: none;
-  color: var(--text-primary);
-  opacity: var(--op-subtle);
-  cursor: pointer;
-  transition: opacity 160ms ease;
-}
-.unlock__close:hover { opacity: 1; }
-.unlock__close svg { display: block; }
-
-.unlock__title {
-  margin: 0 0 12px;
-  padding-right: 32px; /* clears the close button */
-  font-size: var(--fs-title);
-  font-weight: 450;
-  letter-spacing: var(--tracking-tight);
-}
-
-.unlock__hint {
-  /* Body/Small @ Tertiary */
-  margin: 0 0 12px;
-  font-size: var(--fs-body);
-  font-weight: 400;
-  letter-spacing: var(--tracking-body);
-  line-height: normal;
-  opacity: var(--op-tertiary);
-}
-
-.unlock__input {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid var(--rule);
-  border-radius: 8px;
-  background: transparent;
-  color: var(--text-primary);
-  font-family: inherit;
-  /* 16px minimum, NOT the 14px body size: iOS Safari auto-zooms the
-     whole page when a focused input's text is under 16px — the reader
-     loses their place and the layout "blows out". 16px exactly opts
-     out of that behaviour. */
-  font-size: max(16px, var(--fs-body));
-  letter-spacing: var(--tracking-body);
-  transition:
-    border-color 240ms var(--image-ease),
-    box-shadow 240ms var(--image-ease);
-}
-.unlock__input:focus {
-  outline: none;
-  border-color: color-mix(in srgb, var(--text-primary) 40%, transparent);
-}
-/* The border change alone is too quiet to find the field by keyboard:
-   a soft ring in the text colour (neutral in both themes) sits outside
-   it. Text fields match :focus-visible on every focus. */
-.unlock__input:focus-visible {
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--text-primary) 14%, transparent);
-}
-
-.unlock__error {
-  margin: 12px 0 0;
-  font-size: var(--fs-caption);
-  font-weight: 600;
-}
-
-.unlock__actions {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-top: 12px;
-}
-
-.unlock__submit {
-  /* Body/Small Emphasis on Text+Icon/Primary */
-  padding: 8px 16px;
-  border: none;
-  border-radius: 999px;
-  background: var(--text-primary);
-  color: var(--bg);
-  font-family: inherit;
-  font-size: var(--fs-body);
-  font-weight: 450;
-  letter-spacing: var(--tracking-tight);
-  cursor: pointer;
-  opacity: 0.9;
-  transition: opacity 160ms ease, scale 150ms ease-out;
-}
-.unlock__submit:hover { opacity: 1; }
-.unlock__submit:active { scale: 0.97; }
-
-.unlock__request {
-  font-size: var(--fs-body);
-  letter-spacing: var(--tracking-body);
-  color: var(--text-primary);
-  text-decoration: none;
-  opacity: var(--op-subtle);
-  transition: opacity 160ms ease;
-}
-.unlock__request:hover { opacity: 1; }
-
-/* Deep-link gate: /work/[slug] for a locked project blurs its content
-   until the dialog resolves (the site's own fade-from-blur, held). */
-.detail.is-locked {
-  filter: blur(24px);
-  opacity: 0.3;
-  pointer-events: none;
-  user-select: none;
-}
-.detail:not(.is-locked) {
-  transition:
-    filter 600ms var(--image-ease),
-    opacity 600ms var(--image-ease);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .row__lock > span,
-  .row__lock-labelwrap,
-  .row__lock-glyphs .row__lock-glyph { transition: none; }
-  dialog.unlock[open],
-  dialog.unlock.is-closing,
-  dialog.unlock[open]::backdrop,
-  dialog.unlock.is-closing::backdrop { animation: none; }
-  .detail:not(.is-locked) { transition: none; }
-}
-
 /* ── Phone chrome tier (Figma 217:222) ──────────────────────
    At the end of the file so these win against the base rules above.
    Chrome hugs the glass at 12px; prose stays at 28px (via --side-pad,
@@ -2045,7 +1734,7 @@ dialog.unlock.is-closing::backdrop {
    controls over it when the figure nears the viewport. */
 .detail__body .tape {
   position: relative;
-  aspect-ratio: 3 / 2;
+  aspect-ratio: 16 / 10;
   background: var(--hover-bg);
   border-radius: var(--radius-md);
   overflow: hidden;
@@ -2056,7 +1745,7 @@ dialog.unlock.is-closing::backdrop {
 .detail__body .tape img {
   position: absolute;
   left: 50.5%;
-  top: 43.1%;
+  top: 48.4%;
   width: 55.3%;
   translate: -50% -50%;
   border-radius: 0;
@@ -2083,12 +1772,10 @@ dialog.unlock.is-closing::backdrop {
   gap: calc(var(--control-pad) * 2);
   pointer-events: none;
 }
-/* The bars and rows let drags through to the canvas; only the controls take the pointer. */
-.tape__bar > :not(.tape__row),
-.tape__row > * { pointer-events: auto; }
+/* The bars let drags through to the canvas; only the controls take the pointer. */
+.tape__bar > * { pointer-events: auto; }
 .tape__bar--top { top: var(--sp-3); left: var(--sp-3); }
-.tape__bar--bottom { bottom: var(--sp-3); inset-inline: var(--sp-3); flex-direction: column; align-items: center; }
-.tape__row { display: flex; flex-wrap: wrap; justify-content: center; gap: inherit; }
+.tape__bar--bottom { bottom: var(--sp-3); inset-inline: var(--sp-3); justify-content: center; }
 
 .tape__seg {
   display: flex;
@@ -2201,6 +1888,10 @@ dialog.unlock.is-closing::backdrop {
 .tape__play[aria-pressed="false"] .tape__icon-pause { display: none; }
 
 @media (--bp-phone) {
-  .detail__body .tape { aspect-ratio: 3 / 4; }
-  .detail__body .tape img { top: 38%; width: 85.9%; }
+  /* Phones: bigger touch targets and room between them, so the controls don't crowd the tape. */
+  .detail__body .tape { aspect-ratio: 3 / 4; --control-size: 44px; }
+  .tape__bar { gap: var(--sp-3); }
+  .tape__bar--top { top: var(--sp-base); left: var(--sp-base); }
+  .tape__bar--bottom { bottom: var(--sp-base); inset-inline: var(--sp-base); }
+  .detail__body .tape img { top: 43.6%; width: 85.6%; }
 }
