@@ -15,8 +15,6 @@ The tape and case were modelled in Blender, from measured dimensions for the cas
 
 <figure class="cs-full tape" data-playback-tape><picture><source media="(prefers-color-scheme: dark)" srcset="/images/work/playback/live-tape-dark.png" /><img src="/images/work/playback/live-tape.png" alt="A smoke-tinted clear cassette labelled Mix tape, Playback mix, 90" /></picture></figure>
 
-It can also make a tape from an album. It splits the tracks across two sides, picks the shortest tape they fit on, and prints the cover, spine and track list onto the card. I built it with Claude in one evening in October 2026.
-
 ## Project info
 
 - **Role:** Design, code
