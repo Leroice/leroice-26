@@ -1,6 +1,8 @@
 ---
 import Base from '../../layouts/Base.astro';
 import DetailSubnav from '../../components/DetailSubnav.astro';
+import UnlockDialog from '../../components/UnlockDialog.astro';
+import { lockedBody } from '../../lib/locked-body';
 import { getCollection, render } from 'astro:content';
 import { srcsetFor, CONTENT_SIZES } from '../../lib/img';
 
@@ -14,12 +16,14 @@ export async function getStaticPaths() {
 
 const { entry } = Astro.props;
 const { Content } = await render(entry);
+const slug = entry.id.replace(/\.md$/, '');
+const cipher = entry.data.locked ? await lockedBody(slug, entry.rendered?.html ?? '') : null;
 ---
 
 <Base title={`Leigh Scholten: ${entry.data.title}`} description={entry.data.summary}>
   <DetailSubnav title={entry.data.title} context={entry.data.context} href="/" />
 
-  <article class="detail">
+  <article class:list={['detail', { 'is-locked': cipher !== null }]} data-slug={slug} data-title={entry.data.title}>
     {entry.data.cover && (
       <picture>
         {entry.data.coverPhone && <source media="(max-width: 520px)" srcset={entry.data.coverPhone} />}
@@ -36,11 +40,16 @@ const { Content } = await render(entry);
     {/* data-wipe, not data-reveal-children: the body reveals as ONE group
         via the gradient wipe rather than per-child. Both are gated on
         html.is-js, so no-JS still renders it plainly visible. */}
-    <div class="detail__body" id="details" data-wipe>
-      <Content />
-    </div>
+    {cipher !== null ? (
+      <div class="detail__body" id="details" data-wipe data-locked-body={cipher}></div>
+    ) : (
+      <div class="detail__body" id="details" data-wipe>
+        <Content />
+      </div>
+    )}
   </article>
 
+  {cipher !== null && <UnlockDialog />}
 </Base>
 
 <script>
@@ -48,6 +57,7 @@ const { Content } = await render(entry);
      reorders them; split across two blocks the import below was dropped
      from the emitted module and the wipe threw ReferenceError at runtime. */
   import { wipeRevealVisible } from '../../lib/reveal';
+  import { savedCode, openLockedBody, promptUnlock } from '../../lib/unlock';
   import { initPlaybackTape } from '../../lib/playback/loader';
 
   initPlaybackTape();
@@ -60,7 +70,7 @@ const { Content } = await render(entry);
      retimes revealOnLoad. */
   {
     const body = document.querySelector<HTMLElement>('.detail__body[data-wipe]');
-    if (body) {
+    if (body && body.dataset.lockedBody === undefined) {
       const hero = document.querySelector<HTMLElement>('.detail__hero');
       const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -99,6 +109,29 @@ const { Content } = await render(entry);
         // body behind a mask waiting for an event that isn't coming.
         failsafe = window.setTimeout(start, 2200);
       }
+    }
+  }
+
+  // Deep-link gate: a locked case study holds blurred, with its body still
+  // encrypted, until the right code opens it. Dismissing returns home.
+  {
+    const art = document.querySelector<HTMLElement>('article.detail.is-locked');
+    const body = art?.querySelector<HTMLElement>('[data-locked-body]');
+    if (art && body) {
+      const reveal = () => {
+        art.classList.remove('is-locked');
+        wipeRevealVisible(body, Array.from(body.children) as HTMLElement[]);
+      };
+      const slug = art.dataset.slug!;
+      const code = savedCode(slug);
+      (code ? openLockedBody(body, code) : Promise.resolve(false)).then((ok) => {
+        if (ok) return reveal();
+        promptUnlock({
+          slug,
+          title: art.dataset.title || 'this case study',
+          verify: (c) => openLockedBody(body, c),
+        }).then((opened) => (opened ? reveal() : location.assign('/')));
+      });
     }
   }
 </script>

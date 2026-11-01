@@ -1,12 +1,13 @@
 ---
-title: "AU multicurrency wallet"
+title: "AU wallet"
 year: "2026"
 context: "Western Union, iOS, Android"
-summary: "Led design on Western Union's multicurrency digital wallet for Australia, built inside a global design system that has to flex. The first release shipped a redesigned send money flow. The next release brings PayID, PayTo, BPAY and BPAY top-up together in one place."
+summary: "Led design on Western Union's digital wallet for Australia, built inside a global design system that has to flex. The first release shipped a redesigned send money flow. The next release brings PayID, PayTo, BPAY and BPAY top-up together in one place."
 order: 1
+locked: true
 detail: true
 cover: "/images/work/wu-au-wallet/wu-au-wallet-hero-desktop.jpg"
-coverAlt: "Western Union AU wallet home screen on an iPhone, showing balances in AUD and JPY"
+coverAlt: "Western Union AU wallet home screen on an iPhone"
 coverPhone: "/images/work/wu-au-wallet/wu-au-wallet-hero-phone.jpg"
 ---
 

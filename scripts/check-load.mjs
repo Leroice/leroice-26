@@ -172,7 +172,7 @@ try {
     });
     await home.goto(BASE + '/');
     await home.waitForTimeout(2700);
-    await home.locator('[data-row]').first().click();
+    await home.locator('[data-row]:not([data-locked])').first().click();
     await home.waitForTimeout(3000);
     await home.evaluate(() => sessionStorage.setItem('backProbe', JSON.stringify({ docs: 1, peak: [], dropped: null })));
     await home.locator('.list__detail:not([hidden]) [data-detail-back]').click();

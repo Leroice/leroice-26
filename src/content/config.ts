@@ -15,6 +15,9 @@ const work = defineCollection({
     coverAlt: z.string().optional(),
     coverPhone: z.string().optional(), // portrait crop for the phone hero
     heroSquare: z.boolean().default(false), // square phone hero instead of the tall one
+    // Gated case studies: the row shows a padlock and opens a code-entry
+    // dialog. The body ships encrypted with the code in LOCK_CODE_<SLUG>.
+    locked: z.boolean().default(false),
   }),
 });
 
