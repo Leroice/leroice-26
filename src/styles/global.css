@@ -1097,7 +1097,9 @@ body:has(.split.is-detail) .nav {
   width: calc(1206 / 1350 * 100%);
   height: calc(2622 / 2760 * 100%);
   object-fit: cover;
-  border-radius: 20% / 9.2%;
+  border-radius: 0;
+  /* The bezel's own screen shape, so the corners follow its curve exactly. */
+  mask: url("/images/work/space-time/iphone-screen-mask.png") center / 100% 100% no-repeat;
 }
 @media (--bp-tablet) {
   /* Body collapses to a single column — prose + media share one rail. */
