@@ -1081,6 +1081,24 @@ body:has(.split.is-detail) .nav {
   height: calc(2048 / 2300 * 100%);
   border-radius: 0;
 }
+/* cs-iphone: a screen recording inside Apple's iPhone 17 Pro bezel, three
+   to a row in a cs-3. The bezel sizes the box and sits on top. The video
+   fills its screen opening, 1206 x 2622 inside 1350 x 2760. */
+.detail__body .cs-iphone { position: relative; }
+.detail__body .cs-iphone img {
+  position: relative;
+  border-radius: 0;
+  pointer-events: none;
+}
+.detail__body .cs-iphone video {
+  position: absolute;
+  left: calc(72 / 1350 * 100%);
+  top: calc(69 / 2760 * 100%);
+  width: calc(1206 / 1350 * 100%);
+  height: calc(2622 / 2760 * 100%);
+  object-fit: cover;
+  border-radius: 17% / 8%;
+}
 @media (--bp-tablet) {
   /* Body collapses to a single column — prose + media share one rail. */
   .detail__body { grid-template-columns: 1fr; }
