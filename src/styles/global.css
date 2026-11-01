@@ -1097,7 +1097,7 @@ body:has(.split.is-detail) .nav {
   width: calc(1206 / 1350 * 100%);
   height: calc(2622 / 2760 * 100%);
   object-fit: cover;
-  border-radius: 17% / 8%;
+  border-radius: 20% / 9.2%;
 }
 @media (--bp-tablet) {
   /* Body collapses to a single column — prose + media share one rail. */
