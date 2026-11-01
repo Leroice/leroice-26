@@ -3,7 +3,7 @@ title: "ANZ Plus Cards"
 year: "2019–2025"
 context: "Product Design, Brand"
 summary: "Payment cards for ANZ Plus: the physical card, ordering and delivery in the app, and card controls."
-order: 7
+order: 3
 detail: true
 external: "https://www.anz.com/plus"
 cover: "/images/work/anz-plus-card/anz-plus-hero-desktop-anz-plus-card.jpg"

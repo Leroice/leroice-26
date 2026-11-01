@@ -3,7 +3,7 @@ title: "Space/Time"
 year: "2026"
 context: "iPhone, AI"
 summary: "A relationship timing app built on astrology, written for people who don't know astrology. Built with Claude in two weeks: planet positions checked against NASA data, a sky drawn in Metal, and a view that opens onto the real night sky."
-order: 3
+order: 5
 detail: true
 cover: "/images/work/space-time.jpg"
 coverAlt: "Space/Time on iPhone: your chart and Sam’s laid over each other, tilted back, with the lines between you"

@@ -3,7 +3,7 @@ title: "Trace"
 year: "2026"
 context: "iPad, iPhone, AI"
 summary: "A handwriting app I built for my son Charlie. He says a phrase, traces it in his school's handwriting with Apple Pencil, and gets a sticker of what he said. Built with Claude, from an empty folder to TestFlight in three weeks."
-order: 2
+order: 4
 detail: true
 cover: "/images/work/trace/trace-hero-desktop.jpg"
 coverAlt: "Trace on iPad, writing Dog on the moon in blue joined handwriting"

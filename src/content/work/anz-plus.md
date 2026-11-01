@@ -3,7 +3,7 @@ title: "ANZ Plus"
 year: "2019–2025"
 context: "Product Design, Brand, Web"
 summary: "One of two principal product designers on ANZ Plus from before it formally began. I helped shape the vision, brand and product for a new bank built from scratch inside ANZ, then built and led the design team behind Australia's fastest-growing banking app."
-order: 6
+order: 2
 detail: true
 external: "https://www.anz.com/plus"
 cover: "/images/work/anz-plus.jpg"

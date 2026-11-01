@@ -3,7 +3,7 @@ title: "Playback"
 year: "2026"
 context: "iPhone, 3D"
 summary: "A 3D cassette you can turn, flip and play, built in RealityKit from measured Blender models."
-order: 5
+order: 6
 detail: true
 cover: "/images/work/playback.jpg"
 coverAlt: "A smoke-tinted clear cassette labelled Mix tape, Playback mix, 90"
