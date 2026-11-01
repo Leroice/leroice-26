@@ -116,13 +116,16 @@ const inlineEntries = await Promise.all(
         <div class="list__detail" data-detail-slug={slug(entry.id)} hidden>
           <DetailSubnav title={entry.data.title} context={entry.data.context} href="/" />
           {entry.data.cover && (
-            <img
-              class="detail__hero"
-              src={entry.data.cover}
-              srcset={srcsetFor(entry.data.cover)}
-              sizes={CONTENT_SIZES}
-              alt={entry.data.coverAlt ?? entry.data.title}
-            />
+            <picture>
+              {entry.data.coverPhone && <source media="(max-width: 520px)" srcset={entry.data.coverPhone} />}
+              <img
+                class="detail__hero"
+                src={entry.data.cover}
+                srcset={srcsetFor(entry.data.cover)}
+                sizes={CONTENT_SIZES}
+                alt={entry.data.coverAlt ?? entry.data.title}
+              />
+            </picture>
           )}
           {/* Wipes in as one group once the hero FLIP lands — see the
               open() choreography below. */}

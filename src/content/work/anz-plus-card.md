@@ -8,6 +8,7 @@ detail: true
 external: "https://www.anz.com/plus"
 cover: "/images/work/anz-plus-card/anz-plus-hero-desktop-anz-plus-card.jpg"
 coverAlt: "A hand holding the blue ANZ Plus debit card"
+coverPhone: "/images/work/anz-plus-card/anz-plus-hero-phone-anz-plus-card.jpg"
 ---
 
 My role expanded to combine graphic design with end-to-end development of the ANZ Plus debit card experience. As the first physical touchpoint with ANZ's new digital bank, the card was designed to offer customers a warm welcome and introduce the brand.

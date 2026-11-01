@@ -29,13 +29,16 @@ const slug = entry.id.replace(/\.md$/, '');
     data-title={entry.data.title}
   >
     {entry.data.cover && (
-      <img
-        class="detail__hero" data-reveal
-        src={entry.data.cover}
-        srcset={srcsetFor(entry.data.cover)}
-        sizes={CONTENT_SIZES}
-        alt={entry.data.coverAlt ?? entry.data.title}
-      />
+      <picture>
+        {entry.data.coverPhone && <source media="(max-width: 520px)" srcset={entry.data.coverPhone} />}
+        <img
+          class="detail__hero" data-reveal
+          src={entry.data.cover}
+          srcset={srcsetFor(entry.data.cover)}
+          sizes={CONTENT_SIZES}
+          alt={entry.data.coverAlt ?? entry.data.title}
+        />
+      </picture>
     )}
 
     {/* data-wipe, not data-reveal-children: the body reveals as ONE group
