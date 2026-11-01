@@ -19,12 +19,22 @@ The card was the first physical thing an ANZ Plus customer held. We designed the
   <img src="/images/work/anz-plus-card/anz-plus-mock-04-anz-plus-card.png" alt="Card shipped screen with delivery tracking" />
 </div>
 
+<figure class="cs-full"><img src="/images/work/anz-plus-card/Card-Delivery.png" alt="ANZ Plus card out for delivery notification" /></figure>
+
 Applying for a card got 35% faster. Delivery went from three weeks to under four days, and over 60% of customers added their card to Apple Pay.
 
 <div class="cs-2">
   <img src="/images/work/anz-plus-card/anz-plus-half-01-anz-plus-card.jpg" alt="ANZ Plus card designs, front and back" />
   <img src="/images/work/anz-plus-card/anz-plus-half-02-anz-plus-card.jpg" alt="Two ANZ Plus cards floating" />
+  <img src="/images/work/anz-plus-card/anz-plus-half-03-anz-plus-card.jpg" alt="ANZ Plus credit card billboard, Apple Pay and clear card concepts" />
+  <img src="/images/work/anz-plus-card/anz-plus-half-04-anz-plus-card.jpg" alt="ANZ Plus credit card poster, Apple Pay and black card concepts" />
 </div>
+
+I also started to explore new card looks for Credit Cards with clear substrate and over printing techniques that played on themes of transparency, providing a product that people could easily pay back and understanding what's happening with their credit.
+
+This included marketing concepts and a full system of how colour and substrate would be used based on product features.
+
+<figure class="cs-full"><img src="/images/work/anz-plus-card/anz-plus-wide-01-anz-plus-card.jpg" alt="Credit card system mapping colour and substrate to Blue, Platinum and Black cards" /></figure>
 
 ## Project info
 
