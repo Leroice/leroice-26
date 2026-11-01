@@ -10,9 +10,9 @@ cover: "/images/work/anz-plus.jpg"
 coverAlt: "ANZ Plus Money screen showing balances, accounts and transactions"
 ---
 
-A chance to build a bank from scratch inside a major incumbent doesn't come up often. ANZ Plus was that chance.
+ANZ Plus was a new bank built from scratch inside ANZ.
 
-The mission was a substantially better bank, grounded in a set of principles for helping people with their financial wellbeing. We built it mobile-first on Google Cloud Platform, with Salesforce running the customer experience tools.
+The aim was a much better bank, built on a set of financial wellbeing principles. We built it mobile-first on Google Cloud Platform, with Salesforce running the customer experience tools.
 
 <div class="cs-mocks">
   <img src="/images/work/anz-plus/01-ANZ-.png" alt="ANZ Plus app screen" />
@@ -25,7 +25,7 @@ I was one of two principal product designers appointed before the program formal
 
 I helped shape the product vision and strategy. Then I built and led the team of designers, writers and design system specialists.
 
-Together we defined and delivered a modern brand and product for ANZ. Along the way it became Australia's fastest-growing banking app.
+Together we made the brand and the product. It became Australia's fastest-growing banking app, with a million customers in 24 months.
 
 <figure class="cs-full"><img src="/images/work/anz-plus/HS-09.jpg" alt="ANZ Plus home screen" /></figure>
 

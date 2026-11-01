@@ -12,7 +12,7 @@ coverPhone: "/images/work/wu-au-wallet/wu-au-wallet-hero-phone.jpg"
 
 More detail once it launches. The work is in progress and partly confidential until it's on the App Store.
 
-It's a multicurrency wallet for the Australian market, designed inside Western Union's global design system, which it pushed in new directions. I held design authority across the product, contributions back to the system, and alignment with the AU creative and product leads.
+It's a multicurrency wallet for the Australian market, designed inside Western Union's global design system, and it changed parts of that system.
 
 <div class="cs-mocks">
   <img src="/images/work/wu-au-wallet/wu-au-wallet-mock-01.png" alt="AU wallet app screen" />

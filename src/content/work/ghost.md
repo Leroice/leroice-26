@@ -13,7 +13,7 @@ coverPhone: "/images/work/ghost/ghost-hero-phone.jpg"
 
 Ghost VC wanted an identity that felt elusive but still carried the confidence of a venture firm. I did the creative direction, illustration and 2D animation, then designed and built the website.
 
-The identity is built around an illustrated ghost, with an animated logo that brings the character to life. The same system runs through the site and its interactions.
+The identity is built around an illustrated ghost, with an animated logo where the ghost moves. The same system runs through the site and its interactions.
 
 <div class="cs-mocks">
   <img src="/images/work/ghost/ghost-mock-01.png" alt="Ghost VC mobile design" />

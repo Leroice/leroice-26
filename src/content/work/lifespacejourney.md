@@ -12,7 +12,7 @@ coverAlt: "LifeSpaceJourney copper foil triangular emblem on textured paper"
 
 <figure class="cs-full"><img src="/images/work/lifespacejourney/lifespacejourney-home-2018-2.jpg" alt="LifeSpaceJourney homeware" /></figure>
 
-Brothers Justin and Glenn Lamont make beautiful, unusual objects for the home. Their approach to manufacturing is friendly and human.
+Brothers Justin and Glenn Lamont make unusual objects for the home.
 
 Their style comes from their roots in rural Australia. The pieces are refined without being precious.
 
