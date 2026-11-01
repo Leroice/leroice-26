@@ -1550,6 +1550,15 @@ dialog.unlock.is-closing::backdrop {
 
 dialog.unlock:focus { outline: none; }
 
+/* No system tap overlay or tap focus rings in the dialog, as on the home
+   rows and the back button. Keyboard focus still shows (:focus-visible). */
+dialog.unlock,
+dialog.unlock * { -webkit-tap-highlight-color: transparent; }
+dialog.unlock :is(button, a):focus:not(:focus-visible) { outline: none; }
+@media (pointer: coarse) {
+  .unlock__input:focus-visible { box-shadow: none; }
+}
+
 /* Wrong code: the error fades in from a blur and the field gives a small
    shake, replayed on every wrong try. */
 .unlock__form.is-wrong .unlock__error {
