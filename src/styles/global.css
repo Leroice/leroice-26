@@ -1090,7 +1090,8 @@ body:has(.split.is-detail) .nav {
 }
 /* cs-iphone: a screen recording inside Apple's iPhone 17 Pro bezel, three
    to a row in a cs-3. The bezel sizes the box and sits on top. The video
-   fills its screen opening, 1206 x 2622 inside 1350 x 2760. */
+   fills its screen opening, 1206 x 2622 inside 1350 x 2760, grown 6px a
+   side so its edges tuck under the bezel and never show at its soft rim. */
 .detail__body .cs-iphone { position: relative; }
 .detail__body .cs-iphone img {
   position: relative;
@@ -1099,10 +1100,10 @@ body:has(.split.is-detail) .nav {
 }
 .detail__body .cs-iphone video {
   position: absolute;
-  left: calc(72 / 1350 * 100%);
-  top: calc(69 / 2760 * 100%);
-  width: calc(1206 / 1350 * 100%);
-  height: calc(2622 / 2760 * 100%);
+  left: calc(66 / 1350 * 100%);
+  top: calc(63 / 2760 * 100%);
+  width: calc(1218 / 1350 * 100%);
+  height: calc(2634 / 2760 * 100%);
   object-fit: cover;
   border-radius: 0;
   /* The bezel's own screen shape, so the corners follow its curve exactly. */
