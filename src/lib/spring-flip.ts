@@ -2,10 +2,11 @@
    spring-flip — a FLIP move along one fixed arc, timed by a spring.
    The element is laid out at its final box and starts transformed back
    to `from`. A single damped spring drives progress p from 0 to 1, and
-   position, dip and scale are all read off p, so the path is always the
-   same smooth curve: it sinks by up to `dip` px early on (as if its
-   weight just dropped) and rises into the landing. reverse() springs p
-   back to 0, retracing the same arc from wherever it is.
+   position, bow and scale are all read off p, so the path is always the
+   same smooth curve: it bows out sideways from the straight line by
+   `arc` of the distance (to the lower side, as if carried by its weight),
+   so a short move curves a little and a long one proportionally more.
+   reverse() springs p back to 0, retracing the same arc from wherever it is.
    ─────────────────────────────────────────────────────────── */
 
 export interface Spring { stiffness: number; damping: number; mass: number }
@@ -25,16 +26,23 @@ const SUBSTEP = 1 / 240; // fixed integration step keeps the spring stable
 export function springFlip(
   el: HTMLElement,
   from: DOMRect,
-  opts: { spring: Spring; dip?: number },
+  opts: { spring: Spring; arc?: number },
 ): SpringFlip {
   const last = el.getBoundingClientRect();
   const { stiffness, damping, mass } = opts.spring;
-  const dip = opts.dip ?? 0;
 
   const x0 = from.left - last.left;
   const y0 = from.top - last.top;
   const sx0 = last.width ? from.width / last.width : 1;
   const sy0 = last.height ? from.height / last.height : 1;
+
+  // The bow's direction: perpendicular to the line of travel, on its lower
+  // side. Its size scales with the distance, capped for very long moves.
+  const dist = Math.hypot(x0, y0);
+  let nx = dist ? y0 / dist : 0;
+  let ny = dist ? -x0 / dist : 0;
+  if (ny < 0) { nx = -nx; ny = -ny; }
+  const bow = Math.min((opts.arc ?? 0) * dist, 140);
 
   let p = 0, v = 0, target = 1;
   let running = true;
@@ -45,9 +53,9 @@ export function springFlip(
 
   const paint = () => {
     const q = Math.min(1, Math.max(0, p));
-    const sag = dip * Math.sin(Math.PI * Math.pow(q, 0.7)); // peaks early, gone at both ends
-    const x = x0 * (1 - p);
-    const y = y0 * (1 - p) + sag;
+    const b = bow * Math.sin(Math.PI * q); // gone at both ends, widest midway
+    const x = x0 * (1 - p) + nx * b;
+    const y = y0 * (1 - p) + ny * b;
     const sx = sx0 + (1 - sx0) * p;
     const sy = sy0 + (1 - sy0) * p;
     el.style.transform =

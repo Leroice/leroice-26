@@ -184,7 +184,7 @@ const inlineEntries = await Promise.all(
       <label><span class="tuner__lab">Stiffness <output id="out-sstiff"></output></span><input type="range" id="tune-sstiff" /></label>
       <label><span class="tuner__lab">Damping <output id="out-sdamp"></output></span><input type="range" id="tune-sdamp" /></label>
       <label><span class="tuner__lab">Mass <output id="out-smass"></output></span><input type="range" id="tune-smass" /></label>
-      <label><span class="tuner__lab">Dip <output id="out-dip"></output></span><input type="range" id="tune-dip" /></label>
+      <label><span class="tuner__lab">Arc <output id="out-arc"></output></span><input type="range" id="tune-arc" /></label>
     </div>
 
     <div class="tuner__spring">
@@ -597,13 +597,13 @@ const inlineEntries = await Promise.all(
   const TUNING_ENABLED =
     TUNING_PARAM !== null && TUNING_PARAM !== '0' && TUNING_PARAM !== 'false';
 
-  const CHOREO_KEY = 'leroice-choreo-arc'; // renamed: ignores values saved for older motion models
+  const CHOREO_KEY = 'leroice-choreo-bow'; // renamed: ignores values saved for older motion models
   const DEFAULT_CHOREO = {
     leadIn: 0,          // ms: delay before the proximity cascade begins
-    // The image's flight into the hero: one arc. It sinks up to `dip` px
-    // early in the move, then rises into place with only a float of overshoot.
+    // The image's flight into the hero: one arc that bows out sideways by
+    // `arc` of the distance travelled, so it's the same shape from any row.
     spring: { stiffness: 50, damping: 13, mass: 1 },
-    dip: 108,
+    arc: 0.14,
     // The preview following rows (read by the first script as CSS vars).
     // drift: px the image leans toward the pointer inside a row; 0 = off.
     preview: { stiffness: 90, damping: 15, mass: 1, drift: 0 },
@@ -627,7 +627,7 @@ const inlineEntries = await Promise.all(
         return {
           leadIn: saved.leadIn ?? DEFAULT_CHOREO.leadIn,
           spring: { ...DEFAULT_CHOREO.spring, ...(saved.spring || {}) },
-          dip: saved.dip ?? DEFAULT_CHOREO.dip,
+          arc: saved.arc ?? DEFAULT_CHOREO.arc,
           preview: { ...DEFAULT_CHOREO.preview, ...(saved.preview || {}) },
           stagger: { ...DEFAULT_CHOREO.stagger, ...(saved.stagger || {}) },
           previewFollow: saved.previewFollow ?? DEFAULT_CHOREO.previewFollow,
@@ -690,11 +690,10 @@ const inlineEntries = await Promise.all(
         const bodyText = detail.querySelector('.detail__body') as HTMLElement | null;
         const prefersReduced = reducedMotion();
 
-        // Hide pill, freeze hover, and settle scroll so every rect we read —
-        // now and after the collapse — shares one coordinate space.
+        // Hide pill and freeze hover. The page stays where it is scrolled
+        // until the commit below, so nothing jumps under the pointer.
         if (pw) { pw.style.transition = 'opacity 150ms'; pw.style.opacity = '0'; }
         list.style.pointerEvents = 'none';
-        window.scrollTo({ top: 0, behavior: 'instant' });
 
 
         // Every row — including the clicked one — cascades OUT by proximity
@@ -717,6 +716,9 @@ const inlineEntries = await Promise.all(
           // over as the heading once it's revealed below.
           split.classList.add('is-detail');
           for (const r of rows) r.style.display = 'none';
+          // Scroll to the top only now, with the list hidden: the image flies
+          // from the spot it was seen in (imageFirst), not a scrolled copy.
+          window.scrollTo({ top: 0, behavior: 'instant' });
 
           detail.hidden = false;
           openRow = row;
@@ -779,7 +781,7 @@ const inlineEntries = await Promise.all(
           hero!.style.zIndex = 'var(--z-flight)';
           heroFlip = springFlip(hero!, imageFirst!, {
             spring: CHOREO.spring,
-            dip: CHOREO.dip,
+            arc: CHOREO.arc,
           });
           let subnavDone: Promise<void> = Promise.resolve();
           if (subnavRoot) {
@@ -1065,7 +1067,7 @@ const inlineEntries = await Promise.all(
           { path: ['spring', 'stiffness'], id: 'sstiff', min: 10,  max: 900, step: 10,  unit: '' },
           { path: ['spring', 'damping'],   id: 'sdamp',  min: 4,   max: 160, step: 2,   unit: '' },
           { path: ['spring', 'mass'],      id: 'smass',  min: 0.5, max: 8,   step: 0.5, unit: '' },
-          { path: ['dip'],                 id: 'dip',    min: 0,   max: 160, step: 4,   unit: 'px' },
+          { path: ['arc'],                 id: 'arc',    min: 0,   max: 0.4, step: 0.01, unit: '' },
           { path: ['preview', 'stiffness'], id: 'pstiff', min: 10,  max: 900, step: 10,  unit: '', cssVar: '--preview-stiffness' },
           { path: ['preview', 'damping'],   id: 'pdamp',  min: 4,   max: 160, step: 2,   unit: '', cssVar: '--preview-damping' },
           { path: ['preview', 'mass'],      id: 'pmass',  min: 0.5, max: 8,   step: 0.5, unit: '', cssVar: '--preview-mass' },
@@ -1135,7 +1137,7 @@ const inlineEntries = await Promise.all(
             `const CHOREO = {\n` +
             `  leadIn: ${c.leadIn},\n` +
             `  spring: { stiffness: ${c.spring.stiffness}, damping: ${c.spring.damping}, mass: ${c.spring.mass} },\n` +
-            `  dip: ${c.dip},\n` +
+            `  arc: ${c.arc},\n` +
             `  preview: { stiffness: ${c.preview.stiffness}, damping: ${c.preview.damping}, mass: ${c.preview.mass}, drift: ${c.preview.drift} },\n` +
             `  stagger: { step: ${c.stagger.step}, blur: ${c.stagger.blur}, outDuration: ${c.stagger.outDuration} },\n` +
             `  previewFollow: ${c.previewFollow},\n` +
