@@ -37,8 +37,8 @@ const prior = [
     role: "Director of Product Design",
     org: "Western Union, contract through TELUS Digital, Melbourne, Sydney, Denver and Pune",
     date: "Nov 2025 – Jun 2026",
+    summary: "Led product design for the E1 Wallet, a multicurrency digital wallet that takes Western Union from a remittance platform to a global financial product.",
     bullets: [
-      "Led product design for the E1 Wallet, a multicurrency digital wallet that takes Western Union from a remittance platform to a global financial product.",
       "Audited the AU and MX markets: about 360 screens across 34 flows. Each one was sorted as Core, Configurable or Local, so we could see where the system had drifted and set one baseline for going global.",
       "Sat inside the product, engineering and PMO team as design lead, with a say in roadmap, sprint planning and QA standards at director level.",
       "Worked with stakeholders across US, AU and India time zones on one vision for the product and its design system across markets. Fixed navigation, scroll and component inconsistencies before the Friends and Family release.",
@@ -222,6 +222,7 @@ const lastUpdated = "October 2026";
           </div>
           <span class="cv-role__date">{job.date}</span>
         </header>
+        {job.summary && <p class="cv-role__summary">{job.summary}</p>}
         {job.bullets.length > 0 && (
           <ul class="cv-role__bullets">
             {job.bullets.map((b) => <li>{b}</li>)}
@@ -244,6 +245,7 @@ const lastUpdated = "October 2026";
           </div>
           <span class="cv-role__date">{job.date}</span>
         </header>
+        {job.summary && <p class="cv-role__summary">{job.summary}</p>}
         {job.bullets.length > 0 && (
           <ul class="cv-role__bullets">
             {job.bullets.map((b) => <li>{b}</li>)}

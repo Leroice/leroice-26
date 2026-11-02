@@ -1867,6 +1867,11 @@ html.is-js:not(.revealed) [data-elastic] {
   opacity: var(--op-soft);
   white-space: nowrap;
 }
+.cv-role__summary {
+  margin: 0 0 0.9rem;
+  font-size: var(--fs-body);
+  line-height: 1.5;
+}
 .cv-role__bullets {
   list-style: none;
   margin: 0;
