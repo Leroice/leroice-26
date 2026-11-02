@@ -1106,8 +1106,9 @@ body:has(.split.is-detail) .nav {
   height: calc(2634 / 2760 * 100%);
   object-fit: cover;
   border-radius: 0;
-  /* The bezel's own screen shape, so the corners follow its curve exactly. */
-  mask: url("/images/work/space-time/iphone-screen-mask.png") center / 100% 100% no-repeat;
+  /* The bezel's own screen shape, so the corners follow its curve. The
+     island is left in the mask: the bezel draws it on top. */
+  mask: url("/images/work/space-time/iphone-screen-mask-solid.png") center / 100% 100% no-repeat;
 }
 @media (--bp-tablet) {
   /* Body collapses to a single column — prose + media share one rail. */
