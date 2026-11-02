@@ -13,7 +13,6 @@ Space/Time is a relationship app built on astrology, for people who don't know a
 
 <div class="cs-3">
   <div class="cs-iphone"><video src="/videos/work/space-time/intro.mp4" poster="/videos/work/space-time/intro-poster.webp" muted loop playsinline preload="none" data-autoplay aria-label="The opening: a star drifting through life, love and loss"></video><img src="/images/work/space-time/iphone-bezel.png" alt="" /></div>
-  <div class="cs-iphone"><video src="/videos/work/space-time/home.mp4" poster="/videos/work/space-time/home-poster.webp" muted loop playsinline preload="none" data-autoplay aria-label="Home: your chart drawn as a disc, with what is happening in the sky below it"></video><img src="/images/work/space-time/iphone-bezel.png" alt="" /></div>
   <div class="cs-iphone"><video src="/videos/work/space-time/sign.mp4" poster="/videos/work/space-time/sign-poster.webp" muted loop playsinline preload="none" data-autoplay aria-label="Flying into Gemini, where your Sun sits, then pulling up the sheet about the sign"></video><img src="/images/work/space-time/iphone-bezel.png" alt="" /></div>
 </div>
 

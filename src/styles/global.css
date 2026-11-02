@@ -1051,6 +1051,13 @@ body:has(.split.is-detail) .nav {
 }
 .detail__body .cs-mocks { grid-template-columns: repeat(4, 1fr); }
 .detail__body .cs-3 { grid-template-columns: repeat(3, 1fr); }
+/* A three-up with only two items keeps the three-up size, centred. */
+@media (min-width: 881px) {
+  .detail__body .cs-3:has(> :nth-child(2):last-child) {
+    grid-template-columns: repeat(2, calc((100% - 2rem) / 3));
+    justify-content: center;
+  }
+}
 .detail__body .cs-2 { grid-template-columns: repeat(2, 1fr); }
 /* A two-up can lead with one image across both columns: a wide image
    stacked on a pair, as one group with the grid's own gap. */
